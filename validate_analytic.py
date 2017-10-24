@@ -16,9 +16,10 @@ guess_a=1e-7#1000e5
 guess_b=0.68
 guess_c=1
 
+masscut=0.95
 
-fit_region_R = cf.get_MESA_profile_edge(MESA_file, quantity='logR', masscut=0.95,strip=False)
-fit_region_rho = cf.get_MESA_profile_edge(MESA_file, quantity='logRho', masscut=0.95 ,strip=False)
+fit_region_R = cf.get_MESA_profile_edge(MESA_file, quantity='logR', masscut=masscut,strip=False)
+fit_region_rho = cf.get_MESA_profile_edge(MESA_file, quantity='logRho', masscut=masscut ,strip=False)
 
 fit_region_R=cf.unlog(fit_region_R)
 fit_region_rho=cf.unlog(fit_region_rho)
@@ -41,37 +42,49 @@ rl=fit_region_R.min()#2.9 #from fit range to tail of MESA profile; CAN'T BE THE 
 rmax=fit_region_R.max()
 
 test_num_part=3072#16#10.0e7
-stepsize=10e-3# 10e-6
+
+
+stepsize=10e-7#10e-3# 10e-6
 test_ru=rl + stepsize
 
-mp = cf.approximate_mp(rl, test_ru, test_num_part, A, B, C)
-print "value of mp: ", mp
-
+#mp = cf.approximate_mp(rl, test_ru, test_num_part, A, B, C)
+#print "value of mp: ", mp
+mp=10e-8
 tolerance = 0.1
-shell_radii=[]
+
+N_r_dict={}
 
 shell_ru=rl
 while shell_ru < rmax:
-	shell_ru= cf.get_N_continuous(shell_ru, rmax, A, B, C, mp, stepsize, tolerance)
+	rl, shell_ru, N, r_mid= cf.get_N_continuous(shell_ru, rmax, A, B, C, mp, stepsize, tolerance)
+	#r_mid=set_R
+	#N =
 	print 'ru found: ', shell_ru
-	shell_radii.append(shell_ru)
+	
+	#shell_radii.append(shell_ru)
+	N_r_dict[rmid]=int(N)
 
-ru_full=np.arange(fit_region_R.min(),rmax,stepsize)
+dkeys=N_r_dict.keys()
+dkeys.sort()
+for key in dkeys:
+	print N_r_dict[key], key
 
 
-for r in range(len(shell_radii)):
-	rl=shell_radii[r]
-	ru_list=np.arange(rl,rmax,stepsize)
-	#plt.plot(ru_list, cf.calc_n1(cf.Mshell_from_integral(rl,ru_list,A,B,C),mp), 'g-', label='n1(ru)')
-	plt.plot(ru_list, cf.calc_n2(rl,ru_list), 'm-', label='n2($r_u$) for $r_u=$'+str(rl))
+# ru_full=np.arange(fit_region_R.min(),rmax,stepsize)
 
-plt.plot(ru_full, cf.calc_n1(cf.Mshell_from_integral(fit_region_R.min(),ru_full,A,B,C),mp), 'g-', label='n1($r_u$)')
-plt.legend(loc=3, fontsize='x-small')
-plt.xlabel("Bounding Radius $r_u$")
-plt.ylabel("$N$")
-plt.ylim(0,30)
-plt.savefig('find_intersection.png')
-plt.close()
+# for r in range(len(shell_radii)):
+# 	rl=shell_radii[r]
+# 	ru_list=np.arange(rl,rmax,stepsize)
+# 	#plt.plot(ru_list, cf.calc_n1(cf.Mshell_from_integral(rl,ru_list,A,B,C),mp), 'g-', label='n1(ru)')
+# 	plt.plot(ru_list, cf.calc_n2(rl,ru_list), 'm-', label='n2($r_u$) for $r_u=$'+str(rl))
+
+# plt.plot(ru_full, cf.calc_n1(cf.Mshell_from_integral(fit_region_R.min(),ru_full,A,B,C),mp), 'g-', label='n1($r_u$)')
+# plt.legend(loc=3, fontsize='x-small')
+# plt.xlabel("Bounding Radius $r_u$")
+# plt.ylabel("$N$")
+# plt.ylim(0,30)
+# plt.savefig('find_intersection.png')
+# plt.close()
  
 
 # plt.plot(ru_list, cf.Mshell_from_integral(rl,ru_list,A,B,C), 'g-', label='mass of shell')
