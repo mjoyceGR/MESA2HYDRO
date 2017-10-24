@@ -1,13 +1,21 @@
 #!/usr/bin/env python
-import numpy as np
-import codecs, re
-import subprocess, os
-import h5py
-import pygadgetreader as pyg
-import matplotlib.pyplot as plt
+try:
+    import numpy as np
+    import codecs, re
+    import subprocess, os
+    import h5py
+    import pygadgetreader as pyg
+    import matplotlib.pyplot as plt
+    import healpy as hp
+    import random as rand
+
+except:
+    print 'Missing module!\nThe following are required: '
+    print 'healpy\n'
+    exit(0)
 
 
-def plotter(xmaj,xmin,ymaj,ymin, xf, yf):
+def plotter(xmaj, xmin, ymaj, ymin, xf, yf):
     majorLocator_x  = MultipleLocator(xmaj)     # I want a major tick every "number"
     majorFormatter_x = FormatStrFormatter(xf)#('%1.1f')     # label these (the major ones) with a 1.2f format string
     minorLocator_x  = MultipleLocator(xmin)     # I want a minor tick every "number"
@@ -59,10 +67,6 @@ def execute_MESA():
 	except:
 		print 'MESA star execution failed'	
 	return
-
-# def myfunc(a,b, *args, **kwargs):
-#       c = kwargs.get('c', None)
-#       d = kwargs.get('d', None)
 
 
 def update_MESA_inlist_value(MESA_inlist, field, value):
@@ -142,12 +146,6 @@ def get_MESA_output_fields(filename):
 	return phys_dict
 
 
-# fname='profile175.data'#'profile175.data' #140, 32
-# MESA_file="{}".format(fname)
-# print get_MESA_output_fields(MESA_file)
-
-
-
 def get_columns(filename,keyname_list):
     phys_dict=get_MESA_output_fields(filename)
     column_dict={}
@@ -158,7 +156,6 @@ def get_columns(filename,keyname_list):
         except:
             print show_allowed_MESA_keywords(readfile)
     return column_dict
-
 
 
 def get_key(filename,keyname):
@@ -191,35 +188,95 @@ def show_allowed_MESA_keywords(readfile):
         fstr=fstr+str(i) +'\n'
     return fstr#get_MESA_output_fields(readfile).keys()
 
+###########################################################################
+#
+# healpix
+#
+############################################################################
+def get_coords(NSIDE,file_index):
+    n=file_index
+    outf=open('healpix_to_gadget_shell_' + str(n) + '.dat','w')
+    ipix_array=np.arange(hp.nside2npix(NSIDE)) #this is just a straight up array of particle IDs
+    x=[]
+    y=[]
+    z=[]
+    for i in range(len(ipix_array)):
+        ipix=ipix_array[i]
+        coord=hp.pixelfunc.pix2vec(NSIDE, ipix, nest=True)
+        print >> outf, coord[0], coord[1], coord[2]
+        x.append(coord[0])
+        y.append(coord[1])
+        z.append(coord[2])
+    outf.close()
+    print 'file healpix_to_gadget_shell_', str(n), '.dat generated'
+    return x, y, z
+
+
+def rotate_shell(single_x,single_y,single_z, theta):
+    vec=np.matrix([ [single_x], [single_y], [single_z]])
+
+    Rx=np.matrix( [\
+    [1.0, 0.0, 0.0],\
+    [0, np.cos(theta), -np.sin(theta)],\
+    [0, np.sin(theta), np.cos(theta)]\
+    ])
+
+    Ry=np.matrix( [\
+    [np.cos(theta), 0.0, np.sin(theta)],\
+    [0.0, 1.0, 0.0],\
+    [-np.sin(theta), 0.0, np.cos(theta)]\
+    ])
+
+    Rz=np.matrix( [\
+    [np.cos(theta), -np.sin(theta), 0.0],\
+    [np.sin(theta), np.cos(theta), 0.0],\
+    [0.0, 0.0, 1.0]\
+    ])
+
+    xnew=Rx*vec
+    ynew=Ry*vec
+    znew=Rz*vec
+    return xnew,ynew,znew
+
+def to_rad(theta):
+    theta=theta*np.pi/180.0
+    return theta
+
+def random_theta():
+    theta=rand.random()*2.0*np.pi #.random gives random float between 0 and 1
+    #theta=rand.randrange(0.0, 2*np.pi, 0.01)
+    return theta
+
+
 
 ##########################################################################
 
-def fit_MESA_density_profile(readfile):
-    Rsolar=6.955*10.0**10.0 #cm
-    try:
-        logr=get_quantity(readfile,'logR')
-        logrho=get_quantity(readfile,'logRho')
-    except:
-        print show_allowed_MESA_keywords(readfile)      
+# def fit_MESA_density_profile(readfile):
+#     Rsolar=6.955*10.0**10.0 #cm
+#     try:
+#         logr=get_quantity(readfile,'logR')
+#         logrho=get_quantity(readfile,'logRho')
+#     except:
+#         print show_allowed_MESA_keywords(readfile)      
 
-    radius=[]
-    for i,p in enumerate(logr):
-        try:
-            radius.append(10.0**float(p))
-        except:
-            #logrho=list(logrho)
-            #del logrho[i]
-            radius.append(0.0)
-    rho=[]
-    for j,q in enumerate(logrho):
-        try:
-            rho.append(10.0**float(q))
-        except:
-            #logr=list(logr)
-            #del logr[i]
-            rho.append(0.0)
-    radius = [Rsolar*r for r in radius]         
-    return rho, radius
+#     radius=[]
+#     for i,p in enumerate(logr):
+#         try:
+#             radius.append(10.0**float(p))
+#         except:
+#             #logrho=list(logrho)
+#             #del logrho[i]
+#             radius.append(0.0)
+#     rho=[]
+#     for j,q in enumerate(logrho):
+#         try:
+#             rho.append(10.0**float(q))
+#         except:
+#             #logr=list(logr)
+#             #del logr[i]
+#             rho.append(0.0)
+#     radius = [Rsolar*r for r in radius]         
+#     return rho, radius
 
 
 
