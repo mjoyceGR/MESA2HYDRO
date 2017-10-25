@@ -193,20 +193,13 @@ def show_allowed_MESA_keywords(readfile):
 # healpix
 #
 ############################################################################
-def get_coords(N,r_mid):#,file_index):
+def get_coords(N,r_mid, rmax):#,file_index):
+    r_mid=float(r_mid); rmax=float(rmax)
     ##Need N to be (4) 8 or 16, and must change mp per shell to maintain that, probably
-
-    nside = N #closest power of 2 to N
-    # npix = 12*nside**2.0, where nside must be a power of 2...?
-
-    npix = 12*nside**2.0 ## um OK where does this 12 go?
-
-    NSIDE=hp.npix2nside(npix)    
-    print "determined NSIDE: ",  NSIDE
+    NSIDE = N #closest power of 2 to N
+    NSIDE=int(NSIDE)
 
     theta=random_theta()
-    #n=file_index
-    #outf=open('healpix_to_gadget_shell_' + str(n) + '.dat','w')
     ipix_array=np.arange(hp.nside2npix(NSIDE)) #this is just a straight up array of particle IDs
     x=[]
     y=[]
@@ -214,20 +207,38 @@ def get_coords(N,r_mid):#,file_index):
     for i in range(len(ipix_array)):
         ipix=ipix_array[i]
         coord=hp.pixelfunc.pix2vec(NSIDE, ipix, nest=True)
-        print >> outf, coord[0], coord[1], coord[2]
+        #print >> outf, coord[0], coord[1], coord[2]
         x.append(coord[0])
         y.append(coord[1])
         z.append(coord[2])
-    #outf.close()
-    #print 'file healpix_to_gadget_shell_', str(n), '.dat generated'
-    x = r_mid*x*theta
-    y = r_mid*y*theta
-    z = r_mid*z*theta#
-    return x, y, z
+
+    # no fam this rotate shell thing is some serious math
+    xd, yd, zd = rotate_shell(x,y,z,theta,"about_z")
+    xe, ye, ze = rotate_shell(xd,yd,zd,theta,"about_y")
+    xf, yf, zf = rotate_shell(xe,ye,ze,theta,"about_x")
+
+    xf = np.array(xf).astype(float)
+    yf = np.array(yf).astype(float)
+    zf = np.array(zf).astype(float)
+
+    xf = to_physical(xf, r_mid/rmax)
+    yf = to_physical(yf, r_mid/rmax)
+    zf = to_physical(zf, r_mid/rmax)
+
+    xf = np.array(xf).astype(float)
+    yf = np.array(yf).astype(float)
+    zf = np.array(zf).astype(float)
+
+    #print "x: ",xf, "\n\ny: ", yf, "\n\nz: ",zf
+    return xf.flatten(), yf.flatten(), zf.flatten()
 
 
-def rotate_shell(single_x,single_y,single_z, theta):
-    vec=np.matrix([ [single_x], [single_y], [single_z]])
+def to_physical(xq, r_mid):
+    xf = [ (r_mid*x_i) for x_i in xq]
+    return xf
+
+def rotate_shell(x_array, y_array, z_array, theta, direction, **kwargs):
+    vec=np.array( [x_array, y_array, z_array])
 
     Rx=np.matrix( [\
     [1.0, 0.0, 0.0],\
@@ -247,19 +258,43 @@ def rotate_shell(single_x,single_y,single_z, theta):
     [0.0, 0.0, 1.0]\
     ])
 
-    xnew=Rx*vec
-    ynew=Ry*vec
-    znew=Rz*vec
-    return xnew,ynew,znew
+    if str(direction) == "about_z":
+        new=Rz*vec
+    elif str(direction) == "about_y":
+        new=Ry*vec
+    else:
+        new=Rx*vec
+
+    new_x=np.array(new[0].transpose()).astype(float)
+    new_y=np.array(new[1].transpose()).astype(float)
+    new_z=np.array(new[2].transpose()).astype(float)
+
+    return new_x, new_y, new_z
+
+def random_theta():
+    theta=rand.random()*2.0*np.pi #.random gives random float between 0 and 1
+    return theta
+
+
+# x_array=np.array([3,3,3,3])
+# y_array = 2.0+0.0*x_array
+# z_array = 5.0+0.0*x_array
+
+# x,y,z=rotate_shell(x_array,y_array,z_array, random_theta())
+
+# print "\none column? x: ", x
+# print "\nx[0]:", x[0]
+# print "\nwhat? x[0][0]:", x[0][0]
+
+# for i in range(len(x)):
+#     print "array[i] etc: ", np.sqrt(x_array[i]**2.0+y_array[i]**2.0+z_array[i]**2.0)
+#     print "x[i] etc", np.sqrt(x[i]**2.0 + y[i]**2.0 + z[i]**2.0)
+
 
 def to_rad(theta):
     theta=theta*np.pi/180.0
     return theta
 
-def random_theta():
-    theta=rand.random()*2.0*np.pi #.random gives random float between 0 and 1
-    #theta=rand.randrange(0.0, 2*np.pi, 0.01)
-    return theta
 
 
 
@@ -274,7 +309,9 @@ def write_IC_binary(out_fname):
     return
 
 
-def make_IC_hdf5(out_fname, mp, coord_file, **kwargs):
+#def make_IC_hdf5(out_fname, mp, coord_file, **kwargs):
+#x,y,z=np.loadtxt(coord_file, usecols=(0,1,2), unpack=True)
+def make_IC_hdf5(out_fname, mp, x, y, z, **kwargs):    
     ## from kwargs choose either hdf5 or binary, when I feel like doing this
     fname=out_fname
     Lbox = 1.0                  # box side length
@@ -284,10 +321,7 @@ def make_IC_hdf5(out_fname, mp, coord_file, **kwargs):
     dust_to_gas_ratio = 0.01    # mass ratio of collisionless particles to gas
     gamma_eos = 5./3.           # polytropic index of ideal equation of state the run will assume
     
-    x,y,z=np.loadtxt(healpix_file, usecols=(0,1,2), unpack=True)
-
     Ngas = len(x)#xv_g.size
-    #print "Ngas: ",  Ngas
 
     x=x*Lbox                    #positions
     y=y*Lbox 
@@ -304,14 +338,14 @@ def make_IC_hdf5(out_fname, mp, coord_file, **kwargs):
     mv_g=mp + 0.*x              #particle mass
     U=P_desired/((gamma_eos-1.)*rho_desired)    #internal energy 
     id_g=np.arange(1,Ngas+1)    #particle IDs
-    
-    xv_d,yv_d,zv_d=np.loadtxt(healpix_file, usecols=(0,1,2), unpack=True)
-    print "len(x_vd) loaded from healpix: ", len(xv_d)
+
+    xv_d=x
+    yv_d=y
+    zy_d=z
 
     Ngrains=int(len(xv_d)) #length of arrays loaded from healpix
     print Ngrains, type(Ngrains)
     ###only pick one of Ngrains / Ngas because we only want one particle type
-
 
     # set the IDs: these must be unique, so we start from the maximum gas ID and go up
     id_d = np.arange(Ngas+1,Ngrains+Ngas+1)
@@ -345,7 +379,9 @@ def make_IC_hdf5(out_fname, mp, coord_file, **kwargs):
     h.attrs['Flag_Feedback'] = 0; # flag indicating whether some parts of springel-hernquist model are active
     h.attrs['Flag_DoublePrecision'] = 0; # flag indicating whether ICs are in single/double precision
     h.attrs['Flag_IC_Info'] = 0; # flag indicating extra options for ICs
+
     p = file.create_group("PartType0")
+
     q=np.zeros((Ngas,3)); q[:,0]=x; q[:,1]=y; q[:,2]=z;
     p.create_dataset("Coordinates",data=q)
     q=np.zeros((Ngas,3)); q[:,0]=vx; q[:,1]=vy; q[:,2]=vz;

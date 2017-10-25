@@ -1,14 +1,13 @@
 #!/usr/bin/env python
 import numpy as np
-# import os
-# import sys
-# import math
 import matplotlib.pyplot as plt
-# import hdf5lib ## 9/5/17
-# import read_write_HDF5 as rw
-# import h5py
 import MESAlibjoyce as MJ
 import converge_funcs as cf
+
+
+run=False
+
+
 
 fname='profile140.data' #140, 32
 MESA_file="{}".format(fname)
@@ -37,37 +36,65 @@ plt.ylabel("density (unlogged)")
 plt.savefig('fit_region.png')
 plt.close()	
 
-
 rl=fit_region_R.min()#2.9 #from fit range to tail of MESA profile; CAN'T BE THE SAME AS ru[0] or log will freak out
 rmax=fit_region_R.max()
 
-test_num_part=3072#16#10.0e7
 
-
-stepsize=10e-7#10e-3# 10e-6
+stepsize=10e-6#10e-3# 10e-6
 test_ru=rl + stepsize
-
-#mp = cf.approximate_mp(rl, test_ru, test_num_part, A, B, C)
-#print "value of mp: ", mp
 mp=10e-8
-tolerance = 0.1
+if run:
+	N_r_dict={}
 
-N_r_dict={}
+	shell_ru=rl
+	while shell_ru < rmax:
+		rl, shell_ru, rmid, N= cf.get_N_continuous(shell_ru, rmax, A, B, C, mp, stepsize)
+		N_r_dict[rmid]=int(N)
 
-shell_ru=rl
-while shell_ru < rmax:
-	rl, shell_ru, N, r_mid= cf.get_N_continuous(shell_ru, rmax, A, B, C, mp, stepsize, tolerance)
-	#r_mid=set_R
-	#N =
-	print 'ru found: ', shell_ru
-	
-	#shell_radii.append(shell_ru)
-	N_r_dict[rmid]=int(N)
+	dkeys=N_r_dict.keys()
+	dkeys.sort()
+	for key in dkeys:
+		print N_r_dict[key], key
+		NSIDE= N_r_dict[key]
 
-dkeys=N_r_dict.keys()
-dkeys.sort()
-for key in dkeys:
-	print N_r_dict[key], key
+#N = 7+0*N
+N,r=np.loadtxt('test_N_r.dat', usecols=(0,1), unpack=True)
+
+test=[0]#np.arange(0,200,5)
+
+super_x=[]
+super_y=[]
+super_z=[]
+out_fname='test.hdf5'
+for i in range(len(N)):
+	print N[i], r[i]#N_r_dict[key], key
+
+	NSIDE= N[i]+1#N_r_dict[key]
+	r_mid= r[i]#key
+
+	x,y,z=MJ.get_coords(NSIDE,r_mid, rmax) #now rmax included in coord function
+
+	print "\nshould be: ", r_mid, "\tr_mid/rmax: ",r_mid/rmax,\
+	"\nis: ", np.sqrt(x[test]**2.0 + y[test]**2.0  + z[test]**2.0)#,\
+	#"\n\nlen(super_x): ", len(super_x)
+	#print x
+
+	super_x=super_x+list(x)#np.array(x).astype(float)
+	super_y=super_y+list(y)#np.array(y).astype(float)
+	super_z=super_z+list(z)#np.array(z).astype(float)
+	#print "len(super_x): ", len(super_x)
+
+print len(super_x), type(super_x)
+##super_x, 
+
+super_x=np.array(super_x).astype(float)
+super_y=np.array(super_y).astype(float)
+super_z=np.array(super_z).astype(float)
+
+out_fname='multi_shell_test.hdf5'
+var=MJ.make_IC_hdf5(out_fname, mp, super_x, super_y, super_z)
+print var, type(var)
+
 
 
 # ru_full=np.arange(fit_region_R.min(),rmax,stepsize)
