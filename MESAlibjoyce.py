@@ -1,21 +1,24 @@
 #!/usr/bin/env python
-try:
-    import numpy as np
-    import codecs, re
-    import subprocess, os
-    import h5py
-    import pygadgetreader as pyg
-    import matplotlib.pyplot as plt
-    import healpy as hp
-    import random as rand
+#try:
+import numpy as np
+import codecs, re
+import subprocess, os
+import h5py
+import pygadgetreader as pyg
+import matplotlib.pyplot as plt
+from matplotlib.ticker import MultipleLocator, FormatStrFormatter 
+import healpy as hp
+import random as rand
+#except:
+#    print 'Missing module!\nThe following are required: '
+#    print 'healpy\n'
+#   exit(0)
 
-except:
-    print 'Missing module!\nThe following are required: '
-    print 'healpy\n'
-    exit(0)
 
+def plotter(xmaj, xmin, ymaj, ymin,**kwargs):
+    xf = kwargs.get('xf', '%1.1f')
+    yf = kwargs.get('yf', '%1.1f')
 
-def plotter(xmaj, xmin, ymaj, ymin, xf, yf):
     majorLocator_x  = MultipleLocator(xmaj)     # I want a major tick every "number"
     majorFormatter_x = FormatStrFormatter(xf)#('%1.1f')     # label these (the major ones) with a 1.2f format string
     minorLocator_x  = MultipleLocator(xmin)     # I want a minor tick every "number"
@@ -131,19 +134,32 @@ def strip_MESA_header(in_filename, out_filename, *args, **kwargs):
 	return  thefile, outfn
 
 def get_MESA_output_fields(filename):
-	inf=open(filename,'r')
-	for line in inf:
-		# not robust but whatever for now
-		if "zone" in line and "num_zones" not in line:
-			try:
-				p=line.split()
-			except:
-			 	pass
-	phys_dict={}		 	
-	for i,v in enumerate(p):
-		phys_dict[str(v)]=i#-1 	#wow fucking damn if this was the problem 
+    inf=open(filename,'r')
+    for line in inf:
+        #print "for line in inf"
+        # not robust but whatever for now
+        #try:
+            #print "in try catch"
+        if "zone" in line and "num_zones" not in line:
+            #try:
+            p=line.split()
+            #except:
+            #    strip_MESA_header(filename,filename)
+            #    p=line.split()
+        #except:
+        else:
+            #print "history"
+            if 'model_number' in line:                    
+                #try:
+                p=line.split()
+                #except:
+                #    strip_MESA_header(filename,filename)
+                #    p=line.split()
+    phys_dict={}		 	
+    for i,v in enumerate(p):
+        phys_dict[str(v)]=i#-1 	#wow fucking damn if this was the problem 
         #yes, it was. 
-	return phys_dict
+    return phys_dict
 
 
 def get_columns(filename,keyname_list):
@@ -311,7 +327,7 @@ def write_IC_binary(out_fname):
 
 #def make_IC_hdf5(out_fname, mp, coord_file, **kwargs):
 #x,y,z=np.loadtxt(coord_file, usecols=(0,1,2), unpack=True)
-def make_IC_hdf5(out_fname, mp, x, y, z, **kwargs):    
+def make_IC_hdf5(out_fname, mp, x, y, z, rho,**kwargs):    
     ## from kwargs choose either hdf5 or binary, when I feel like doing this
     fname=out_fname
     Lbox = 1.0                  # box side length
@@ -326,6 +342,8 @@ def make_IC_hdf5(out_fname, mp, x, y, z, **kwargs):
     x=x*Lbox                    #positions
     y=y*Lbox 
     z=z*Lbox; 
+
+    rho=rho
 
     vx=0.*x                     #3D velocities
     vy=0.*y                     
@@ -384,14 +402,20 @@ def make_IC_hdf5(out_fname, mp, x, y, z, **kwargs):
 
     q=np.zeros((Ngas,3)); q[:,0]=x; q[:,1]=y; q[:,2]=z;
     p.create_dataset("Coordinates",data=q)
+    
     q=np.zeros((Ngas,3)); q[:,0]=vx; q[:,1]=vy; q[:,2]=vz;
     p.create_dataset("Velocities",data=q)
+    
     p.create_dataset("ParticleIDs",data=id_g)
     p.create_dataset("Masses",data=mv_g)
     uv_g = U + 0.*xv_d#
     p.create_dataset("InternalEnergy",data=uv_g)
     q=np.zeros((Ngas,3)); q[:,0]=bx; q[:,1]=by; q[:,2]=bz;
+    
     p.create_dataset("MagneticField",data=q)
+
+    #q=
+    p.create_dataset("Density",data=rho)
 
     # no PartType1 for this IC
     # no PartType2 for this IC
