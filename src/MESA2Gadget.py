@@ -10,7 +10,7 @@ import matplotlib.pyplot as plt
 try:
 	import healpy as hp
 	# import hdf5lib ## 9/5/17
-	# import read_write_HDF5 as rw
+	import read_write_HDF5 as rw
 	# import h5py
 	import pygadgetreader as pgr
 	import MESAlibjoyce as MJ
@@ -44,11 +44,11 @@ for i in range(len(ipix_array)):
 #print x, y, z
 
 ##just plots
-# new_particles=hp.pixelfunc.vec2pix(NSIDE, x, y, z, nest=True)
-# #hp.mollview(particle_IDs, nest=True, title="Mollview image NESTED")
-# hp.mollview(new_particles, nest=True, title='coordinate form')
-# plt.savefig('mollview_nest_w_coords.png')
-# plt.close()
+new_particles=hp.pixelfunc.vec2pix(NSIDE, x, y, z, nest=True)
+#hp.mollview(particle_IDs, nest=True, title="Mollview image NESTED")
+hp.mollview(new_particles, nest=True,title='')#, title='coordinate form')
+plt.savefig('healpix.png')
+plt.close()
 
 
 readfile='/home/meridith/UCT_SAAO/detached_shells/profile99.data'

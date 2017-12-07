@@ -194,7 +194,7 @@ def get_quantity(readfile,keyname):
     keyname=str(keyname)
     keyname_list=get_MESA_output_fields(readfile).keys()
     column_dict=get_columns(readfile,keyname_list)
-    quantity=np.array(column_dict.get(keyname)).astype(float)
+    quantity=np.array(column_dict.get(keyname))# NO WRONG .astype(float)
     return quantity
 
 
@@ -312,7 +312,8 @@ def to_rad(theta):
     return theta
 
 
-
+def to_array(array):
+    return np.array(array).astype(np.float)
 
 #######################################################################
 #
@@ -327,8 +328,10 @@ def write_IC_binary(out_fname):
 
 #def make_IC_hdf5(out_fname, mp, coord_file, **kwargs):
 #x,y,z=np.loadtxt(coord_file, usecols=(0,1,2), unpack=True)
-def make_IC_hdf5(out_fname, mp, x, y, z, rho,**kwargs):    
+def make_IC_hdf5(out_fname, mp, x, y, z,rho,**kwargs):    
     ## from kwargs choose either hdf5 or binary, when I feel like doing this
+    userho=kwargs.get("userho",False)
+
     fname=out_fname
     Lbox = 1.0                  # box side length
     rho_desired = 1.0           # box average initial gas density
@@ -336,14 +339,17 @@ def make_IC_hdf5(out_fname, mp, x, y, z, rho,**kwargs):
     vgrainrms=0.0               # mjoyce- for me, all particles stationary bc star
     dust_to_gas_ratio = 0.01    # mass ratio of collisionless particles to gas
     gamma_eos = 5./3.           # polytropic index of ideal equation of state the run will assume
-    
+    #temp = 
+
     Ngas = len(x)#xv_g.size
 
     x=x*Lbox                    #positions
     y=y*Lbox 
     z=z*Lbox; 
 
-    rho=rho
+    if userho:
+        print 'using rho'
+        rho=rho
 
     vx=0.*x                     #3D velocities
     vy=0.*y                     
@@ -410,12 +416,16 @@ def make_IC_hdf5(out_fname, mp, x, y, z, rho,**kwargs):
     p.create_dataset("Masses",data=mv_g)
     uv_g = U + 0.*xv_d#
     p.create_dataset("InternalEnergy",data=uv_g)
+   
+
     q=np.zeros((Ngas,3)); q[:,0]=bx; q[:,1]=by; q[:,2]=bz;
     
     p.create_dataset("MagneticField",data=q)
 
-    #q=
-    p.create_dataset("Density",data=rho)
+    #### NO! DO NOT FORCE THIS!!
+    if userho:
+        print "creating density data set"
+        p.create_dataset("Density",data=rho)
 
     # no PartType1 for this IC
     # no PartType2 for this IC
