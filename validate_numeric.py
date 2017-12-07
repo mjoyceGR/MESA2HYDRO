@@ -1,115 +1,168 @@
 #!/usr/bin/env python
 import numpy as np
 import matplotlib.pyplot as plt
-import converge_funcs as cf
 import MESAlibjoyce as MJ
+import converge_funcs as cf
+import read_write_HDF5 as rw
 
-#############################################################################
-#
-# numerical 
-#
-##############################################################################
+import time
+start_time = time.time()
 
-fname='profile175.data'#'profile175.data' #175, 140, 32
+#-------------------
+Rsolar = 6.955e10 #[cgs]
+Msolar= 2.0e30 #[kg]
+Msolar_cgs= 2.0e33 #[cgs]
+#----------------
+
+
+run=True
+#run=True
+#make_hdf5=False
+make_hdf5=True
+
+fname='profile140.data' #140, 32
 MESA_file="{}".format(fname)
+guess_a=1e-7#1000e5
+guess_b=0.68
+guess_c=1
 
 masscut=0.95
 
-#mass cut is what does it.
-r_array = cf.get_MESA_profile_edge(MESA_file, quantity='logR', masscut=masscut, strip=False)
-M_array = cf.get_MESA_profile_edge(MESA_file, quantity='mass', masscut=masscut, strip=False)
-fit_region_rho = cf.get_MESA_profile_edge(MESA_file, quantity='logRho', masscut=0.95 ,strip=False)
-
-r_array=cf.unlog(r_array)
+fit_region_R = cf.get_MESA_profile_edge(MESA_file, quantity='logR', masscut=masscut,strip=False)
+fit_region_rho = cf.get_MESA_profile_edge(MESA_file, quantity='logRho', masscut=masscut ,strip=False)
+fit_region_R=cf.unlog(fit_region_R)
 fit_region_rho=cf.unlog(fit_region_rho)
 
-rl=r_array.min()
-rmax = r_array.max() 
+
+A,B,C,y_func=cf.get_curve(fit_region_R,fit_region_rho,guess_a,guess_b,guess_c)
+
+fit= r"g(y) = %s [1/(x + %s)] + %s"%(A, B, C)
+#fit=r"analytical fit $g(y)$ = %s [1/($r$ + %s)] + %s"%(4.9,60.9,-11)
+
+#print "type of fit_region_R: ", type(fit_region_R)
+analytic_rho=y_func(fit_region_R)
 
 
-#weirdn=8.0
-#n_p_initial=12.0*weirdn**2.0 #3072 #72#3072#100,000 
+rl=fit_region_R.min()#2.9 #from fit range to tail of MESA profile; CAN'T BE THE SAME AS ru[0] or log will freak out
+rmax=fit_region_R.max()
+
+saveNR="saveNR_03.dat"
 
 
-#first_mp=cf.get_first_mp(MESA_file, n_p_initial)
-#first_mp=1e-8
+########################
+#
+# working: stepsize=10e-6
+# masscut=0.91
+# mp=10e-6
+# force_N=64
+#
+########################
 
-# no. Np isn't physical. Mp is.
+stepsize=10e-3
+mp=10e-6
+force_N=16
 
-mp=1e-8#cf.get_mp_given_N(r_array, M_array, n_p_initial)
-
-
-stepsize=10e-6#0.001#
-
-#to get N to go down by a factor of 10, probably decrease step size by factor of 10
-
-#mp=1e-5#first_mp#1e-05#
-
-
-
-print "\nmp: ", mp#, " first np: ", n_p_initial
-ru = rl + stepsize
+test_ru=rl + stepsize
 
 
-N_r_dict={}
-while ru < rmax:
-	new_vals= cf.get_N(r_array, M_array, ru, ru, mp, stepsize) 
-	try:
-		rl=new_vals[0]
-	except TypeError:
-		print '\n\nRoutine terminated\n\n'
-		break	
-	ru=new_vals[1]
-	rmid=new_vals[2]
-	N=new_vals[3]
-	n_p=new_vals[4]
+hdf5file='mp'+str(mp)+ '_ss' +str(stepsize)+ '.hdf5'#'lowerN.0.hdf5'
 
-	#shell_radii_vals.append()
-	N_r_dict[rmid]=int(N)
+#---------------------------------------------------------------
+if run:
+	outf=open(saveNR,"w")
+	N_r_dict={}
+	shell_ru=rl
+	while shell_ru < rmax:
+		rl, shell_ru, rmid, N= cf.get_N_continuous(shell_ru, rmax, A, B, C, mp, stepsize)
+		N_r_dict[rmid]=int(N)
+		print >> outf, N, rmid, rl, shell_ru
 
-	#print rl,'\t',ru, "\t", N, "\t", n_p, "\t", mp, "\t", stepsize
-#outf.close()
-#print 'profile data generated in file', filename
-
-# cf.do_converge(MESA_file, r_array, M_array, n_p_initial,stepsize,\
-# outputfile='test_vals_after_overhaul.dat', mp=1e-5)#0.000102319572081 )#)0.1)
-# ## making it pick "mp" with my estimator is definitely breaking this
+	outf.close()
 
 
-dkeys=N_r_dict.keys()
-dkeys.sort()
+N,rmid, rl_list, ru_list=np.loadtxt(saveNR, usecols=(0,1,2,3), unpack=True)
 
-super_x=[]
-super_y=[]
-super_z=[]
-out_fname='test.hdf5'
-for key in dkeys:
-	print N_r_dict[key], key
+if make_hdf5:
+	N=force_N + 0.*N
+	test=[0]
+	super_x=[]
+	super_y=[]
+	super_z=[]
 
-	NSIDE= N_r_dict[key]
-	r_mid= key
+	super_rho=[] #pull out rough density associated with radii that were saved in 
+	#NEED TO GET THIS DIRECTLY FROM MESA
 
-	x,y,z=MJ.get_coords(NSIDE,r_mid)
+	for i in range(len(N)):
+		print N[i], rmid[i]#N_r_dict[key], key
 
-	#for i in range(len(x)):
-	print "should be: ", r_mid, " is: ", x[3]**2.0 + y[3]**2.0  + z[3]**2.0
-	super_x=super_x+x
-	super_y=super_y+y
-	super_z=super_z+z 
-	print "len(super_x): ", len(super_x)
+		NSIDE= N[i]#+1#N_r_dict[key]
+		r_mid= rmid[i]#key
 
-
-
-#healpix_file='healpix_to_gadget_shell_1.dat'
+		######## THIS IS THE WHOLE THING THAT DETERMINES WHETHER IT'S ANALYTIC OR NUMERICAL
+		found_rho_idx=np.where( (r_mid>fit_region_R-2) & (r_mid<fit_region_R+2) )[0]
+		found_rho=np.average( fit_region_rho[found_rho_idx])
 
 
-# coord_file='combined.dat'
+		x,y,z=MJ.get_coords(NSIDE,r_mid, rmax) #now rmax included in coord function
+		rho =found_rho+0.0*x
 
-# mp=1e-8
+		print "\nshould be: ", r_mid, "\tr_mid/rmax: ",r_mid/rmax,\
+		"\tis: ", np.sqrt(x[test]**2.0 + y[test]**2.0  + z[test]**2.0),\
+		"\t with rho: ", rho[test]
+		#"\n\nlen(super_x): ", len(super_x)
+		#print x
 
-# var=MJ.make_IC_box_hdf5(out_fname,mp, coord_file)
-# print var
-# print type(var)
+		super_x=super_x+list(x)
+		super_y=super_y+list(y)
+		super_z=super_z+list(z)
+		super_rho = super_rho+list(rho)
+
+	print len(super_x), type(super_x)
+
+
+	super_x=MJ.to_array(super_x)
+	super_y=MJ.to_array(super_y)
+	super_z=MJ.to_array(super_z)
+	super_rho=MJ.to_array(super_rho)
+
+	out_fname=hdf5file
+	var=MJ.make_IC_hdf5(out_fname, mp, super_x, super_y, super_z, super_rho, userho=True)
+	print var, type(var)
+
+hdf5_file=hdf5file 
+PartType=0
+
+density=rw.read_block_single_file(hdf5_file,"Density",PartType)[0][:]
+#temp = rw.read_block_single_file(hdf5_file, "Temperature",PartType)[0][:]
+
+x=rw.read_block_single_file(hdf5_file,"Coordinates",PartType)[0][:][:,0]
+y=rw.read_block_single_file(hdf5_file,"Coordinates",PartType)[0][:][:,1]
+z=rw.read_block_single_file(hdf5_file,"Coordinates",PartType)[0][:][:,2]
+r= np.sqrt(x**2.0 + y**2.0 + z**2.0)*rmax
 
 
 
+#numeric_healpix = 
+#print "numeric_healpix: ", numeric_healpix
+
+
+plt.plot(fit_region_R, fit_region_rho, "b.", markersize=2, label='MESA data')
+plt.plot(fit_region_R, analytic_rho,"y-", linewidth=2, label="Analytic fit")
+
+#plt.plot(r, analytic_healpix,'k--',linewidth=0.5,label='Profile returned from HEALPix')
+# DON'T NEED A HEALPIX VALIDATOR IN THIS CASE and also I have no idea how to make one; 
+# the devations should be captured in the HDF5 file
+
+plt.plot(r, density, 'ms', markersize=3,label='Profile returned from GADGET2')
+
+
+
+
+plt.legend(loc=1, fontsize='small')
+plt.xlabel(r'$R_{\odot}$')
+plt.ylabel(r'$\rho$')
+plt.savefig('NUMERIC_rho_v_r_Gadget_hdf5.png')
+plt.close()
+
+print "execution length: "
+print("--- %s seconds ---" % (time.time() - start_time))
