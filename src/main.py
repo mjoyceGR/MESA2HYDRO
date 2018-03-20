@@ -3,10 +3,20 @@ import numpy as np
 import matplotlib.pyplot as plt
 import MESAlibjoyce as MJ
 import converge_funcs as cf
-import read_write_HDF5 as rw
+#import read_write_HDF5 as rw
+import io_lib as rw
+
 
 import time
 start_time = time.time()
+
+
+#########################
+#
+# copied from validate_numeric
+#
+##########################
+
 
 #-------------------
 Rsolar = 6.955e10 #[cgs]

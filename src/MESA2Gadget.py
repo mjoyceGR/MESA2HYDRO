@@ -7,18 +7,20 @@ import matplotlib.pyplot as plt
 
 
 # moment of truth 9/22/17
-try:
-	import healpy as hp
-	# import hdf5lib ## 9/5/17
-	import read_write_HDF5 as rw
-	# import h5py
-	import pygadgetreader as pgr
-	import MESAlibjoyce as MJ
+#try:
+import healpy as hp
+# import hdf5lib ## 9/5/17
+#import read_write_HDF5 as rw
+import io_lib as rw
+# import h5py
+#import pygadgetreader as pgr
+#import io_lib as pgr
+import MESAlibjoyce as MJ
 
-except:
-	print 'Missing module!\nThe following are required: '
-	print 'healpy\nhdf5lib\nread_write_HDF5\nh5py\npygadgetreader\nMESAlibjoyce'
-	exit(0)
+# except:
+# 	print 'Missing module!\nThe following are required: '
+# 	print 'healpy\nhdf5lib\nread_write_HDF5\nh5py\npygadgetreader\nMESAlibjoyce'
+# 	exit(0)
 
 
 
@@ -81,7 +83,7 @@ logRho=np.array(column_dict.get('logRho'))
 #"RHO ":["Density",1],
 #
 #########################
-hdf5_file='snapshot_010.hdf5'
+hdf5_file='../data/snapshot_010.hdf5'
 density=rw.read_block_single_file(hdf5_file,"Density",1)[0][:]
 #temp = rw.read_block_single_file(hdf5_file, "Temperature",)[0][:]
 

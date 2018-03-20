@@ -4,7 +4,7 @@ import numpy as np
 import codecs, re
 import subprocess, os
 import h5py
-import pygadgetreader as pyg
+#import pygadgetreader as pyg
 import matplotlib.pyplot as plt
 from matplotlib.ticker import MultipleLocator, FormatStrFormatter 
 import healpy as hp
@@ -321,9 +321,9 @@ def to_array(array):
 #
 #######################################################################
 
-def write_IC_binary(out_fname):
-    print "pyg: ",pyg
-    return
+# def write_IC_binary(out_fname):
+#     print "pyg: ",pyg
+#     return
 
 
 #def make_IC_hdf5(out_fname, mp, coord_file, **kwargs):

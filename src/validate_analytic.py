@@ -21,7 +21,7 @@ run=True
 #make_hdf5=False
 make_hdf5=True
 
-fname='profile140.data' #140, 32
+fname='../data/profile140.data' #140, 32
 MESA_file="{}".format(fname)
 guess_a=1e-7#1000e5
 guess_b=0.68
@@ -55,7 +55,7 @@ analytic_rho=y_func(fit_region_R)
 rl=fit_region_R.min()#2.9 #from fit range to tail of MESA profile; CAN'T BE THE SAME AS ru[0] or log will freak out
 rmax=fit_region_R.max()
 
-saveNR="saveNR_03.dat"
+saveNR="../out/saveNR_03.dat"
 
 ########################
 #
