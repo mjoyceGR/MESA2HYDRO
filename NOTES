@@ -10,8 +10,28 @@ niche:
 	import MESAlibjoyce as MJ
 
 
-Know-to-work test case for integrator:
+Known-to-work test case for integrator:
 	n_p=10,000
 	stepsize=0.0001
 
 	within 5 minutes, on file profile140.data (include?)
+
+________________________________________________________________________
+what I've had to do after getting a new computer to get this to work again
+
+-sudo pip install h5py (requires that pip exists and is working)
+-error: no module named pygadget reader--- I have uncommented this in MESAjoycelib.py and am hoping to remove dependence on it entirely
+-sudo pip install healpy
+
+ok, can execute "validate_analytic.py" in src
+can also execute "validate_numeric.py" in src
+
+
+esssential:
+	main.py   				#copy of validate_analytic at the moment
+	MESAlibjoyce.py 		#MESA handling
+	converge_funcs.py 		#math routines
+	read_write_hdf5 		#IO handling
+		hdf5lib
+			hdf5lib_param
+			h5py
