@@ -49,7 +49,7 @@ for i in range(len(ipix_array)):
 new_particles=hp.pixelfunc.vec2pix(NSIDE, x, y, z, nest=True)
 #hp.mollview(particle_IDs, nest=True, title="Mollview image NESTED")
 hp.mollview(new_particles, nest=True,title='')#, title='coordinate form')
-plt.savefig('healpix.png')
+plt.savefig('../out/healpix.png')
 plt.close()
 
 
@@ -102,7 +102,7 @@ plt.plot(r, density,'ro')
 #plt.xlim(0,1)
 plt.xlabel('radius')
 plt.ylabel('density')
-plt.savefig('rho_v_r_Gadget_hdf5.png')
+plt.savefig('../out/rho_v_r_Gadget_hdf5.png')
 plt.close()
 
 #######################################################################################
