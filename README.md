@@ -1,4 +1,4 @@
-# MESA_2_Gadget
+# MESA2GADGET
 
 ## Introduction
 Creates Gadget IC file from a MESA stellar density profile 
