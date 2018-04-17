@@ -5,19 +5,17 @@ import os
 
 #### solution to sdk issue: set the source line in your bashrc
 
-
 mesasdk_root=os.environ['MESASDK_ROOT']
 m2g_path=os.environ['MESA2GADGET_ROOT']
 mesa_dir=os.environ['MESA_DIR']
 
-star_subdir='work_whitedwarf' 	# cp -vr $MESA_DIR/star/work/ to $MESA_DIR/your_work_directory
+# cp -vr $MESA_DIR/star/work/ to $MESA_DIR/your_work_directory
+star_subdir='work_AGB' 	
 
-#print "going???"
-template_inlist=m2g_path+ '/data/whitedwarf/inlist_whitedwarf'
+template_inlist=m2g_path+ '/data/AGB/inlist_agb_from_mod'
 target_inlist=mesa_dir+'/'+star_subdir+'/inlist_project' 
-#print 'made it here' 
 
-MJ.transfer_inlist(template_inlist, target_inlist) #works
+MJ.transfer_inlist(template_inlist, target_inlist) 
 os.chdir(mesa_dir+'/'+star_subdir)
 
 subprocess.call('./mk', shell=True)

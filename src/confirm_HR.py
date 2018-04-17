@@ -8,8 +8,8 @@ import converge_funcs as cf
 which='whitedwarf_from_mod'#'OB','mainsequence'
 
 
-histfile='../data/history_'+which+'.data'
-tag=histfile.split('../data/history_')[1].split('.data')[0]
+histfile='../out/history_'+which+'.data'
+tag=histfile.split('../out/history_')[1].split('.data')[0]
 
 MJ.show_allowed_MESA_keywords(histfile)
 

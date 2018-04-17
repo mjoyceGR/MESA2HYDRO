@@ -1,3 +1,14 @@
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+! inlist_OB
+!
+! This inlist runs a very high mass, low-metallicity, population III-style star with no termination age
+! This is a modified inlist file based on MESA's high_mass test suite
+! It DOES NOT require a pre-generated MESA model
+! You must change the directory strings to point to
+!     - your MESA2GADGET data directory
+!     - your MESA directory
+!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 &star_job
 
@@ -10,7 +21,7 @@
 
       write_profile_when_terminate = .true.
       filename_for_profile_when_terminate = 'profile_OB.data'
-      
+
       create_pre_main_sequence_model = .true.
       show_log_description_at_start = .false.
 
@@ -25,24 +36,24 @@
 
       use_gold_tolerances = .true.
       use_eosDT2 = .true.
-      
+
       ! check for retries and backups as part of test_suite
       ! you can/should delete this for use outside of test_suite
          max_number_backups = 0
          max_number_retries = 0 
-      
+
       max_model_number = 1000  
 
       initial_mass = 90
       initial_z = 1d-5
       Zbase = 1d-5
       ! max_age = 5d5 !500,000 if we want this to be on the main sequence
-      max_age=1d6
-      
+      ! max_age=1d6
+
       mixing_length_alpha = 2
 
       conv_core_gap_dq_limit = 0.1
-      
+
       xa_central_lower_limit_species(1) = 'h1'
       xa_central_lower_limit(1) = 0.5
            
@@ -67,7 +78,7 @@
       overshoot_f0_above_burn_he_core = 0.004
       overshoot_f0_above_burn_he_shell = 0.004
       overshoot_f0_below_burn_he_shell = 0.004            
-      
+
       overshoot_scheme(1) = 'exponential'
       overshoot_zone_type(1) = 'nonburn'
       overshoot_zone_loc(1) = 'shell'
@@ -81,7 +92,7 @@
       overshoot_bdy_loc(2) = 'any'
       overshoot_f(2) = 0.014
       overshoot_f0(2) = 0.004
-     
+
       overshoot_new = .true.
 
 

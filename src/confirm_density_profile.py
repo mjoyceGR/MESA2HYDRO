@@ -7,11 +7,11 @@ import converge_funcs as cf
 import io_lib as rw
 
 
-MESA_file='../data/profile_whitedwarf_from_mod.data'
-#'../data/profile_OB.data'
-#'../data/profile_mainsequence.data'
+MESA_file='../out/profile_whitedwarf_from_mod.data'
+#MESA_file='../out/profile_OB.data'
+#MESA_file='../out/profile_mainsequence.data'
 
-tag=MESA_file.split('../data/profile_')[1].split('.data')[0]
+tag=MESA_file.split('../out/profile_')[1].split('.data')[0]
 
 MJ.show_allowed_MESA_keywords(MESA_file)
 #MESA_file='../data/profile140.data' #140, 32
@@ -31,17 +31,12 @@ MJ.show_allowed_MESA_keywords(MESA_file)
 #
 ####################################################
 
-masscut=0.95#0.95
-
-# logR=MJ.get_quantity(MESA_file,'logR')
-# logRho=MJ.get_quantity(MESA_file,'logRho')
-#plt.plot(logR, logRho,'m-', label='text')
-
+masscut=0.0#0.95#0.95
 
 fit_region_R = cf.get_MESA_profile_edge(MESA_file, quantity='logR', masscut=masscut,strip=False)
 fit_region_rho = cf.get_MESA_profile_edge(MESA_file, quantity='logRho', masscut=masscut ,strip=False)
 plt.plot(fit_region_R, fit_region_rho,'m-', label='text')
 plt.xlabel('logR')
 plt.ylabel('logRho')
-plt.savefig('../tests/'+tag+'_density_profile_'+str(masscut)+'.png')
+plt.savefig(tag+'_density_profile_'+str(masscut)+'.png')
 plt.close()

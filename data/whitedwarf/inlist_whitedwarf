@@ -2,9 +2,11 @@
 ! inlist_wd
 !
 ! This inlist runs a white dwarf based on a pre-generated MESA model from MESA version 10398
+! This requires use of the input model wd.mod, taken from the test suite of mesa-r10398 and included with this suite
 ! You must change the directory strings to point to
 !     - your MESA2GADGET data directory
 !     - your MESA directory
+!     - the location of wd.mod, set by default to $MESA2GADGET_ROOT/data/whitedwarf/wd.mod
 !
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
