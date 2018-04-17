@@ -29,3 +29,4 @@ subprocess.call('./rn', shell=True)
 
 subprocess.call('cp ./LOGS/*history* '+m2g_path+'/out/', shell=True)
 subprocess.call('cp profile_* '+m2g_path+'/out/', shell=True)
+
