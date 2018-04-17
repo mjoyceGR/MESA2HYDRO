@@ -5,6 +5,8 @@ from scipy.optimize import curve_fit
 #import pygadgetreader as pgr # works- credit this person
 import MESAlibjoyce as MJ
 import datetime as dt 
+import random as rand
+import healpy as hp
 
 def get_MESA_profile_edge(MESA_file,**kwargs):#, strip):
 	#print MJ.show_allowed_MESA_keywords(MESA_file)
@@ -34,6 +36,9 @@ def get_MESA_profile_edge(MESA_file,**kwargs):#, strip):
 		fit_region = outer_mass(Mtot, fit_region)#[Mtot-p for p in mf]
 
 	return np.array(fit_region).astype(float)
+
+
+
 
 def outer_mass(Mtot,fit_region):
 	mf=fit_region
@@ -224,21 +229,30 @@ def do_converge(MESA_file,r_array, M_array, n_p_initial,stepsize,*args,**kwargs)
 
 
 def to_log(xq):
-	try:
-		q=[np.log10(p) for p in xq]
-		q = np.array(q).astype(float)
-	except TypeError:
-		q = np.log10(xq)
-	return q 
+	logged=[]
+	for i in range(len(xq)):
+		try:
+			q=np.log10(xq[i])
+			logged.append(q)
+		except TypeError:
+			pass
+	logged = np.array(logged).astype(float)
+	return logged 
 
 
 def unlog(xq):
-	try:
-		q=[10.0**p for p in xq]
-		q = np.array(q).astype(float)
-	except TypeError:
-		q=10.0**xq
-	return q 
+	unlogged=[]
+	for i in range(len(xq)):
+		#print xq
+		try:
+			q=10.0**float(xq[i])
+			unlogged.append(q)
+		except ValueError:
+			pass
+	unlogged = np.array(unlogged).astype(float)
+	return unlogged 
+
+
 
 def plot_region(MESA_file,x_quantity,y_quantity,**kwargs):
 	#x_quantity=str(kwargs.get('x','logR'))
@@ -309,3 +323,122 @@ def approximate_mp(rl, ru, n_p, A, B, C):
 	Mshell=4.0*np.pi*density_integral(ru,rl,A,B,C)
 	mp=Mshell/n_p
 	return mp
+
+
+
+
+###########################################################################
+#
+# healpix
+#
+############################################################################
+def get_coords(N,r_mid, rmax):#,file_index):
+    r_mid=float(r_mid); rmax=float(rmax)
+    ##Need N to be (4) 8 or 16, and must change mp per shell to maintain that, probably
+    NSIDE = N #closest power of 2 to N
+    NSIDE=int(NSIDE)
+
+    theta=random_theta()
+    ipix_array=np.arange(hp.nside2npix(NSIDE)) #this is just a straight up array of particle IDs
+    x=[]
+    y=[]
+    z=[]
+    for i in range(len(ipix_array)):
+        ipix=ipix_array[i]
+        coord=hp.pixelfunc.pix2vec(NSIDE, ipix, nest=True)
+        #print >> outf, coord[0], coord[1], coord[2]
+        x.append(coord[0])
+        y.append(coord[1])
+        z.append(coord[2])
+
+    # no fam this rotate shell thing is some serious math
+    xd, yd, zd = rotate_shell(x,y,z,theta,"about_z")
+    xe, ye, ze = rotate_shell(xd,yd,zd,theta,"about_y")
+    xf, yf, zf = rotate_shell(xe,ye,ze,theta,"about_x")
+
+    xf = np.array(xf).astype(float)
+    yf = np.array(yf).astype(float)
+    zf = np.array(zf).astype(float)
+
+    xf = to_physical(xf, r_mid/rmax)
+    yf = to_physical(yf, r_mid/rmax)
+    zf = to_physical(zf, r_mid/rmax)
+
+    xf = np.array(xf).astype(float)
+    yf = np.array(yf).astype(float)
+    zf = np.array(zf).astype(float)
+
+    #print "x: ",xf, "\n\ny: ", yf, "\n\nz: ",zf
+    return xf.flatten(), yf.flatten(), zf.flatten()
+
+
+def to_physical(xq, r_mid):
+    xf = [ (r_mid*x_i) for x_i in xq]
+    return xf
+
+def rotate_shell(x_array, y_array, z_array, theta, direction, **kwargs):
+    vec=np.array( [x_array, y_array, z_array])
+
+    Rx=np.matrix( [\
+    [1.0, 0.0, 0.0],\
+    [0, np.cos(theta), -np.sin(theta)],\
+    [0, np.sin(theta), np.cos(theta)]\
+    ])
+
+    Ry=np.matrix( [\
+    [np.cos(theta), 0.0, np.sin(theta)],\
+    [0.0, 1.0, 0.0],\
+    [-np.sin(theta), 0.0, np.cos(theta)]\
+    ])
+
+    Rz=np.matrix( [\
+    [np.cos(theta), -np.sin(theta), 0.0],\
+    [np.sin(theta), np.cos(theta), 0.0],\
+    [0.0, 0.0, 1.0]\
+    ])
+
+    if str(direction) == "about_z":
+        new=Rz*vec
+    elif str(direction) == "about_y":
+        new=Ry*vec
+    else:
+        new=Rx*vec
+
+    new_x=np.array(new[0].transpose()).astype(float)
+    new_y=np.array(new[1].transpose()).astype(float)
+    new_z=np.array(new[2].transpose()).astype(float)
+
+    return new_x, new_y, new_z
+
+def random_theta():
+    theta=rand.random()*2.0*np.pi #.random gives random float between 0 and 1
+    return theta
+
+
+# x_array=np.array([3,3,3,3])
+# y_array = 2.0+0.0*x_array
+# z_array = 5.0+0.0*x_array
+
+# x,y,z=rotate_shell(x_array,y_array,z_array, random_theta())
+
+# print "\none column? x: ", x
+# print "\nx[0]:", x[0]
+# print "\nwhat? x[0][0]:", x[0][0]
+
+# for i in range(len(x)):
+#     print "array[i] etc: ", np.sqrt(x_array[i]**2.0+y_array[i]**2.0+z_array[i]**2.0)
+#     print "x[i] etc", np.sqrt(x[i]**2.0 + y[i]**2.0 + z[i]**2.0)
+
+
+def to_rad(theta):
+    theta=theta*np.pi/180.0
+    return theta
+
+
+def to_array(array):
+    return np.array(array).astype(np.float)
+
+
+def min_index(array):
+	mn,idx = min( (array[i],i) for i in xrange(len(array)) )
+	return idx

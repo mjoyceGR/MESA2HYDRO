@@ -3,7 +3,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 import MESAlibjoyce as MJ
 import converge_funcs as cf
-import read_write_HDF5 as rw
+#import read_write_HDF5 as rw
+import io_lib as rw
 
 import time
 start_time = time.time()
@@ -20,7 +21,11 @@ run=True
 #make_hdf5=False
 make_hdf5=True
 
+#fname='../data/profile_mainsequence.data'
 fname='../data/profile140.data' #140, 32
+
+
+
 MESA_file="{}".format(fname)
 guess_a=1e-7#1000e5
 guess_b=0.68
@@ -103,7 +108,7 @@ if make_hdf5:
 		found_rho=np.average( fit_region_rho[found_rho_idx])
 
 
-		x,y,z=MJ.get_coords(NSIDE,r_mid, rmax) #now rmax included in coord function
+		x,y,z=cf.get_coords(NSIDE,r_mid, rmax) #now rmax included in coord function
 		rho =found_rho+0.0*x
 
 		print "\nshould be: ", r_mid, "\tr_mid/rmax: ",r_mid/rmax,\
@@ -120,13 +125,13 @@ if make_hdf5:
 	print len(super_x), type(super_x)
 
 
-	super_x=MJ.to_array(super_x)
-	super_y=MJ.to_array(super_y)
-	super_z=MJ.to_array(super_z)
-	super_rho=MJ.to_array(super_rho)
+	super_x=cf.to_array(super_x)
+	super_y=cf.to_array(super_y)
+	super_z=cf.to_array(super_z)
+	super_rho=cf.to_array(super_rho)
 
 	out_fname=hdf5file
-	var=MJ.make_IC_hdf5(out_fname, mp, super_x, super_y, super_z, super_rho, userho=True)
+	var=rw.make_IC_hdf5(out_fname, mp, super_x, super_y, super_z, super_rho, userho=True)
 	print var, type(var)
 
 hdf5_file=hdf5file 
