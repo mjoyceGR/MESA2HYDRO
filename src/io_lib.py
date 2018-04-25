@@ -6,6 +6,7 @@ import scipy.interpolate as interpolate
 import scipy.optimize as optimize
 import math
 import sys 
+import converge_funcs as cf
 
 import hdf5lib as hdf5lib
 
@@ -311,6 +312,13 @@ def load_gadget_binary_header(f):
 
 def load_gadget_binary_particledat(f, header, ptype, skip_bh=0):
     ## load old format=1 style gadget binary snapshot files (unformatted fortran binary)
+    ###########################
+    #
+    # WARNING about recovering density, internal energy, smoothing length
+    # if this yells at you, IC may not have been generated properly
+    #
+    #############################
+
     import array
     gas_u=0.; gas_rho=0.; gas_ne=0.; gas_nhi=0.; gas_hsml=0.; gas_SFR=0.; star_age=0.; 
     zmet=0.; bh_mass=0.; bh_mdot=0.; mm=0.;
@@ -354,12 +362,26 @@ def load_gadget_binary_particledat(f, header, ptype, skip_bh=0):
     if ((ptype==0) | (ptype==4) | (ptype==5)):
         if (Npart[0]>0):
             ### Internal energy of gas particles ((km/s)^2).
-            gas_u = array.array('f')
-            gas_u.fromfile(f, Npart[0])
+
             f.read(4+4) # Read block size fields.
             ### Density for the gas paraticles (units?).
+
+            gas_u = array.array('f')
             gas_rho = array.array('f')
-            gas_rho.fromfile(f, Npart[0])
+            gas_hsml = array.array('f')
+            try:
+                gas_u.fromfile(f, Npart[0])
+                gas_rho.fromfile(f, Npart[0])
+                print 'gas_u.whatever', gas_u.fromfile(f, Npart[0])
+
+                ### Smoothing length (kpc/h). ###
+                gas_hsml.fromfile(f, Npart[0])
+            except EOFError:
+                # gas_rho
+                print "WARNING: Error loading internal energy OR density OR smoothing length"
+                #print "Npart, Npart[0]: ", Npart, Npart[0]
+                pass
+
             f.read(4+4) # Read block size fields.
 
             if (header['Flag_Cooling'] > 0):
@@ -372,9 +394,6 @@ def load_gadget_binary_particledat(f, header, ptype, skip_bh=0):
                 gas_nhi.fromfile(f, Npart[0])
                 f.read(4+4) # Read block size fields.
 
-            ### Smoothing length (kpc/h). ###
-            gas_hsml = array.array('f')
-            gas_hsml.fromfile(f, Npart[0])
             f.read(4+4) # Read block size fields.
 
             if (header['Flag_Sfr'] > 0):
@@ -1074,7 +1093,7 @@ def write_block(f, block, parttype, data):
 
 #def make_IC_hdf5(out_fname, mp, coord_file, **kwargs):
 #x,y,z=np.loadtxt(coord_file, usecols=(0,1,2), unpack=True)
-def make_IC_hdf5(out_fname, mp, x, y, z,rho,**kwargs):    
+def make_IC_hdf5(out_fname, mp, x, y, z,**kwargs):    #rho out
     ## from kwargs choose either hdf5 or binary, when I feel like doing this
     userho=kwargs.get("userho",False)
 
@@ -1160,6 +1179,8 @@ def make_IC_hdf5(out_fname, mp, x, y, z,rho,**kwargs):
     
     p.create_dataset("ParticleIDs",data=id_g)
     p.create_dataset("Masses",data=mv_g)
+
+    #rho_desired = 1.0 
     uv_g = U + 0.*xv_d#
     p.create_dataset("InternalEnergy",data=uv_g)
    
@@ -1171,7 +1192,10 @@ def make_IC_hdf5(out_fname, mp, x, y, z,rho,**kwargs):
     #### NO! DO NOT FORCE THIS!!
     if userho:
         print "creating density data set"
-        p.create_dataset("Density",data=rho)
+
+    ### force density to be zero?
+    rho = rho_desired + 0.*xv_d
+    p.create_dataset("Density",data=rho)
 
     # no PartType1 for this IC
     # no PartType2 for this IC
@@ -1180,4 +1204,106 @@ def make_IC_hdf5(out_fname, mp, x, y, z,rho,**kwargs):
     file.close()
     return file
 
+#########################################################################
 
+def make_IC_binary(out_fname, mp, x, y, z,**kwargs):    #rho???
+    ##############################################################################
+    #
+    # binary   binary   binary   binary  binary   binary   binary   
+    #
+    ###############################################################################
+    userho=kwargs.get("userho",False) ## don't know how this works yet
+    central_mass=float(kwargs.get('central_mass', 10e6))
+
+    fname=out_fname
+    Ngas = len(x)#xv_g.size
+    id_g=np.arange(1,Ngas+1)    #particle IDs
+
+    # if userho:
+    #     print 'using rho'
+    #     rho=rho
+
+    sys.path.append('/home/meridith/UCT_SAAO/detached_shells/MESA2GADGET/src/pygadgetic/pygadgetic')
+    import pygadgetic
+
+    ##define number of particles
+    npart=[Ngas,0,0,0,0,0] ### need to add a central particle with the mass of the star
+    total_number_of_particles=np.sum(npart) #total number of particles
+
+    ##create objects
+    my_header=pygadgetic.Header()
+    my_body=pygadgetic.Body(npart)
+    my_header.NumPart_ThisFile = np.array(npart)
+    my_header.NumPart_Total = np.array(npart)
+
+    ##fill the body with minimal information
+    my_body.pos[:,0]=x#np.array([0,0,0]) #the first particle will be at the center
+    my_body.pos[:,1]=y#np.array([1,1,1])
+    my_body.pos[:,2]=z#np.array([-1,0,1])
+    my_body.vel[:,:]=0.
+
+    print "xyz[6] given to binary", x[6],y[6],z[6]
+
+    my_body.id[:]=id_g#np.arange(0,total_number_of_particles) 
+    particle_masses=mp + 0.*x  
+    my_body.mass[:]=particle_masses
+
+    rho_desired = 1.0
+    P_desired = 1.0                          # initial gas pressure 
+    gamma_eos = 5./3.                        # polytropic index of ideal equation of state
+    U=P_desired/((gamma_eos-1.)*rho_desired) # internal energy 
+
+    internal_energy = U + 0.*x
+    #p.create_dataset("InternalEnergy",data=internal_energy)
+    my_body.u[:]=internal_energy
+
+    pygadgetic.dump_ic(my_header,my_body,fname)
+
+    return fname
+
+
+##########################################################
+#
+# Make the initial conditions file from an NR file
+#
+###########################################################
+def get_IC(NR_file_name,output_filename,rmax,mp, *args, **kwargs):
+    filetype=str(kwargs.get('filetype','binary'))
+
+    #tag=str(output_filename)
+    hdf5file=str(output_filename)+ '.hdf5'
+    binaryfile=str(output_filename)+ '.bin'
+    #saveNR=str(NR_file_name)
+
+    N,rmid=np.loadtxt(NR_file_name, usecols=(0,1), unpack=True) 
+    #if make_IC_file:
+    super_x=[]
+    super_y=[]
+    super_z=[]
+    for i in range(len(N)):
+        NSIDE= N[i]
+        r_mid= rmid[i]
+        radius=float(rmid[i])/float(rmax)
+        ###############################################################
+        #
+        # Arbitrarily rotate shells
+        #
+        ###############################################################
+        x,y,z=cf.get_coords(NSIDE)
+        x=x*radius
+        y=y*radius
+        z=z*radius
+        super_x=np.concatenate((super_x,x),axis=0)
+        super_y=np.concatenate((super_y,y),axis=0)
+        super_z=np.concatenate((super_z,z),axis=0)
+        r_super=np.sqrt(super_x**2.0+ super_y**2.0 + super_z**2.0)
+    super_x=cf.to_array(super_x)
+    super_y=cf.to_array(super_y)
+    super_z=cf.to_array(super_z)
+    if filetype=='hdf5':
+        var=make_IC_hdf5(hdf5file, mp, super_x, super_y, super_z, userho=False) #super_rho
+    else:
+        var=make_IC_binary(binaryfile, mp, super_x, super_y, super_z, central_mass=1) 
+    print var, type(var)
+
+    return

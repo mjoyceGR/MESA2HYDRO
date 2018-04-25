@@ -2,12 +2,204 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy.optimize import curve_fit
+import sys
 #import pygadgetreader as pgr # works- credit this person
 import MESAlibjoyce as MJ
 import datetime as dt 
 import random as rand
 import healpy as hp
 
+
+M_to_solar=1.988*10.0**33.0 ## g/Msolar
+R_to_solar=6.957*10.0**10.0 ## cm/Rsolar
+
+
+#######################################################################################
+#
+# Numerical integration
+#
+#######################################################################################
+
+def RK1(r, m, fx, h,MESA_file,masscut, *args, **kwargs):
+	#need to pass the value of rho roughly at r but don't update it, just need it for calculation
+	use_unlog=bool(kwargs.get('load_unlogged',False))
+
+	rho_k0=rho_r(r,MESA_file,masscut,load_unlogged=use_unlog)
+	#print ">>>>>>>>>>>>>>>>>r, m, rho in start RK:", r, m, rho_k0#, ('%1.5e'%h)
+	rho_k12=rho_r(r+0.5*h,MESA_file,masscut,load_unlogged=use_unlog)
+	rho_k3=rho_r(r+h,MESA_file,masscut,load_unlogged=use_unlog)
+
+	k0=fx(r, rho_k0 )*h
+	#print "k0:", k0
+	k1=fx(r + 0.5*h, rho_k12 )*h  #+ 0.5*k0
+	k2=fx(r + 0.5*h, rho_k12 )*h  #+ 0.5*k1
+	k3=fx(r + h, rho_k3 )*h  #+ k2
+	r     = r     + h
+	m = m + (k0 + 2.0*k1 + 2.0*k2 + k3)/6.0
+	#print ">>>>>>>>>>>>>>>>>r, m, rho in end RK:", r, m, rho_k3
+	return r, m
+
+def density_integral_numeric(r, rho_r): 
+	# will need to write an interpolation function to go between points in order to have
+	# a rho_r value for any possible r
+	dmdr=4.0*np.pi*r**2.0*rho_r
+	#print "value of r, rho_r, dmdr:", r, rho_r, dmdr
+	return dmdr
+
+
+def Mshell_from_RK(rl, rmax, step, MESA_file,masscut, *args,**kwargs):
+	use_unlog=bool(kwargs.get('load_unlogged',False))
+	#print "value for use_unlog sent to Mshell_from_RK:", use_unlog
+	### rmax is NOT MODIFIED BY THIS ROUTINE, it is simply a STOPPING CRITERION
+	r = rl      
+	m=0
+	while r<rmax:
+	    r, m= RK1(r,m, density_integral_numeric, step, MESA_file,masscut, load_unlogged=use_unlog) #rho_r(r,MESA_file,masscut,load_unlogged=use_unlog)
+	    #print "r being used in Mshell_from_RK:",r,m
+	    #sys.exit()
+	Mshell=m
+	return Mshell#, r#, rho_r
+
+def find_nearest(array,value):
+	# this isn't quite right, use bisect??
+    idx = (np.abs(array-value)).argmin()
+    return array[idx],idx
+
+
+
+def rho_r(r,MESA_file,masscut, *args, **kwargs):
+	############################################################
+	#
+	# WARNING! FIXING cgs units!!!
+	#
+	############################################################
+	use_unlog=bool(kwargs.get('load_unlogged',False))
+	#print "value of use_unlog in rho_r:", use_unlog
+
+
+	fit_region_R = get_MESA_profile_edge(MESA_file, quantity='logR', masscut=masscut,strip=False)
+	fit_region_R=unlog(fit_region_R)
+
+	if use_unlog:
+		fit_region_rho = get_MESA_profile_edge(MESA_file, quantity='rho', masscut=masscut ,strip=False)
+	else:
+		fit_region_rho = get_MESA_profile_edge(MESA_file, quantity='logRho', masscut=masscut ,strip=False)
+		fit_region_rho=unlog(fit_region_rho)
+
+	## convert unlogged radii from Rsolar units to cgs
+	fit_region_R=fit_region_R*R_to_solar
+	#print "r, fit_region_R after conversion:", r, fit_region_R[-1]
+
+	r0,idx=find_nearest(fit_region_R,r)
+	#
+	# WARNING! THIS RELIES ON LOADED DATA BEING SORTED! DO NOT TAMPER!
+	#
+
+	if r0 <= r:
+		rho0=fit_region_rho[idx]
+		r1=fit_region_R[idx-1]
+		rho1=fit_region_rho[idx-1]
+	else:
+		r0=fit_region_R[idx+1]
+		rho0=fit_region_rho[idx+1]
+		r1=fit_region_R[idx]
+		rho1=fit_region_rho[idx]
+	#np.polyfit()
+
+	rrho_r= (  (r1-r)*rho0 + (r-r0)*rho1 ) /(r1-r0)
+	#print "rrho_r in rho_r(r) routine:", rrho_r
+
+	#print idx, r0,rho0, r1, rho1
+	if (r0 <= r <= r1):
+		#print r0, r, r1
+		return rrho_r
+	else:
+		print "no."
+		return #rho_r
+
+
+
+def target_Mshell(N,mp):
+	Mshell=N**2.0*12.0*mp
+	return Mshell
+
+
+def get_placement_radii(rl, ru, RKstep, force_N, mp, MESA_file, masscut, *args, **kwargs):
+	############### FINE
+	use_unlog=bool(kwargs.get('load_unlogged',True))
+	SO=bool(kwargs.get('suppress_output',False))
+
+	##print "value of use_unlog:", use_unlog
+
+	Mshell_target=target_Mshell(force_N,mp)
+	#print "target_Mshell", Mshell_target
+	#sys.exit()
+
+	Mshell=0
+	Mshell_temp=0
+	oldru=rl
+	while Mshell <= Mshell_target:
+		Mshell=Mshell_temp+Mshell_from_RK(oldru, ru, RKstep, MESA_file,masscut, load_unlogged=use_unlog)
+		oldru=ru
+		Mshell_temp=Mshell
+		ru=ru+RKstep
+
+	if SO:
+		pass
+	else:
+		print "target_Mshell",('%.3E'%Mshell_target)," convergence at Mshell:", ('%.3E'%Mshell),\
+		 '   ', ('%.3e'%(Mshell/Mshell_target)),r'x target',\
+		"  rl, ru:", ('%1.3e'%rl),('%1.3e'%ru), "  RKstep: ",  ('%1.3e'%RKstep)
+	r_place=(ru+rl)/2.0
+	return r_place,Mshell
+
+
+####################################################################
+#
+# functions for validating density profile recovered from GADGET IC file
+#
+#####################################################################
+# def get_density_from_loaded_particles(r, r_bin, r_recovered, p_mass):
+# 	##unsure about r and r_bin in these
+# 	r=float(r)
+# 	r_bin=float(r_bin)
+# 	mshell=Mshell_r(r,r_bin,r_recovered, p_mass)
+# 	vol_annulus=volume(r+r_bin)-volume(r)
+# 	rho = float(mshell)/float(vol_annulus)
+# 	#print "   rho", rho
+# 	#(1.0/(4.0*np.pi * (r+r_bin)**3.0 )) #-( 3.0/(4.0*np.pi * (r)**3.0 ))
+# 	return rho
+
+
+
+##############################################
+#
+# THIS FUNCTION IS THE PROBLEM 
+#
+# #################################################
+# def Mshell_r(r, r_bin,r_recovered,p_mass):
+# 	######################################
+# 	# warning! requires a fixed particle mass, can't handle changing m
+# 	######################################
+# 	# total number of particles in the binned region'
+# 	region = np.where( (r_recovered>r) & (r_recovered <(r+r_bin) )  )
+# 	N=len(r_recovered[region])
+# 	mshell=p_mass*N
+# 	#print 'recovered_region: ',r_recovered[region]
+ 
+
+# 	#print "\nr",r,"r_bin",r_bin,'   len(region)=N', N,'      mshell',mshell	
+# 	return mshell
+
+
+
+
+
+###########################################################################
+#
+# load MESA data in correct format
+#
+###########################################################################
 def get_MESA_profile_edge(MESA_file,**kwargs):#, strip):
 	#print MJ.show_allowed_MESA_keywords(MESA_file)
 	strip=bool(kwargs.get('strip',False))
@@ -39,291 +231,10 @@ def get_MESA_profile_edge(MESA_file,**kwargs):#, strip):
 
 
 
-
 def outer_mass(Mtot,fit_region):
 	mf=fit_region
 	fit_region = [Mtot-p for p in mf]
 	return np.array(fit_region).astype(float)
-
-
-def get_mp_given_N(r_array, M_array, n_p_initial):#(r_array, M_array, rl_init, n_p):
-	## tTHIS FUNCTION IS VERY BAD AND NOT CURRENTLY IMPLEMENTED PLEASE IGNORE
-	pos_r=r_array
-	rl=r_array.min() #in unlogged form
-	ru = rl #rl_init
-
-	step_size=1.5#0.0001#000001
-	region=[]
-	while len(region) ==0: 
-		ru = ru + step_size
-		region=np.where( (pos_r>rl) & (pos_r<ru) )[0]
-	else:
-		region=np.where( (pos_r>rl) & (pos_r<ru) )[0]
-		pos_slice=pos_r[region]
-	print "step size selected: ", step_size
-
-	mass_slice=get_mass_slice(M_array, region)
-	Mshell=get_Mshell(mass_slice)
-	mp = float(Mshell)/float(n_p_initial)
-	print "selected mass per particle mp=",mp
-	return mp
-
-
-
-
-def iterate_MESA(r_array, M_array, rl, ru, mp, step_size):
-	#DO NOT WANT THIS LOGGED!!!!!!!!1
-
-	### kwargs --> stepsize
-    #remove ru? JB: no
-	#print 'step_size: ', step_size
-
-	# r_array=to_log(r_array)
- #    #r is logged
-	# rl=to_log(rl)
-	# ru=to_log(ru)
-
-	#temp_ru=ru+step_size #this is what updates ru each time in the while loop in get_N
-	# put step_size here? what is step_size? where am I
-	region, temp_ru = get_region( r_array.astype(np.float) , rl, ru, step_size)#0.001) #ru CHANGES in this function, so it must be returned
-
-	mass_slice=get_mass_slice(M_array, region)
-	Mshell=get_Mshell(mass_slice)
-	n_p=get_np(Mshell,mp)
-	n1 = calc_n1(Mshell, mp)
-	n2 = calc_n2(rl, temp_ru)
-
-	#temp_ru=unlog(temp_ru)
-	#r is unlogged
-
-	return n1, n2, temp_ru, n_p
-
-
-def get_region(pos_r, rl, temp_ru, stepsize):
-	region=[]
-	########## function A ##################
-	while len(region) ==0: 
-		region=np.where( (pos_r>rl) & (pos_r<temp_ru) )[0]
-		temp_ru= temp_ru + stepsize
-	else:
-		region=np.where( (pos_r>rl) & (pos_r<temp_ru) )[0]
-	########## function A ##################
-	return region, temp_ru 
-
-
-def get_np(Mshell, mp):
-	return float(Mshell)/float(mp)
-
-def get_mass_slice(M_array,region):
-	M=M_array.astype(np.float)
-	return M[region]
- 	#return
-
-def get_Mshell(mass_slice):
-	########  AMBIGUOUS MASS ORIENTATION, MAY NEEED TO REVERSE THIS
-	return abs(  mass_slice.max() - mass_slice.min() )
-
-def calc_n1(Mshell,mp):
-	return np.sqrt(Mshell/(12.0*mp))
-
-def calc_n2(rl, ru):
-	return np.sqrt(np.pi/12.0)*(ru + rl)/(ru - rl)
-
-
-def get_N(r_array, M_array, rl, ru, mp, stepsize,**kwargs):#(MESA_file, mp, step_size):
-	n1, n2, keep_ru = 0., 100., 9999. 
-	#print "before while", n1, n2
-	while (n2 -n1) > 0.0: 
-	#this will stop as soon as n1 exceeds n2, which is as close as you can get to making them equal given the discrete data
-	 	if ru > r_array.max():
-	 		break	
-		quant=iterate_MESA(r_array, M_array, rl, ru, mp, stepsize)
-		n1 = quant[0]
-		n2 = quant[1]
-		ru = quant[2]
-		n_p = quant[3]
-	keep_ru = ru
-	set_R= (keep_ru + rl)/2.0
-	print "converged:\tn1: ", n1, "\tn2: ", n2, "\tr_l: ", rl, "\tr_u: ", ru, '\tr_mid: ', set_R, '\tn_p', n_p
-	return rl, keep_ru, set_R, min(np.floor(n1), np.floor(n2)), n_p 
-
-def get_N_continuous(rl, rmax, A, B, C, mp, stepsize, **kwargs):
-	ru_list=np.arange(rl,rmax,stepsize)
-	n1, n2, shell_ru=0.,100.,9999.
-	ru = rl
-	while (n2 > n1):
-	#for i in range(len(ru_list)):
-		if (ru > rmax): 
-			break
-		# ru = ru_list[i]
-		Mshell=Mshell_from_integral(rl, ru, A,B,C)
-		n1=calc_n1(Mshell, mp)
-		n2=calc_n2(rl, ru)
-		ru = ru + stepsize
-
-	shell_ru=ru
-	set_R=(shell_ru+rl)/2.0	
-	print "converged:\tn1: ", n1, "\tn2: ", n2, "\tr_l: ", rl, "\tr_u: ", ru, '\tr_mid: ', set_R#, '\tn_p', n_p	
-	return rl, shell_ru, set_R, min(np.floor(n1), np.floor(n2))
-
-
-
-# def get_N_continuous(rl, rmax, A, B, C, mp, stepsize,tolerance, **kwargs):
-# 	ru_list=np.arange(rl,rmax,stepsize)
-# 	shell_ru=9999
-# 	for i in range(len(ru_list)):
-# 		ru = ru_list[i]
-# 		Mshell=Mshell_from_integral(rl, ru, A,B,C)
-# 		n1=calc_n1(Mshell, mp)
-# 		n2=calc_n2(rl, ru)
-# 		if abs(n1 -n2) <= tolerance:#0.1 
-# 			#print "tolerance met\tn1: ", n1, "\tn2: ", n2, "\tr_l: ", rl, "\tr_u: ", ru
-# 			shell_ru=ru
-
-# 	set_R=(shell_ru+rl)/2.0		
-# 	# figure out how to return the intermediate radius here too		
-# 	return shell_ru, set_R, min(np.floor(n1), np.floor(n2))
-
-
-
-def do_converge(MESA_file,r_array, M_array, n_p_initial,stepsize,*args,**kwargs):
-	filename=str(kwargs.get('outputfile','vals.dat'))
-
-	r_array=unlog(r_array)
-	#r is unlogged
-	#print r_array
-
-	rl=r_array.min()
-	rmax = r_array.max() 
-
-	first_mp=get_first_mp(MESA_file, n_p_initial)
-	first_mp=float(kwargs.get('mp',first_mp))
-	#first_mp=1e-8
-
-	mp=first_mp
-	print "\nfirst mp: ", first_mp, ' mp: ', mp, " first np: ", n_p_initial
-	ru = rl + stepsize
-
-	outf=open(filename,"a")
-	print >> outf, 'MESA_file: ', MESA_file, ' on ', dt.datetime.now()
-	print >> outf, 'rl				ru				N		n_p				mp			stepsize'
-	print >> outf, rl,'\t',ru, "\tN", "\t", n_p_initial, "\t", mp, "\t", stepsize
-
-	while ru < rmax:
-		#these both have to be ru but why?
-		new_vals= get_N(r_array, M_array, ru, ru, mp, stepsize, n_p_initial) 
-		try:
-			rl=new_vals[0]
-		except TypeError:
-			print '\n\nRoutine terminated\n\n'
-			break	
-		ru=new_vals[1]
-		rmid=new_vals[2]
-		N=new_vals[3]
-		n_p=new_vals[4]
-		print >> outf, rl,'\t',ru, "\t", N, "\t", n_p, "\t", mp, "\t", stepsize
-	outf.close()
-	print 'profile data generated in file', filename
-	return 0  
-
-
-
-def to_log(xq):
-	logged=[]
-	for i in range(len(xq)):
-		try:
-			q=np.log10(xq[i])
-			logged.append(q)
-		except TypeError:
-			pass
-	logged = np.array(logged).astype(float)
-	return logged 
-
-
-def unlog(xq):
-	unlogged=[]
-	for i in range(len(xq)):
-		#print xq
-		try:
-			q=10.0**float(xq[i])
-			unlogged.append(q)
-		except ValueError:
-			pass
-	unlogged = np.array(unlogged).astype(float)
-	return unlogged 
-
-
-
-def plot_region(MESA_file,x_quantity,y_quantity,**kwargs):
-	#x_quantity=str(kwargs.get('x','logR'))
-	#y_quantity=str(kwargs.get('y','logRho'))
-	unlog=bool(kwargs.get('unlog',False))
-	try: 
-		xq = MJ.get_quantity(MESA_file,x_quantity)
-		yq = MJ.get_quantity(MESA_file,y_quantity)
-	except:
-		print 'quantity keyword not found!\nallowed keys are: '
-		print MJ.show_allowed_MESA_keywords(MESA_file)
-		exit(0)
-
-	x_region= get_MESA_profile_edge(MESA_file, quantity=x_quantity, strip=False)#[0]
-	y_region = get_MESA_profile_edge(MESA_file, quantity=y_quantity , strip=False)#[1]
-
-	if unlog:
-		xq_unlogged = unlog(xq)
-		yq_unlogged = unlog(yq)
-		x_region_un = unlog(x_region)
-		y_region_un = unlog(y_region)
-
-		plt.plot(xq_unlogged, yq_unlogged,'g.', label='full profile')
-		plt.plot(x_region_un, y_region_un, 'r.', label='outer 5%')
-		plt.xlabel('log ',x_quantity)
-		plt.ylabel('log ',y_quantity)
-	else:
-		plt.plot(xq, yq,'g.', label='full profile')
-		plt.plot(x_region, y_region, 'r.', label='outer 5%')
-		plt.xlabel(x_quantity)
-		plt.ylabel(y_quantity)
-
-	plt.legend(loc=3, fontsize='small')
-	plt.savefig(x_quantity +'_v_'+ y_quantity+'_MESA_region.png')
-	plt.close()
-
-#------------------------------ analytic ----------------------------------------
-
-def get_curve(r_array,rho_array,guess_a,guess_b,guess_c):
-	def model_func(x,a,b,c):
-			## this is a 1/r density profile
-		return a*(1.0/(x+b)) + c
-
-	p=[guess_a,guess_b,guess_c]
-	params, cov = curve_fit(model_func, r_array, rho_array, p0=p)
-	a, b, c = params
-
-	def y(x):
-		a,b,c=params
-		return a*(1.0/(x+b)) + c
-
-	return a,b,c,y 
-#------------------------------------------------------------------------------------
-def density_integral(rl,ru, A,B,C):
-	rdiff=(ru - rl)
-	f1=0.5*A*rdiff**2.0  + A*B*rdiff  + A*B**2.0 * np.log10( abs(rdiff - B) ) + (1.0/3.0)*C*rdiff**3.0
-	return f1
-
-### is it necessary to do this density integral or should I just fit the mass profile and pass that?
-
-
-def Mshell_from_integral(rl, ru, A,B,C):
-	Mshell=4.0*np.pi*density_integral(rl, ru, A, B, C)
-	return Mshell
-
-
-def approximate_mp(rl, ru, n_p, A, B, C):
-	Mshell=4.0*np.pi*density_integral(ru,rl,A,B,C)
-	mp=Mshell/n_p
-	return mp
-
 
 
 
@@ -331,50 +242,40 @@ def approximate_mp(rl, ru, n_p, A, B, C):
 #
 # healpix
 #
-############################################################################
-def get_coords(N,r_mid, rmax):#,file_index):
-    r_mid=float(r_mid); rmax=float(rmax)
-    ##Need N to be (4) 8 or 16, and must change mp per shell to maintain that, probably
-    NSIDE = N #closest power of 2 to N
-    NSIDE=int(NSIDE)
+###########################################################################
+def healpixify(N):
+	NSIDE=int(N)
+	#this is just a straight up array of particle IDs
+	ipix_array=np.arange(hp.nside2npix(NSIDE)) 
+	x=[]
+	y=[]
+	z=[]
+	for i in range(len(ipix_array)):
+	    ipix=ipix_array[i]
+	    coord=hp.pixelfunc.pix2vec(NSIDE, ipix, nest=True)
 
-    theta=random_theta()
-    ipix_array=np.arange(hp.nside2npix(NSIDE)) #this is just a straight up array of particle IDs
-    x=[]
-    y=[]
-    z=[]
-    for i in range(len(ipix_array)):
-        ipix=ipix_array[i]
-        coord=hp.pixelfunc.pix2vec(NSIDE, ipix, nest=True)
-        #print >> outf, coord[0], coord[1], coord[2]
-        x.append(coord[0])
-        y.append(coord[1])
-        z.append(coord[2])
-
-    # no fam this rotate shell thing is some serious math
-    xd, yd, zd = rotate_shell(x,y,z,theta,"about_z")
-    xe, ye, ze = rotate_shell(xd,yd,zd,theta,"about_y")
-    xf, yf, zf = rotate_shell(xe,ye,ze,theta,"about_x")
-
-    xf = np.array(xf).astype(float)
-    yf = np.array(yf).astype(float)
-    zf = np.array(zf).astype(float)
-
-    xf = to_physical(xf, r_mid/rmax)
-    yf = to_physical(yf, r_mid/rmax)
-    zf = to_physical(zf, r_mid/rmax)
-
-    xf = np.array(xf).astype(float)
-    yf = np.array(yf).astype(float)
-    zf = np.array(zf).astype(float)
-
-    #print "x: ",xf, "\n\ny: ", yf, "\n\nz: ",zf
-    return xf.flatten(), yf.flatten(), zf.flatten()
+	    x.append(coord[0])
+	    y.append(coord[1])
+	    z.append(coord[2])
+	return x,y,z
 
 
-def to_physical(xq, r_mid):
-    xf = [ (r_mid*x_i) for x_i in xq]
-    return xf
+def get_coords(N):
+	x,y,z=healpixify(N)
+
+	theta=random_theta()
+	# these are already in unit by the time they get here
+	xd, yd, zd = rotate_shell(x,y,z,theta,"about_z")
+	xe, ye, ze = rotate_shell(xd,yd,zd,theta,"about_y")
+	xf, yf, zf = rotate_shell(xe,ye,ze,theta,"about_x")
+
+	xf = to_array(xf)
+	yf = to_array(yf)
+	zf = to_array(zf)
+
+	return xf.flatten(), yf.flatten(), zf.flatten()
+
+
 
 def rotate_shell(x_array, y_array, z_array, theta, direction, **kwargs):
     vec=np.array( [x_array, y_array, z_array])
@@ -410,24 +311,40 @@ def rotate_shell(x_array, y_array, z_array, theta, direction, **kwargs):
 
     return new_x, new_y, new_z
 
+
+###########################################################################
+#
+# basic
+#
+###########################################################################
+def to_log(xq):
+	logged=[]
+	for i in range(len(xq)):
+		try:
+			q=np.log10(xq[i])
+			logged.append(q)
+		except TypeError:
+			pass
+	logged = np.array(logged).astype(float)
+	return logged 
+
+
+def unlog(xq):
+	unlogged=[]
+	for i in range(len(xq)):
+		#print xq
+		try:
+			q=10.0**float(xq[i])
+			unlogged.append(q)
+		except ValueError:
+			pass
+	unlogged = np.array(unlogged).astype(float)
+	return unlogged 
+
+
 def random_theta():
     theta=rand.random()*2.0*np.pi #.random gives random float between 0 and 1
     return theta
-
-
-# x_array=np.array([3,3,3,3])
-# y_array = 2.0+0.0*x_array
-# z_array = 5.0+0.0*x_array
-
-# x,y,z=rotate_shell(x_array,y_array,z_array, random_theta())
-
-# print "\none column? x: ", x
-# print "\nx[0]:", x[0]
-# print "\nwhat? x[0][0]:", x[0][0]
-
-# for i in range(len(x)):
-#     print "array[i] etc: ", np.sqrt(x_array[i]**2.0+y_array[i]**2.0+z_array[i]**2.0)
-#     print "x[i] etc", np.sqrt(x[i]**2.0 + y[i]**2.0 + z[i]**2.0)
 
 
 def to_rad(theta):
@@ -442,3 +359,9 @@ def to_array(array):
 def min_index(array):
 	mn,idx = min( (array[i],i) for i in xrange(len(array)) )
 	return idx
+
+def volume(r):
+	r=float(r)
+	vol=(4.0/3.0)*np.pi*r**3.0
+	#vol=4.0*np.pi*r**2.0 ## this is actually the surface area but fuck it
+	return float(vol)

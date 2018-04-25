@@ -27,7 +27,8 @@
    logR     ! log10(radius/Rsun) at outer boundary of zone
 
    logT     ! log10(temperature) at center of zone
-   logRho   ! log10(density) at center of zone
+   !rho 		 !! TESTING
+   logRho   ! log10(density) at center of zone !!FORMERLY USED !! STICK WITH THIS
    logP     ! log10(pressure) at center of zone
    
    x_mass_fraction_H

@@ -4,8 +4,8 @@ import matplotlib.pyplot as plt
 import MESAlibjoyce as MJ
 import converge_funcs as cf
 
-# fname='../data/profile_mainsequence.data'
-which='whitedwarf_from_mod'#'OB','mainsequence'
+#which='whitedwarf_from_mod'#'OB','mainsequence'
+which='AGB_from_mod'
 
 
 histfile='../out/history_'+which+'.data'
@@ -16,14 +16,16 @@ MJ.show_allowed_MESA_keywords(histfile)
 logL=MJ.get_quantity(histfile,'log_L')
 logT=MJ.get_quantity(histfile, 'log_Teff')
 # L=cf.unlog(logL)
-# T=cf.unlog(logT)
+#T=cf.unlog(logT)
 
 print logL
 print logT
 
 ax, fig=plt.subplots()
 plt.plot(logT, logL,'g-')
-plt.xlabel('log T')
+plt.xlim(3.51,3.53)
+plt.ylim(3.79,3.9)
+plt.xlabel('Log T')
 plt.ylabel('Log L')
 plt.gca().invert_xaxis()
 plt.savefig('HRtest_'+str(tag)+'.png')
