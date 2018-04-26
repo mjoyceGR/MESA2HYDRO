@@ -1223,8 +1223,11 @@ def make_IC_binary(out_fname, mp, x, y, z,**kwargs):    #rho???
     #     print 'using rho'
     #     rho=rho
 
-    sys.path.append('/home/meridith/UCT_SAAO/detached_shells/MESA2GADGET/src/pygadgetic/pygadgetic')
-    import pygadgetic
+    try:
+        import pygadgetic
+    except ImportError:
+        print("Cannot run make_IC_binary without pygadgetic installed.")
+        sys.exit(1)
 
     ##define number of particles
     npart=[Ngas,0,0,0,0,0] ### need to add a central particle with the mass of the star
