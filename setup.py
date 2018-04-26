@@ -2,8 +2,9 @@
 
 from setuptools import setup
 setup(name='MESA2GADGET',
-      packages=['MESA2GADGET', 'MESA2GADGET.work'],
-      package_dir={'MESA2GADGET': 'src', 'MESA2GADGET.work': 'work'}, 
+      packages=['MESA2GADGET', 'MESA2GADGET.work', 'MESA2GADGET.data', 'MESA2GADGET.out'],
+      package_dir={'MESA2GADGET': 'src', 'MESA2GADGET.work': 'work',
+                   'MESA2GADGET.data': 'data', 'MESA2GADGET.out': 'out'}, 
       package_data={'': ['data/*/*', 'work/N_mp_combinations.dat', 'work/NR_files/*.dat',
                          'work/recovery_images/*.png', 'out/sample_MESA_output/*.data']},
       include_package_data=True,
@@ -15,18 +16,16 @@ setup(name='MESA2GADGET',
       download_url='https://github.com/mjoyceGR/MESA2GADGET/archive/0.1.0.tar.gz',
       keywords=['mesa', 'gadget', 'astronomy'],
       classifiers=[],
-      scripts=[
-            'work/run_MESA.py',
-            'work/alg.py',
-            'work/make_IC.py',
-            'work/confirm_density_profile.py',
-            'work/confirm_mass_profile.py',
-            'work/confirm_HR.py'
-      ],
+      entry_points={
+        'console_scripts': [
+            'run_MESA = MESA2GADGET.work.run_MESA:main_func',
+            'alg = MESA2GADGET.work.alg:main_func'
+      ]},
       requires=[
         'h5py',
         'scipy',
         'healpy',
         'matplotlib'
-      ]
+      ],
+      zip_safe=False
 )
