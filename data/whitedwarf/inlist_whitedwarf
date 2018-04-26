@@ -1,8 +1,7 @@
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-! inlist_wd
+! inlist_whitedwarf
 !
-! This inlist runs a white dwarf based on a pre-generated MESA model from MESA version 10398
-! This requires use of the input model wd.mod, taken from the test suite of mesa-r10398 and included with this suite
+! This inlist runs a white dwarf without a model
 ! You must change the directory strings to point to
 !     - your MESA2GADGET data directory
 !     - your MESA directory
@@ -16,14 +15,13 @@
       mesa_dir = '/home/meridith/MESA/mesa-r10398'
       history_columns_file='/home/meridith/UCT_SAAO/detached_shells/MESA2GADGET/data/history_columns_testsuite.list'
       profile_columns_file='/home/meridith/UCT_SAAO/detached_shells/MESA2GADGET/data/profile_columns_testsuite.list'
-      load_saved_model = .true.
-      saved_model_name = '/home/meridith/UCT_SAAO/detached_shells/MESA2GADGET/data/whitedwarf/wd.mod'
+      load_saved_model = .false.
 
-      filename_for_profile_when_terminate = 'profile_whitedwarf_from_mod.data'
+      write_profile_when_terminate = .true.
+      filename_for_profile_when_terminate = 'profile_whitedwardata'
 
       save_model_when_terminate = .false.
-      !save_model_filename = 'final.mod'
-      write_profile_when_terminate = .true.
+
 
       create_pre_main_sequence_model = .false.
       show_log_description_at_start = .false.
@@ -36,7 +34,7 @@
 / ! end of star_job namelist
 
 &controls
-      star_history_name = 'history_whitedwarf_from_mod.data'
+      star_history_name = 'history_whitedwarf.data'
 
       use_gold_tolerances = .true.
 
