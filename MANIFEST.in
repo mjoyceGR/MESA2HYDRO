@@ -1,0 +1,4 @@
+recursive-include data *
+recursive-include work *.dat
+include work/recovery_images/*.png
+recursive-include out *.data
