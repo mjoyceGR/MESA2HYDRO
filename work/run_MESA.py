@@ -4,7 +4,7 @@ import sys
 import os
 m2g_path=os.environ['MESA2GADGET_ROOT']
 sys.path.append(m2g_path+'/src/')
-import MESAlibjoyce as MJ
+import MESA2GADGET.MESAlibjoyce as MJ
 
 #### solution to sdk issue: set the source line in your bashrc
 
