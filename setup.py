@@ -1,11 +1,12 @@
 #!/usr/bin/env python
 
-from distutils.core import setup
+from setuptools import setup
 setup(name='MESA2GADGET',
       packages=['MESA2GADGET', 'MESA2GADGET.work'],
       package_dir={'MESA2GADGET': 'src', 'MESA2GADGET.work': 'work'}, 
-      package_data={'MESA2GADGET': ['data/*/*', 'work/N_mp_combinations.dat', 'work/NR_files/*.dat',
-                                    'work/recovery_images/*.png', 'out/sample_MESA_output/*.data']},
+      package_data={'': ['data/*/*', 'work/N_mp_combinations.dat', 'work/NR_files/*.dat',
+                         'work/recovery_images/*.png', 'out/sample_MESA_output/*.data']},
+      include_package_data=True,
       version='0.1.0',
       description='TBD',
       author='Meridith Joyce',
