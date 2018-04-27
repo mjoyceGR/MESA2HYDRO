@@ -48,3 +48,5 @@ e.g.
 
 and add this source command to your .bashrc to initialize the MESA software development kit
 	source $MESASDK_ROOT/bin/mesasdk_init.sh
+
+To use this library locally without installing it add the path to the MESA2GADGET directory to your PYTHONPATH environment variable.

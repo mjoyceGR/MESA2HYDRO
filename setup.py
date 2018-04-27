@@ -2,8 +2,9 @@
 
 from setuptools import setup
 setup(name='MESA2GADGET',
-      packages=['MESA2GADGET', 'MESA2GADGET.work', 'MESA2GADGET.data', 'MESA2GADGET.out'],
-      package_dir={'MESA2GADGET': 'src', 'MESA2GADGET.work': 'work',
+      packages=['MESA2GADGET', 'MESA2GADGET.mesalib', 'MESA2GADGET.work'],
+      package_dir={'MESA2GADGET': '', 'MESA2GADGET.work': 'work',
+                   'MESA2GADGET.mesalib': 'mesalib',
                    'MESA2GADGET.data': 'data', 'MESA2GADGET.out': 'out'}, 
       package_data={'': ['data/*/*', 'work/N_mp_combinations.dat', 'work/NR_files/*.dat',
                          'work/recovery_images/*.png', 'out/sample_MESA_output/*.data']},
