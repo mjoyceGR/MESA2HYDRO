@@ -9,6 +9,7 @@ import MESA2GADGET.mesalib.MESAlibjoyce as MJ
 import MESA2GADGET.mesalib.converge_funcs as cf
 import MESA2GADGET.mesalib.io_lib as rw
 import MESA2GADGET.mesalib.mainlib as mn
+from MESA2GADGET import MESA_PKG_DIR
 
 import time
 start_time = time.time()
@@ -30,7 +31,9 @@ try_reload=True
 format_type='binary' 
 
 
-MESA_file=os.path.join(os.path.dirname(__file__),'../out/sample_MESA_output/profile140.data')
+print MESA_PKG_DIR
+MESA_file=os.path.join(MESA_PKG_DIR, 'out/sample_MESA_output/profile140.data')
+print MESA_file
 masscut=0.95
 N=32
 mp=1e-7 ##IN UNITES OF Msolar!!!
