@@ -5,10 +5,10 @@ import sys
 import os
 m2g_path=os.environ['MESA2GADGET_ROOT']
 sys.path.append(m2g_path+'/src/')
-import MESAlibjoyce as MJ
-import converge_funcs as cf
-import io_lib as rw
-import mainlib as mn
+import MESA2GADGET.mesalib.MESAlibjoyce as MJ
+import MESA2GADGET.mesalib.converge_funcs as cf
+import MESA2GADGET.mesalib.io_lib as rw
+import MESA2GADGET.mesalib.mainlib as mn
 
 import time
 start_time = time.time()

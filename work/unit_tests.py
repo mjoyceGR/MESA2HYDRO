@@ -7,11 +7,11 @@ import sys
 import os
 m2g_path=os.environ['MESA2GADGET_ROOT']
 sys.path.append(m2g_path+'/src/')
-import MESAlibjoyce as MJ
+import MESA2GADGET.mesalib.MESAlibjoyce as MJ
 import datetime as dt 
 import random as rand
 import healpy as hp
-import converge_funcs as cf  
+import MESA2GADGET.mesalib.converge_funcs as cf  
 
 
 
