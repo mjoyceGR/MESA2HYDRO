@@ -1,6 +1,30 @@
 #!/usr/bin/env python
 
+import os
+import shutil
+import subprocess
 from setuptools import setup
+PKG_DIR = os.path.abspath(os.path.dirname(__file__))
+CMD = "pushd {} && git clone https://github.com/ldocao/pygadgetic.git && popd".format(PKG_DIR)
+print("Try removing any previous packages")
+try:
+    shutil.rmtree(os.path.join(PKG_DIR, "pygadgetic"))
+except OSError:
+   print("Package repo didn't need to be removed") 
+try:
+    shutil.rmtree(os.path.join(PKG_DIR, "mesalib", "pygadgetic"))
+except OSError:
+   print("No packages needed to be removed") 
+
+print("Pullilng dependent package")
+print("Calling " + CMD)
+subprocess.check_call(CMD, shell=True, executable='/bin/bash')
+print("Moving package files into mesalib")
+shutil.copytree(os.path.join(PKG_DIR, "pygadgetic", "pygadgetic"),
+                os.path.join(PKG_DIR, "mesalib", "pygadgetic"))
+print("Cleaning up git package")
+shutil.rmtree(os.path.join(PKG_DIR, "pygadgetic"))
+
 setup(name='MESA2GADGET',
       packages=['MESA2GADGET', 'MESA2GADGET.mesalib', 'MESA2GADGET.work'],
       package_dir={'MESA2GADGET': '', 'MESA2GADGET.work': 'work',
@@ -30,3 +54,4 @@ setup(name='MESA2GADGET',
       ],
       zip_safe=False
 )
+

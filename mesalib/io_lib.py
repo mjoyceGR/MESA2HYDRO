@@ -1226,7 +1226,10 @@ def make_IC_binary(out_fname, mp, x, y, z,**kwargs):    #rho???
     try:
         import pygadgetic
     except ImportError:
-        print("Cannot run make_IC_binary without pygadgetic installed.")
+        print("Cannot run make_IC_binary without pygadgetic.")
+        print("The package pygadgetic is available at https://github.com/ldocao/pygadgetic")
+        print("To install run this package's setup script or move pygadgetic/pygadgetic into"
+              "MESA2GADGET/mesalib directory")
         sys.exit(1)
 
     ##define number of particles
