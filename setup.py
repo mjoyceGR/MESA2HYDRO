@@ -5,7 +5,7 @@ import shutil
 import subprocess
 from setuptools import setup
 PKG_DIR = os.path.abspath(os.path.dirname(__file__))
-CMD = "pushd {} && git clone https://github.com/ldocao/pygadgetic.git && popd".format(PKG_DIR)
+CMD = "cd {} && git clone https://github.com/ldocao/pygadgetic.git".format(PKG_DIR)
 print("Try removing any previous packages")
 try:
     shutil.rmtree(os.path.join(PKG_DIR, "pygadgetic"))
