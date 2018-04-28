@@ -6,11 +6,18 @@ import sys
 import os
 m2g_path=os.environ['MESA2GADGET_ROOT']
 sys.path.append(m2g_path+'/src/')
-import MESA2GADGET.mesalib.MESAlibjoyce as MJ
-import MESA2GADGET.mesalib.converge_funcs as cf
-import MESA2GADGET.mesalib.io_lib as rw
-import MESA2GADGET.mesalib.mainlib as mn
-from MESA2GADGET import MESA_PKG_DIR
+try:
+    import MESA2GADGET.mesalib.MESAlibjoyce as MJ
+    import MESA2GADGET.mesalib.converge_funcs as cf
+    import MESA2GADGET.mesalib.io_lib as rw
+    import MESA2GADGET.mesalib.mainlib as mn
+    from MESA2GADGET import MESA_PKG_DIR
+except ImportError:
+    print("Problem with MESA2GADGET installation")
+    print("To use this package please run sudo python setup.py install")
+    print("or set your PYTHONPATH environment variable to the directory")
+    print("MESA2GADGET is in (pointing it directly to MESA2GADGET still causes problems)")
+    exit(1)
 
 import time
 start_time = time.time()
