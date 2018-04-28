@@ -53,11 +53,10 @@ def defaults():
 # Argument input
 #
 ##############################################################
-parser = argparse.ArgumentParser(description='')
-input_types = parser.add_mutually_exclusive_group()
-input_types.add_argument('--config-file', type=file,
+parser = argparse.ArgumentParser(description='Program for converting MESA output to Gadget simulation files')
+parser.add_argument('--config-file', type=file,
                          help='Path to configuration file')
-config_args = input_types.add_argument_group()
+config_args = parser.add_argument_group("Configuration")
 config_args.add_argument('--check-MESA', action='store_true',
                          help='Sets check-MESA value')
 config_args.add_argument('--make-NR-file', action='store_true',
