@@ -37,17 +37,17 @@ def path_from_package(path):
 #
 ########################################################
 VALID_CONFIGS = [
-    'check_MESA',
-    'make_NR_file',
-    'make_IC_file',
-    'try_reload',
-    'format_type',
-    'MESA_file',
-    'masscut',
-    'N',
-    'mp',
-    'startype',
-    'saveNR']
+    ('check_MESA', False),
+    ('make_NR_file', False),
+    ('make_IC_file', True),
+    ('try_reload', False),
+    ('format_type', 'binary'),
+    ('MESA_file', ''),
+    ('masscut', 0.95),
+    ('N', 32),
+    ('mp', 1e-7),
+    ('startype', 'p140_test'),
+    ('saveNR', )]
     
     
 ##############################################################
