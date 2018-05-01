@@ -25,7 +25,7 @@ check_MESA=False
 make_NR_file=False
 
 
-make_IC_file=False
+make_IC_file=True
 # try_reload=True
 format_type='binary' 
 
@@ -55,8 +55,6 @@ fit_region_rho=mn.MESA_rho(MESA_file, masscut)
 
 rmax=fit_region_R.max()
 print "rmax: ", rmax
-
-
 
 
 #ftypes=['hdf5'] #'binary',
