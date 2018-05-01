@@ -164,15 +164,15 @@ def write_body(body, ic_file, format_output):
     ######## doesn't do anything but I'm keeping at at 1 anyway
     ndim=4
     #write in binary format
-    write_block(body.pos.astype('f'), 3*ndim*total_number_of_particles, ic_file)
+    write_block(body.pos.astype('d'), 3*ndim*total_number_of_particles, ic_file)
 
     #print "\n\nvalues in body.pos: ", body.pos
-    write_block(body.vel.astype('f'), 3*ndim*total_number_of_particles, ic_file)
+    write_block(body.vel.astype('d'), 3*ndim*total_number_of_particles, ic_file)
     write_block(body.id.astype('I'), ndim*total_number_of_particles, ic_file)
-    print "\n\nvalues in body.mass: ", body.mass.astype('f')
+    print "\n\nvalues in body.mass: ", body.mass.astype('d')
 
-    write_block(body.mass.astype('f'), ndim*total_number_of_particles, ic_file)
-    write_block(body.u.astype('f'), ndim*gas_particles, ic_file)
+    write_block(body.mass.astype('d'), ndim*total_number_of_particles, ic_file)
+    write_block(body.u.astype('d'), ndim*gas_particles, ic_file)
 
 
     # ##need to set conditions to write these blocks. Maybe it's better to do a loop over each block, but it need some more work.
@@ -185,10 +185,10 @@ def write_body(body, ic_file, format_output):
     #print "\n\nvalues in body.rho: ", body.rho
 
     #### adding this eliminated the loading errors for hsml, u, and rho
-    write_block(body.hsml.astype('f'), ndim*total_number_of_particles, ic_file)
+    write_block(body.hsml.astype('d'), ndim*total_number_of_particles, ic_file)
     print "\n\nvalues in body.hsml: ", body.hsml.astype('f')    
-    write_block(body.u.astype('f'),ndim*total_number_of_particles, ic_file )
-    write_block(body.rho.astype('f'),ndim*total_number_of_particles, ic_file )
+    write_block(body.u.astype('d'),ndim*total_number_of_particles, ic_file )
+    write_block(body.rho.astype('d'),ndim*total_number_of_particles, ic_file )
     
     return None
 
