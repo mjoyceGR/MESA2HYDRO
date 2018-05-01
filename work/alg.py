@@ -128,7 +128,6 @@ if args.config_file:
     lines = [line for line in lines
              if not re.match('\s*#', line) and '=' in line]
     config_file = "\n".join(lines)
-    print(config_file)
 
     def get_str_option(name, default):
         m = re.search('^\s*{}\s*=\s*(?P<value>\w+)'.format(name),
