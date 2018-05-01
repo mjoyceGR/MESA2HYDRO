@@ -4,11 +4,19 @@ import matplotlib.pyplot as plt
 import sys
 import os
 m2g_path=os.environ['MESA2GADGET_ROOT']
-sys.path.append(m2g_path+'/src/')
-import MESAlibjoyce as MJ
-import converge_funcs as cf
-import io_lib as rw
-import mainlib as mn
+sys.path.append(m2g_path+'/mesalib/')
+try:
+    import MESA2GADGET.mesalib.MESAlibjoyce as MJ
+    import MESA2GADGET.mesalib.converge_funcs as cf
+    import MESA2GADGET.mesalib.io_lib as rw
+    import MESA2GADGET.mesalib.mainlib as mn
+    from MESA2GADGET import MESA_PKG_DIR
+except ImportError:
+    print("Problem with MESA2GADGET installation")
+    print("To use this package please run sudo python setup.py install")
+    print("or set your PYTHONPATH environment variable to the directory")
+    print("MESA2GADGET is in (pointing it directly to MESA2GADGET still causes problems)")
+    exit(1)
 
 import time
 start_time = time.time()
@@ -22,7 +30,7 @@ make_IC_file=False
 format_type='binary' 
 
 
-MESA_file='../out/sample_MESA_output/profile_mainsequence.data'
+MESA_file=os.path.join(MESA_PKG_DIR, 'out/sample_MESA_output/profile_mainsequence.data')
 masscut=0.95
 N=8
 mp=1e-7 ##IN UNITES OF Msolar!!!
@@ -31,7 +39,7 @@ startype='ms'#'wd_from_mod'
 # tag=startype+'_m'+str(masscut)+'_N'+str(N)+'_'+'mp'+str(mp)
 # outname=tag
 
-saveNR="./NR_files/saveNR_"+startype+".dat"
+saveNR=os.path.join(MESA_PKG_DIR, "work/NR_files/saveNR_"+startype+".dat")
 outname='ms_test'
 
 
