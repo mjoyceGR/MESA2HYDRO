@@ -22,6 +22,7 @@ R_to_solar=6.957*10.0**10.0 ## cm/Rsolar
 
 
 def MESA_r(MESA_file, masscut):
+    ## returns R in cm
     fit_region_R = cf.get_MESA_profile_edge(MESA_file, quantity='logR', masscut=masscut,strip=False)
     fit_region_R=cf.unlog(fit_region_R)*R_to_solar
     return fit_region_R
@@ -32,6 +33,15 @@ def MESA_rho(MESA_file,masscut):
     fit_region_rho=cf.unlog(fit_region_rho)
     return fit_region_rho
 
+def MESA_m(MESA_file,masscut):
+    ### RETURNS M ARRAY IN cgs UNITS!!!!
+    fit_region_M=cf.get_MESA_profile_edge(MESA_file, quantity='mass', masscut=masscut,strip=False)*M_to_solar
+    return fit_region_M
+
+def MESA_internalE(MESA_file,masscut):
+    fit_region_E=cf.get_MESA_profile_edge(MESA_file, quantity='logE', masscut=masscut,strip=False)
+    fit_region_E=cf.unlog(fit_region_E)
+    return fit_region_E
 
 
 ##########################################################
@@ -39,47 +49,46 @@ def MESA_rho(MESA_file,masscut):
 # Make an NR file from MESA data
 #
 ###########################################################
+def check_MESA(MESA_file, masscut):
+    #if check_MESA:
+    fit_region_R=MESA_r(MESA_file,masscut)
+    fit_region_rho=MESA_rho(MESA_file,masscut)
+
+    import matplotlib.pyplot as plt
+    plt.plot(fit_region_R, fit_region_rho,'b.')
+    plt.xlabel('Radius (cm)')
+    plt.ylabel(r'$\rho$ (g/cm$^3$)')
+    plt.title(MESA_file)
+    plt.show()
+    plt.close()
+    return 
+
+
 def make_NR_file(MESA_file,masscut,N,mp, RKstep,NR_file, *args, **kwargs):
     ## NR_file must be FILE OBJECT, not STRING
     # mp must be passed in units of solar masses, e.g. 1e-7 
 
-
-    check_MESA=kwargs.get('check_MESA',False)
     start_time=time.time()
-
-    #RKstep=RKstepsize
-    # outer_step=outer_step
-
     fit_region_R=MESA_r(MESA_file, masscut)
     fit_region_rho=MESA_rho(MESA_file, masscut)
+    #fit_region_M=MESA_m(MESA_file, masscut)
 
-    fit_region_M=cf.get_MESA_profile_edge(MESA_file, quantity='mass', masscut=masscut,strip=False)*M_to_solar
-
-
-    if check_MESA:
-        import matplotlib.pyplot as plt
-        plt.plot(fit_region_R, fit_region_rho,'c.')
-        plt.title(MESA_file)
-        plt.show()
-        plt.close()
+    fit_region_E=MESA_internalE(MESA_file,masscut)
 
     mp=mp*M_to_solar
     rl=fit_region_R.min()
     rmax=fit_region_R.max()
 
-    #if make_NR_file:
-    #saveNR=str(NR_file_name)
-    #outf=open(saveNR,"w")
     outf=NR_file
-    print >> outf, '## fname',MESA_file ,' masscut',masscut,'   N', N, '  mp', mp/M_to_solar,\
-       'mp_solar', mp,'  RKstep',('%1.3e'% RKstep)#, '   outer_step', ('%1.3e'%outer_step)
-    print >> outf, '#N    (ru+rl)/2 (cm)  M(g) contained in shell ru-rl'
+    print >> outf, '## fname',MESA_file ,' masscut',masscut,'   N', N, '  mp (Ms)', mp/M_to_solar,\
+       '  mp (g)', mp,'  RKstep',('%1.3e'% RKstep)
+    print >> outf, '#N    (ru+rl)/2 (cm)    M(g) contained in shell ru-rl   internal energy E (unlog)'
 
     ru=rl
     while ru <= rmax:
         try:
             ru, Mshell=cf.get_placement_radii(rl, ru, RKstep, N, mp, MESA_file,masscut, suppress_output=False, load_unlogged=False)
-            print >> outf, N, ru, Mshell
+            print >> outf, N, ru, Mshell, cf.get_logE(ru,MESA_file,masscut)
             rl=ru
         except TypeError:
             print 'reached', ('%1.5f'% (ru*100.0/rmax)), r'% of outer radius' 
@@ -87,7 +96,6 @@ def make_NR_file(MESA_file,masscut,N,mp, RKstep,NR_file, *args, **kwargs):
 
     print 'runtime: ', time.time()-start_time
     print >> outf, '#\n#\n# runtime: ', time.time()-start_time, " seconds"
-    #outf.close()
 
     return
 
@@ -106,21 +114,23 @@ def get_IC(NR_file_name,output_filename,mp, *args, **kwargs): #temp remove rmax
     #print "\n\nWARNING! mp not multiplied by M_solar!! \n\n"
     mp=mp*M_to_solar 
 
-    #print "\n\n\nmp:", mp, "\n\n\n"
 
-    #tag=str(output_filename)
     hdf5file=str(output_filename)+ '.hdf5'
     binaryfile=str(output_filename)+ '.bin'
-    #saveNR=str(NR_file_name)
 
-    N,rmid=np.loadtxt(NR_file_name, usecols=(0,1), unpack=True) 
-    #if make_IC_file:
+
+    N,rmid,E=np.loadtxt(NR_file_name, usecols=(0,1,3), unpack=True) 
+
     super_x=[]
     super_y=[]
     super_z=[]
+
+    super_E=[]
+
     for i in range(len(N)):
         NSIDE= N[i]
         r_mid= rmid[i]
+        E_val=E[i]
 
         # print 'WARNING!! sending physical radius!!!!\nmp IS multipled by Msolar'
         radius=float(rmid[i])
@@ -134,35 +144,33 @@ def get_IC(NR_file_name,output_filename,mp, *args, **kwargs): #temp remove rmax
         x=x*radius
         y=y*radius
         z=z*radius
+        #same size as x, but same value of internal E for points at radius r
+        E_array=x*0.+E_val
+
         super_x=np.concatenate((super_x,x),axis=0)
         super_y=np.concatenate((super_y,y),axis=0)
         super_z=np.concatenate((super_z,z),axis=0)
         r_super=np.sqrt(super_x**2.0+ super_y**2.0 + super_z**2.0)
+        super_E=np.concatenate((super_E,E_array),axis=0)
+
     super_x=cf.to_array(super_x)
     super_y=cf.to_array(super_y)
     super_z=cf.to_array(super_z)
+    super_E=cf.to_array(super_E)
+
     if filetype=='hdf5':
-        var=rw.make_IC_hdf5(hdf5file, mp, super_x, super_y, super_z) #, userho=False
+        var=rw.make_IC_hdf5(hdf5file, mp, super_x, super_y, super_z,super_E) #, userho=False
     else:
-        var=rw.make_IC_binary(binaryfile, mp, super_x, super_y, super_z, central_mass=1) 
+        var=rw.make_IC_binary(binaryfile, mp, super_x, super_y, super_z,super_E)#central mass not handled 
     print var, type(var)
     return
 
 
 def estimate_stepsize(MESA_file, masscut, Nshells):
-
-    # load density, mass, radius from MESA and convert to cgs
-    # fit_region_R = cf.get_MESA_profile_edge(MESA_file, quantity='logR', masscut=masscut,strip=False)
-    # fit_region_R=cf.unlog(fit_region_R)*R_to_solar
-    # fit_region_M=cf.get_MESA_profile_edge(MESA_file, quantity='mass', masscut=masscut,strip=False)*M_to_solar
-    # fit_region_rho = cf.get_MESA_profile_edge(MESA_file, quantity='logRho', masscut=masscut ,strip=False)
-    # fit_region_rho=cf.unlog(fit_region_rho)
     fit_region_R=MESA_r(MESA_file, masscut)
     fit_region_rho=MESA_rho(MESA_file, masscut)
-
     rl=fit_region_R.min()
     rmax=fit_region_R.max()
-
 
     return (float(rmax)-float(rl))/float(Nshells)
 

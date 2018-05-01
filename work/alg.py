@@ -65,8 +65,10 @@ parser.add_argument('--config-file', type=file,
 config_args = parser.add_argument_group("Configuration")
 config_args.add_argument('--check-MESA', action='store_true',
                          help='Sets check-MESA value')
+
 config_args.add_argument('--make-NR-file', action='store_true',
                          help='Sets make-NR-file')
+
 config_args.add_argument('--no-IC-file', action='store_true',
                          help='Sets make-IC-file value')
 config_args.add_argument('--try-reload', action='store_true',
@@ -74,7 +76,7 @@ config_args.add_argument('--try-reload', action='store_true',
 config_args.add_argument('--format-type', default='binary',
                          help='Type of the format (binary...)')
 config_args.add_argument('--MESA-file',
-                         default=path_from_package('out/sample_MESA_output/profile_mainsequence.data'),
+                         default=path_from_package('out/sample_MESA_output/profile_mainsequence_logE.data'),
                          help='Path to input MESA output')
 config_args.add_argument('--masscut', default=0.95,
                          help='Sets masscut')
@@ -82,8 +84,8 @@ config_args.add_argument('--N', default=8,
                          help='Sets N')
 config_args.add_argument('--mp', default=1e-7,
                          help='Set the mp value in Msolar units')
-config_args.add_argument('--start-type', default='OB_latest',
-                         help='Set start type')
+config_args.add_argument('--star-type', default='latest',
+                         help='Set star type')
 config_args.add_argument('--saveNR', default=None,
                          help='Set the saveNR file')
 
@@ -104,14 +106,14 @@ else:
     mp = args.mp
     startype = args.start_type
     #tag = startype + '_m' + str(masscut) + '_N' + str(N) + '_' + 'mp' + str(mp)
-    tag = 'main_sequence'
+    tag = 'main_sequence_logE'
     outname = tag
     # If a saveNR path is given use that
     # otherwise construct one from other variables
     if args.saveNR:
        saveNR = args.saveNR
     else: 
-        saveNR = "work/NR_files/saveNR_ms.dat"
+        saveNR = "work/NR_files/saveNR_ms_logE.dat"
     # If the given path exists use that otherwise
     # prepend the package path
     if not os.path.exists(saveNR):
@@ -119,7 +121,6 @@ else:
         
         
     
-
 ##############################################################
 #
 # Generate shell placement radii
@@ -132,11 +133,20 @@ print "estimated stepsize: ", stepsize
 
 stepsize=2.45e6 #87580000 #(cm)
 
+if check_MESA:
+    mn.check_MESA(MESA_file, masscut)
 
+
+
+### need to include internal energy here
 if make_NR_file:
+    ## saveNR must now be in four column (NOT three column) format!!!!
 	outf=open(saveNR,"w")
-	mn.make_NR_file(MESA_file,masscut,N,mp, stepsize,outf,check_MESA=check_MESA)
+	mn.make_NR_file(MESA_file,masscut,N,mp, stepsize,outf)#,check_MESA=check_MESA)
 	outf.close()
+
+
+
 
 ##############################################################
 #
@@ -146,8 +156,8 @@ if make_NR_file:
 fit_region_R=mn.MESA_r(MESA_file, masscut)
 fit_region_rho=mn.MESA_rho(MESA_file, masscut)
 rmax=fit_region_R.max()
-
 print "rmax: ", rmax
+
 
 if make_IC_file:
 	mn.get_IC(saveNR,outname,mp,format_type=format_type)

@@ -5,9 +5,12 @@ from scipy.optimize import curve_fit
 import sys
 #import pygadgetreader as pgr # works- credit this person
 import MESAlibjoyce as MJ
+import mainlib as mn
+
 import datetime as dt 
 import random as rand
 import healpy as hp
+
 
 
 M_to_solar=1.988*10.0**33.0 ## g/Msolar
@@ -73,27 +76,28 @@ def rho_r(r,MESA_file,masscut, *args, **kwargs):
 	# WARNING! FIXING cgs units!!!
 	#
 	############################################################
-	use_unlog=bool(kwargs.get('load_unlogged',False))
-	#print "value of use_unlog in rho_r:", use_unlog
+	fit_region_R=mn.MESA_r(MESA_file,masscut)
+	fit_region_rho=mn.MESA_rho(MESA_file,masscut)
+
+	# use_unlog=bool(kwargs.get('load_unlogged',False))
+	# #print "value of use_unlog in rho_r:", use_unlog
 
 
-	fit_region_R = get_MESA_profile_edge(MESA_file, quantity='logR', masscut=masscut,strip=False)
-	fit_region_R=unlog(fit_region_R)
+	# fit_region_R = get_MESA_profile_edge(MESA_file, quantity='logR', masscut=masscut,strip=False)
+	# fit_region_R=unlog(fit_region_R)
 
-	if use_unlog:
-		fit_region_rho = get_MESA_profile_edge(MESA_file, quantity='rho', masscut=masscut ,strip=False)
-	else:
-		fit_region_rho = get_MESA_profile_edge(MESA_file, quantity='logRho', masscut=masscut ,strip=False)
-		fit_region_rho=unlog(fit_region_rho)
+	# if use_unlog:
+	# 	fit_region_rho = get_MESA_profile_edge(MESA_file, quantity='rho', masscut=masscut ,strip=False)
+	# else:
+	# 	fit_region_rho = get_MESA_profile_edge(MESA_file, quantity='logRho', masscut=masscut ,strip=False)
+	# 	fit_region_rho=unlog(fit_region_rho)
 
-	## convert unlogged radii from Rsolar units to cgs
-	fit_region_R=fit_region_R*R_to_solar
-	#print "r, fit_region_R after conversion:", r, fit_region_R[-1]
+	# ## convert unlogged radii from Rsolar units to cgs
+	# fit_region_R=fit_region_R*R_to_solar
+
 
 	r0,idx=find_nearest(fit_region_R,r)
-	#
 	# WARNING! THIS RELIES ON LOADED DATA BEING SORTED! DO NOT TAMPER!
-	#
 
 	if r0 <= r:
 		rho0=fit_region_rho[idx]
@@ -104,18 +108,50 @@ def rho_r(r,MESA_file,masscut, *args, **kwargs):
 		rho0=fit_region_rho[idx+1]
 		r1=fit_region_R[idx]
 		rho1=fit_region_rho[idx]
-	#np.polyfit()
 
 	rrho_r= (  (r1-r)*rho0 + (r-r0)*rho1 ) /(r1-r0)
-	#print "rrho_r in rho_r(r) routine:", rrho_r
-
-	#print idx, r0,rho0, r1, rho1
 	if (r0 <= r <= r1):
-		#print r0, r, r1
 		return rrho_r
 	else:
 		print "no."
-		return #rho_r
+		return 
+
+
+
+def get_logE(r,MESA_file,masscut):
+
+	fit_region_R=mn.MESA_r(MESA_file,masscut)
+	fit_region_E=mn.MESA_internalE(MESA_file,masscut)
+
+	r0,idx=find_nearest(fit_region_R,r)
+
+	if r0 <= r:
+		E0=fit_region_E[idx]
+		r1=fit_region_R[idx-1]
+		E1=fit_region_E[idx-1]
+	else:
+		r0=fit_region_R[idx+1]
+		E0=fit_region_E[idx+1]
+		r1=fit_region_R[idx]
+		E1=fit_region_E[idx]
+
+	E= (  (r1-r)*E0 + (r-r0)*E1 ) /(r1-r0)
+	if (r0 <= r <= r1):
+		return E
+	else:
+		print "Error obtaining internal energy E."
+		return 
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -154,45 +190,6 @@ def get_placement_radii(rl, ru, RKstep, force_N, mp, MESA_file, masscut, *args, 
 	return r_place,Mshell
 
 
-####################################################################
-#
-# functions for validating density profile recovered from GADGET IC file
-#
-#####################################################################
-# def get_density_from_loaded_particles(r, r_bin, r_recovered, p_mass):
-# 	##unsure about r and r_bin in these
-# 	r=float(r)
-# 	r_bin=float(r_bin)
-# 	mshell=Mshell_r(r,r_bin,r_recovered, p_mass)
-# 	vol_annulus=volume(r+r_bin)-volume(r)
-# 	rho = float(mshell)/float(vol_annulus)
-# 	#print "   rho", rho
-# 	#(1.0/(4.0*np.pi * (r+r_bin)**3.0 )) #-( 3.0/(4.0*np.pi * (r)**3.0 ))
-# 	return rho
-
-
-
-##############################################
-#
-# THIS FUNCTION IS THE PROBLEM 
-#
-# #################################################
-# def Mshell_r(r, r_bin,r_recovered,p_mass):
-# 	######################################
-# 	# warning! requires a fixed particle mass, can't handle changing m
-# 	######################################
-# 	# total number of particles in the binned region'
-# 	region = np.where( (r_recovered>r) & (r_recovered <(r+r_bin) )  )
-# 	N=len(r_recovered[region])
-# 	mshell=p_mass*N
-# 	#print 'recovered_region: ',r_recovered[region]
- 
-
-# 	#print "\nr",r,"r_bin",r_bin,'   len(region)=N', N,'      mshell',mshell	
-# 	return mshell
-
-
-
 
 
 ###########################################################################
@@ -214,6 +211,7 @@ def get_MESA_profile_edge(MESA_file,**kwargs):#, strip):
 	except:
 		print "Quantity keyword not found. Allowed keywords are:"
 		print MJ.show_allowed_MESA_keywords(MESA_file)
+		sys.exit()
 
 	masses = MJ.get_quantity(MESA_file,'mass').astype(np.float)
 	Mtot=masses[0]

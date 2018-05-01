@@ -53,30 +53,30 @@ def plotter(xmaj, xmin, ymaj, ymin,**kwargs):
 # simply by iteration
 
 
-def submit_MESA_job(mesa_work_path,qsub_script):
-    mesa_work_path=str(mesa_work_path)
-    os.chdir(mesa_work_path)
-    #	subprocess.call('cd '+mesa_work_path, shell=True)
-    print "entered"
-    subprocess.call('pwd', shell=True)
-    compile_MESA()
-    run_MESA()
-    return 
+# def submit_MESA_job(mesa_work_path,qsub_script):
+#     mesa_work_path=str(mesa_work_path)
+#     os.chdir(mesa_work_path)
+#     #	subprocess.call('cd '+mesa_work_path, shell=True)
+#     print "entered"
+#     subprocess.call('pwd', shell=True)
+#     compile_MESA()
+#     run_MESA()
+#     return 
 
-def compile_MESA():
-	try:
-		subprocess.call('./mk', shell=True)
-	except:
-		print 'MESA star compilation failed'
-	return
+# def compile_MESA():
+# 	try:
+# 		subprocess.call('./mk', shell=True)
+# 	except:
+# 		print 'MESA star compilation failed'
+# 	return
 
-def execute_MESA():
-	subprocess.call('cd '+mesa_work_path, shell=True)
-	try:
-		subprocess.call('./rn', shell=True)
-	except:
-		print 'MESA star execution failed'	
-	return
+# def execute_MESA():
+# 	subprocess.call('cd '+mesa_work_path, shell=True)
+# 	try:
+# 		subprocess.call('./rn', shell=True)
+# 	except:
+# 		print 'MESA star execution failed'	
+# 	return
 
 
 def update_MESA_inlist_value(MESA_inlist, field, value):
