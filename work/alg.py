@@ -5,6 +5,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import sys
 import os
+import re
 m2g_path=os.environ['MESA2GADGET_ROOT']
 sys.path.append(m2g_path+'/src/')
 try:
@@ -42,12 +43,13 @@ VALID_CONFIGS = {
     'make_IC_file': True,
     'try_reload': False,
     'format_type': 'binary',
-    'MESA_file': 'out/sample_MESA_output/profile_OB.data',
+    'MESA_file': path_from_package('out/sample_MESA_output/profile_OB.data'),
     'masscut': 0.95,
     'N': 16,
     'mp': 1e-7,
     'startype': 'OB_latest',
-    'saveNR': 'work/NR_files/saveNR_ms.dat'}
+    'saveNR': 'work/NR_files/saveNR_ms.dat',
+    'tag': 'main_sequence'}
     
 #check_MESA=False
 #make_NR_file=True
@@ -95,24 +97,23 @@ config_args.add_argument('--try-reload',
                          action='store_true' if VALID_CONFIGS['try_reload'] else 'store_false',
                          help='Sets try-reload to {}'
                               .format(not VALID_CONFIGS['try_reload']))
-config_args.add_argument('--format-type', default='binary',
+config_args.add_argument('--format-type', default=VALID_CONFIGS['format_type'],
                          help='Type of the format (binary...)')
 config_args.add_argument('--MESA-file',
-                         default=path_from_package('out/sample_MESA_output/profile_mainsequence.data'),
+                         default=VALID_CONFIGS['MESA_file'],
                          help='Path to input MESA output')
-config_args.add_argument('--masscut', default=0.95,
+config_args.add_argument('--masscut', default=VALID_CONFIGS['masscut'],
                          help='Sets masscut')
-config_args.add_argument('--N', default=8,
+config_args.add_argument('--N', default=VALID_CONFIGS['N'],
                          help='Sets N')
-config_args.add_argument('--mp', default=1e-7,
+config_args.add_argument('--mp', default=VALID_CONFIGS['mp'],
                          help='Set the mp value in Msolar units')
-config_args.add_argument('--star-type', default='OB_latest',
+config_args.add_argument('--star-type', default=VALID_CONFIGS['startype'],
                          help='Set start type')
 config_args.add_argument('--saveNR', default=None,
                          help='Set the saveNR file')
 
 args = parser.parse_args()
-
 if args.config_file:
     if not os.path.exists(args.config_file):
         args.config_file = path_from_package(args.config_file)
@@ -120,43 +121,95 @@ if args.config_file:
     if not os.path.exists(args.config_file):
         print("Config file does not exist")
 
-    config = ConfigParser.ConfigParser()
-    config.read(args.config_file)
-    # Assume everything is in 'default' section
+    with open(args.config_file, 'r') as f:
+        config_file = f.read()
 
-    file_configs = config.defaults()
-    print("The configuration values entered are:")
-    for key, value in file_configs.items():
-        if key in VALID_CONFIGS:
-            print("\t{} = {}".format(key, value))
+    lines = config_file.splitlines()
+    lines = [line for line in lines
+             if not re.match('\s*#', line) and '=' in line]
+    config_file = "\n".join(lines)
+    print(config_file)
+
+    def get_str_option(name, default):
+        m = re.search('^\s*{}\s*=\s*(?P<value>\w+)'.format(name),
+                      config_file, re.MULTILINE)
+        if m:
+            value = m.group('value')
+            print("Using config file value for {} of {}".format(name, value))
+            return value
         else:
-            print("Value {} set but is unknown to this script"
-                  .format(key))
+            return default
 
-    
+    def get_float_option(name, default):
+        m = re.search('^\s*{}\s*=\s*(?P<value>[\w\.-]+)'.format(name),
+                      config_file, re.MULTILINE)
+        if m:
+            try:
+                value = m.group('value')
+                value = float(value)
+                print("Using config file value for {} of {}".format(name, value))
+                return value
+            except ValueError:
+                print("{} has a misformed value. {} is not a recognized float"
+                      .format(name, value))
+        else:
+            return default
 
-    check_MESA = file_configs.get('check_MESA', False)
-    make_NR_file = file_configs.get('make_NR_file', False)
-    make_IC_file = file_configs.get('make_IC_file', True)
-    try_reload = file_configs.get('try_reload', True)
-    format_type = file_configs.get('format_type', 'binary')
+    def get_int_option(name, default):
+        m = re.search('^\s*{}\s*=\s*(?P<value>\w+)'.format(name),
+                      config_file, re.MULTILINE)
+        if m:
+            try:
+                value = m.group('value')
+                value = int(value)
+                print("Using config file value for {} of {}".format(name, value))
+                return value
+            except ValueError:
+                print("{} has a misformed value. {} is not a recognized float"
+                      .format(name, value))
+        else:
+            return default
+
+    def get_bool_option(name, default):
+        m = re.search('^\s*{}\s*=\s*(?P<value>\w+)'.format(name),
+                      config_file, re.MULTILINE)
+        if m:
+            # case insensitive true
+            value = m.group('value')
+            if value.upper() == "TRUE":
+                print("Using config file value for {} of {}".format(name, True))
+                return True
+            else:
+                if value.upper() == "FALSE":
+                    print("Using config file value for {} of {}".format(name, False))
+                    return False
+            print("{} needs to have true or false and is {}".format(name, value))
+            return default
+        else:
+            return default
+
+    check_MESA = get_bool_option('check_MESA', VALID_CONFIGS['check_MESA'])
+    make_NR_file = get_bool_option('make_NR_file', VALID_CONFIGS['make_NR_file'])
+    make_IC_file = get_bool_option('make_IC_file', VALID_CONFIGS['make_IC_file'])
+    try_reload = get_bool_option('try_reload', VALID_CONFIGS['try_reload'])
+    format_type = get_str_option('format_type', VALID_CONFIGS['format_type'])
 
 
-    MESA_file = file_configs.get('MESA_file', 'out/sample_MESA_output/profile140.data')
-    masscut = file_configs.get('masscut', 0.95)
-    N = file_configs.get('N', 32)
-    mp = file_configs.get('mp', 1e-7) ##IN UNITES OF Msolar!!!
+    MESA_file = get_str_option('MESA_file', VALID_CONFIGS['MESA_file'])
+    masscut = get_float_option('masscut', VALID_CONFIGS['masscut'])
+    N = get_int_option('N', VALID_CONFIGS['N'])
+    mp = get_float_option('mp', VALID_CONFIGS['mp']) ##IN UNITES OF Msolar!!!
 
-    startype = file_configs.get('startype', 'p140_test')
-    tag = 'main_sequence'
+    startype = get_str_option('startype', VALID_CONFIGS['startype'])
+    tag = VALID_CONFIGS['tag']
     outname = tag
 
-    saveNR=file_configs.get('saveNR', 'saveNR_'+startype+'.dat')
+    saveNR=get_str_option('saveNR', VALID_CONFIGS['saveNR'])
     
 else:
     check_MESA = args.check_MESA
     make_NR_file = args.make_NR_file
-    make_IC_file = not args.no_IC_file
+    make_IC_file = args.make_IC_file
     try_reload = args.try_reload
     format_type = args.format_type
     MESA_file = args.MESA_file
@@ -222,7 +275,7 @@ if make_IC_file:
 #
 ###############################################
 if try_reload:
-	r_temp, rho_temp=mn.reload_IC(rmax, saveNR,outname,format_type)
+	r_temp, rho_temp=mn.reload_IC(outname,format_type)
 
 
 	plt.plot(r_temp, rho_temp,'r.', markersize=6, label='GADGET data')
