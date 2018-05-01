@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+import ConfigParser
 import argparse
 import numpy as np
 import matplotlib.pyplot as plt
@@ -35,34 +36,28 @@ def path_from_package(path):
 # user controls
 #
 ########################################################
-def defaults():
-    check_MESA=False
-    make_NR_file=False
-    make_IC_file=True
-    try_reload=True
-    format_type='binary' 
-
-
-    MESA_file=os.path.join(MESA_PKG_DIR, 'out/sample_MESA_output/profile140.data')
-    masscut=0.95
-    N=32
-    mp=1e-7 ##IN UNITES OF Msolar!!!
-
-    startype='p140_test'
-    tag=startype+'_m'+str(masscut)+'_N'+str(N)+'_'+'mp'+str(mp)
-    outname=tag
-
-    saveNR=os.path.join(MESA_PKG_DIR, "work/NR_files/saveNR_ms.dat")
-
-
+VALID_CONFIGS = [
+    'check_MESA',
+    'make_NR_file',
+    'make_IC_file',
+    'try_reload',
+    'format_type',
+    'MESA_file',
+    'masscut',
+    'N',
+    'mp',
+    'startype',
+    'saveNR']
+    
+    
 ##############################################################
 #
 # Argument input
 #
 ##############################################################
 parser = argparse.ArgumentParser(description='Program for converting MESA output to Gadget simulation files')
-parser.add_argument('--config-file', type=file,
-                         help='Path to configuration file')
+parser.add_argument('--config-file',
+                    help='Path to configuration file which should be in \'INI\' format')
 config_args = parser.add_argument_group("Configuration")
 config_args.add_argument('--check-MESA', action='store_true',
                          help='Sets check-MESA value')
@@ -83,16 +78,54 @@ config_args.add_argument('--N', default=32,
                          help='Sets N')
 config_args.add_argument('--mp', default=1e-7,
                          help='Set the mp value in Msolar units')
-config_args.add_argument('--start-type', default='p140_test',
-                         help='Set start type')
+config_args.add_argument('--star-type', default='p140_test',
+                         help='Set star type')
 config_args.add_argument('--saveNR', default=None,
                          help='Set the saveNR file')
 
 args = parser.parse_args()
 
 if args.config_file:
-    # TODO: Read configurations from a file
-    pass
+    if not os.path.exists(args.config_file):
+        args.config_file = path_from_package(args.config_file)
+
+    if not os.path.exists(args.config_file):
+        print("Config file does not exist")
+
+    config = ConfigParser.ConfigParser()
+    config.read(args.config_file)
+    # Assume everything is in 'default' section
+
+    file_configs = config.defaults()
+    print("The configuration values entered are:")
+    for key, value in file_configs.items():
+        if key in VALID_CONFIGS:
+            print("\t{} = {}".format(key, value))
+        else:
+            print("Value {} set but is unknown to this script"
+                  .format(key))
+
+    
+
+    check_MESA = file_configs.get('check_MESA', False)
+    make_NR_file = file_configs.get('make_NR_file', False)
+    make_IC_file = file_configs.get('make_IC_file', True)
+    try_reload = file_configs.get('try_reload', True)
+    format_type = file_configs.get('format_type', 'binary')
+
+
+    MESA_file = file_configs.get('MESA_file', 'out/sample_MESA_output/profile140.data')
+    masscut = file_configs.get('masscut', 0.95)
+    N = file_configs.get('N', 32)
+    mp = file_configs.get('mp', 1e-7) ##IN UNITES OF Msolar!!!
+
+    startype = file_configs.get('startype', 'p140_test')
+    tag = startype+'_m'+str(masscut)+'_N'+str(N)+'_'+'mp'+str(mp)
+    outname = tag
+
+    saveNR=file_configs.get('saveNR', 'saveNR_'+startype+'.dat')
+    
+    
 else:
     check_MESA = args.check_MESA
     make_NR_file = args.make_NR_file
@@ -103,7 +136,7 @@ else:
     masscut = args.masscut
     N = args.N
     mp = args.mp
-    startype = args.start_type
+    startype = args.star_type
     tag = startype + '_m' + str(masscut) + '_N' + str(N) + '_' + 'mp' + str(mp)
     outname = tag
     # If a saveNR path is given use that
@@ -112,10 +145,11 @@ else:
        saveNR = args.saveNR
     else: 
         saveNR = "saveNR_"+startype+".dat"
-    # If the given path exists use that otherwise
-    # prepend the package path
-    if not os.path.exists(saveNR):
-        saveNR = path_from_package(saveNR)
+
+# If the given path exists use that otherwise
+# prepend the package path
+if not os.path.exists(saveNR):
+    saveNR = path_from_package(saveNR)
         
         
     
