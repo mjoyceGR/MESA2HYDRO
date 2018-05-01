@@ -49,28 +49,6 @@ elif len(sys.argv) > 2:
 else:
     has_cmd = True
 
-if has_cmd and sys.argv[1] in CLEAN_CMDS: 
-    CMD = "cd {} && git clone https://github.com/ldocao/pygadgetic.git".format(PKG_DIR)
-    print("Try removing any previous packages")
-    try:
-        shutil.rmtree(os.path.join(PKG_DIR, "pygadgetic"))
-    except OSError:
-        print("Package repo didn't need to be removed") 
-    try:
-        shutil.rmtree(os.path.join(PKG_DIR, "mesalib", "pygadgetic"))
-    except OSError:
-        print("No packages needed to be removed") 
-
-if has_cmd and sys.argv[1] in BUILD_CMDS:
-    print("Pullilng dependent package")
-    print("Calling " + CMD)
-    subprocess.check_call(CMD, shell=True, executable='/bin/bash')
-    print("Moving package files into mesalib")
-    shutil.copytree(os.path.join(PKG_DIR, "pygadgetic", "pygadgetic"),
-                    os.path.join(PKG_DIR, "mesalib", "pygadgetic"))
-    print("Cleaning up git package")
-    shutil.rmtree(os.path.join(PKG_DIR, "pygadgetic"))
-
 if len(sys.argv) > 1 and sys.argv[1] == 'local':
     if len(sys.argv) > 2 and sys.argv[2] == "--help":
         print("Sets up the project for local use.")

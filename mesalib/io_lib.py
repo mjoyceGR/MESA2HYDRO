@@ -8,300 +8,58 @@ import math
 import sys 
 import converge_funcs as cf
 
+######
+
+
 import hdf5lib as hdf5lib
 
-##########################################
+###################################################
 #
-# read_snap_hdf5.py
+# binary routines
 #
-#########################################
-## This file was written by Phil Hopkins (phopkins@caltech.edu) for GIZMO ##
-def readsnap(sdir,snum,ptype,
-    snapshot_name='snapshot',
-    extension='.hdf5',
-    h0=0,cosmological=0,skip_bh=0,four_char=0,
-    header_only=0,loud=0):
-    
-    if (ptype<0): return {'k':-1};
-    if (ptype>5): return {'k':-1};
-
-    fname,fname_base,fname_ext = check_if_filename_exists(sdir,snum,\
-        snapshot_name=snapshot_name,extension=extension,four_char=four_char)
-    if(fname=='NULL'): return {'k':-1}
-    if(loud==1): print('loading file : '+fname)
-
-    ## open file and parse its header information
-    nL = 0 # initial particle point to start at 
-    if(fname_ext=='.hdf5'):
-        file = h5py.File(fname,'r') # Open hdf5 snapshot file
-        header_master = file["Header"] # Load header dictionary (to parse below)
-        header_toparse = header_master.attrs
-    else:
-        file = open(fname) # Open binary snapshot file
-        header_toparse = load_gadget_binary_header(file)
-
-    npart = header_toparse["NumPart_ThisFile"]
-    massarr = header_toparse["MassTable"]
-    time = header_toparse["Time"]
-    redshift = header_toparse["Redshift"]
-    flag_sfr = header_toparse["Flag_Sfr"]
-    flag_feedbacktp = header_toparse["Flag_Feedback"]
-    npartTotal = header_toparse["NumPart_Total"]
-    flag_cooling = header_toparse["Flag_Cooling"]
-    numfiles = header_toparse["NumFilesPerSnapshot"]
-    boxsize = header_toparse["BoxSize"]
-    omega_matter = header_toparse["Omega0"]
-    omega_lambda = header_toparse["OmegaLambda"]
-    hubble = header_toparse["HubbleParam"]
-    flag_stellarage = header_toparse["Flag_StellarAge"]
-    flag_metals = header_toparse["Flag_Metals"]
-    print("npart_file: ",npart)
-    print("npart_total:",npartTotal)
-
-    hinv=1.
-    if (h0==1):
-        hinv=1./hubble
-    ascale=1.
-    if (cosmological==1):
-        ascale=time
-        hinv=1./hubble
-    if (cosmological==0): 
-        time*=hinv
-    
-    boxsize*=hinv*ascale
-    if (npartTotal[ptype]<=0): file.close(); return {'k':-1};
-    if (header_only==1): file.close(); return {'k':0,'time':time,
-        'boxsize':boxsize,'hubble':hubble,'npart':npart,'npartTotal':npartTotal};
-
-    # initialize variables to be read
-    pos=np.zeros([npartTotal[ptype],3],dtype=np.float64)
-    vel=np.copy(pos)
-    ids=np.zeros([npartTotal[ptype]],dtype=int)
-    mass=np.zeros([npartTotal[ptype]],dtype=np.float64)
-    if (ptype==0):
-        ugas=np.copy(mass)
-        rho=np.copy(mass)
-        hsml=np.copy(mass) 
-        #if (flag_cooling>0): 
-        nume=np.copy(mass)
-        numh=np.copy(mass)
-        #if (flag_sfr>0): 
-        sfr=np.copy(mass)
-        metal=np.copy(mass)
-    if (ptype==0 or ptype==4) and (flag_metals > 0):
-        metal=np.zeros([npartTotal[ptype],flag_metals],dtype=np.float64)
-    if (ptype==4) and (flag_sfr>0) and (flag_stellarage>0):
-        stellage=np.copy(mass)
-    if (ptype==5) and (skip_bh==0):
-        bhmass=np.copy(mass)
-        bhmdot=np.copy(mass)
-
-    # loop over the snapshot parts to get the different data pieces
-    for i_file in range(numfiles):
-        if (numfiles>1):
-            file.close()
-            fname = fname_base+'.'+str(i_file)+fname_ext
-            if(fname_ext=='.hdf5'):
-                file = h5py.File(fname,'r') # Open hdf5 snapshot file
-            else:
-                file = open(fname) # Open binary snapshot file
-                header_toparse = load_gadget_binary_header(file)
-                
-        if (fname_ext=='.hdf5'):
-            input_struct = file
-            npart = file["Header"].attrs["NumPart_ThisFile"]
-            bname = "PartType"+str(ptype)+"/"
-        else:
-            npart = header_toparse['NumPart_ThisFile']
-            input_struct = load_gadget_binary_particledat(file, header_toparse, ptype, skip_bh=skip_bh)
-            bname = ''
-            
-        
-        # now do the actual reading
-        if(npart[ptype]>0):
-            nR=nL + npart[ptype]
-            pos[nL:nR,:]=input_struct[bname+"Coordinates"]
-            vel[nL:nR,:]=input_struct[bname+"Velocities"]
-            ids[nL:nR]=input_struct[bname+"ParticleIDs"]
-            mass[nL:nR]=massarr[ptype]
-            if (massarr[ptype] <= 0.):
-                mass[nL:nR]=input_struct[bname+"Masses"]
-            if (ptype==0):
-                ugas[nL:nR]=input_struct[bname+"InternalEnergy"]
-                rho[nL:nR]=input_struct[bname+"Density"]
-                hsml[nL:nR]=input_struct[bname+"SmoothingLength"]
-                if (flag_cooling > 0): 
-                    nume[nL:nR]=input_struct[bname+"ElectronAbundance"]
-                    numh[nL:nR]=input_struct[bname+"NeutralHydrogenAbundance"]
-                if (flag_sfr > 0):
-                    sfr[nL:nR]=input_struct[bname+"StarFormationRate"]
-            if (ptype==0 or ptype==4) and (flag_metals > 0):
-                metal_t=input_struct[bname+"Metallicity"]
-                if (flag_metals > 1):
-                    if (metal_t.shape[0] != npart[ptype]): 
-                        metal_t=np.transpose(metal_t)
-                else:
-                    metal_t=np.reshape(np.array(metal_t),(np.array(metal_t).size,1))
-                metal[nL:nR,:]=metal_t
-            if (ptype==4) and (flag_sfr>0) and (flag_stellarage>0):
-                stellage[nL:nR]=input_struct[bname+"StellarFormationTime"]
-            if (ptype==5) and (skip_bh==0):
-                bhmass[nL:nR]=input_struct[bname+"BH_Mass"]
-                bhmdot[nL:nR]=input_struct[bname+"BH_Mdot"]
-            nL = nR # sets it for the next iteration	
-
-	## correct to same ID as original gas particle for new stars, if bit-flip applied
-    if ((np.min(ids)<0) | (np.max(ids)>1.e9)):
-        bad = (ids < 0) | (ids > 1.e9)
-        ids[bad] += (1 << 31)
-
-    # do the cosmological conversions on final vectors as needed
-    pos *= hinv*ascale # snapshot units are comoving
-    mass *= hinv
-    vel *= np.sqrt(ascale) # remember gadget's weird velocity units!
-    if (ptype==0):
-        rho *= (hinv/((ascale*hinv)**3))
-        hsml *= hinv*ascale
-    if (ptype==4) and (flag_sfr>0) and (flag_stellarage>0) and (cosmological==0):
-        stellage *= hinv
-    if (ptype==5) and (skip_bh==0):
-        bhmass *= hinv
-
-    file.close();
-    if (ptype==0):
-        return {'k':1,'p':pos,'v':vel,'m':mass,'id':ids,'u':ugas,'rho':rho,'h':hsml,'ne':nume,'nh':numh,'sfr':sfr,'z':metal};
-    if (ptype==4):
-        return {'k':1,'p':pos,'v':vel,'m':mass,'id':ids,'z':metal,'age':stellage}
-    if (ptype==5) and (skip_bh==0):
-        return {'k':1,'p':pos,'v':vel,'m':mass,'id':ids,'mbh':bhmass,'mdot':bhmdot}
-    return {'k':1,'p':pos,'v':vel,'m':mass,'id':ids}
-
-
-
-def check_if_filename_exists(sdir,snum,snapshot_name='snapshot',extension='.hdf5',four_char=0):
-    for extension_touse in [extension,'.bin','']:
-        fname=sdir+'/'+snapshot_name+'_'
-        ext='00'+str(snum);
-        if (snum>=10): ext='0'+str(snum)
-        if (snum>=100): ext=str(snum)
-        if (four_char==1): ext='0'+ext
-        if (snum>=1000): ext=str(snum)
-        fname+=ext
-        fname_base=fname
-
-        s0=sdir.split("/"); snapdir_specific=s0[len(s0)-1];
-        if(len(snapdir_specific)<=1): snapdir_specific=s0[len(s0)-2];
-
-        ## try several common notations for the directory/filename structure
-        fname=fname_base+extension_touse;
-        if not os.path.exists(fname): 
-            ## is it a multi-part file?
-            fname=fname_base+'.0'+extension_touse;
-        if not os.path.exists(fname): 
-            ## is the filename 'snap' instead of 'snapshot'?
-            fname_base=sdir+'/snap_'+ext; 
-            fname=fname_base+extension_touse;
-        if not os.path.exists(fname): 
-            ## is the filename 'snap' instead of 'snapshot', AND its a multi-part file?
-            fname=fname_base+'.0'+extension_touse;
-        if not os.path.exists(fname): 
-            ## is the filename 'snap(snapdir)' instead of 'snapshot'?
-            fname_base=sdir+'/snap_'+snapdir_specific+'_'+ext; 
-            fname=fname_base+extension_touse;
-        if not os.path.exists(fname): 
-            ## is the filename 'snap' instead of 'snapshot', AND its a multi-part file?
-            fname=fname_base+'.0'+extension_touse;
-        if not os.path.exists(fname): 
-            ## is it in a snapshot sub-directory? (we assume this means multi-part files)
-            fname_base=sdir+'/snapdir_'+ext+'/'+snapshot_name+'_'+ext; 
-            fname=fname_base+'.0'+extension_touse;
-        if not os.path.exists(fname): 
-            ## is it in a snapshot sub-directory AND named 'snap' instead of 'snapshot'?
-            fname_base=sdir+'/snapdir_'+ext+'/'+'snap_'+ext; 
-            fname=fname_base+'.0'+extension_touse;
-        if not os.path.exists(fname): 
-            ## wow, still couldn't find it... ok, i'm going to give up!
-            fname_found = 'NULL'
-            fname_base_found = 'NULL'
-            fname_ext = 'NULL'
-            continue;
-        fname_found = fname;
-        fname_base_found = fname_base;
-        fname_ext = extension_touse
-        break; # filename does exist! 
-    return fname_found, fname_base_found, fname_ext;
-
-
+####################################################
 
 def load_gadget_binary_header(f):
-    ### Read header.
     import array
-    # Skip 4-byte integer at beginning of header block.
     f.read(4)
-    # Number of particles of each type. 6*unsigned integer.
     Npart = array.array('I')
     Npart.fromfile(f, 6)
-    # Mass of each particle type. If set to 0 for a type which is present, 
-    # individual particle masses from the 'mass' block are used instead.
-    # 6*double.
     Massarr = array.array('d')
     Massarr.fromfile(f, 6)
-    # Expansion factor (or time, if non-cosmological sims) of output. 1*double. 
     a = array.array('d')
     a.fromfile(f, 1)
     a = a[0]
-    # Redshift of output. Should satisfy z=1/a-1. 1*double.
     z = array.array('d')
     z.fromfile(f, 1)
     z = float(z[0])
-    # Flag for star formation. 1*int.
     FlagSfr = array.array('i')
     FlagSfr.fromfile(f, 1)
-    # Flag for feedback. 1*int.
     FlagFeedback = array.array('i')
     FlagFeedback.fromfile(f, 1)
-    # Total number of particles of each type in the simulation. 6*int.
     Nall = array.array('i')
     Nall.fromfile(f, 6)
-    # Flag for cooling. 1*int.
     FlagCooling = array.array('i')
     FlagCooling.fromfile(f, 1)
-    # Number of files in each snapshot. 1*int.
     NumFiles = array.array('i')
     NumFiles.fromfile(f, 1)
-    # Box size (comoving kpc/h). 1*double.
     BoxSize = array.array('d')
     BoxSize.fromfile(f, 1)
-    # Matter density at z=0 in units of the critical density. 1*double.
     Omega0 = array.array('d')
     Omega0.fromfile(f, 1)
-    # Vacuum energy density at z=0 in units of the critical density. 1*double.
     OmegaLambda = array.array('d')
     OmegaLambda.fromfile(f, 1)
-    # Hubble parameter h in units of 100 km s^-1 Mpc^-1. 1*double.
     h = array.array('d')
     h.fromfile(f, 1)
     h = float(h[0])
-    # Creation times of stars. 1*int.
     FlagAge = array.array('i')
     FlagAge.fromfile(f, 1)
-    # Flag for metallicity values. 1*int.
     FlagMetals = array.array('i')
     FlagMetals.fromfile(f, 1)
-
-    # For simulations that use more than 2^32 particles, most significant word 
-    # of 64-bit total particle numbers. Otherwise 0. 6*int.
     NallHW = array.array('i')
     NallHW.fromfile(f, 6)
-
-    # Flag that initial conditions contain entropy instead of thermal energy
-    # in the u block. 1*int.
     flag_entr_ics = array.array('i')
     flag_entr_ics.fromfile(f, 1)
-
-    # Unused header space. Skip to particle positions.
     f.seek(4+256+4+4)
-
     return {'NumPart_ThisFile':Npart, 'MassTable':Massarr, 'Time':a, 'Redshift':z, \
     'Flag_Sfr':FlagSfr[0], 'Flag_Feedback':FlagFeedback[0], 'NumPart_Total':Nall, \
     'Flag_Cooling':FlagCooling[0], 'NumFilesPerSnapshot':NumFiles[0], 'BoxSize':BoxSize[0], \
@@ -310,8 +68,10 @@ def load_gadget_binary_header(f):
     'Flag_EntrICs':flag_entr_ics[0]}
 
 
+
 def load_gadget_binary_particledat(f, header, ptype, skip_bh=0):
     ## load old format=1 style gadget binary snapshot files (unformatted fortran binary)
+    ### COULD THIS BE THE PROBLEM?? FORMAT 1 versus format 2???
     ###########################
     #
     # WARNING about recovering density, internal energy, smoothing length
@@ -323,7 +83,12 @@ def load_gadget_binary_particledat(f, header, ptype, skip_bh=0):
     gas_u=0.; gas_rho=0.; gas_ne=0.; gas_nhi=0.; gas_hsml=0.; gas_SFR=0.; star_age=0.; 
     zmet=0.; bh_mass=0.; bh_mdot=0.; mm=0.;
     Npart = header['NumPart_ThisFile']
+
+
+
     Massarr = header['MassTable']
+
+
     NpartTot = np.sum(Npart)
     NpartCum = np.cumsum(Npart)
     n0 = NpartCum[ptype] - Npart[ptype]
@@ -342,9 +107,9 @@ def load_gadget_binary_particledat(f, header, ptype, skip_bh=0):
     f.read(4+4) # Read block size fields.
 
     ### Particle IDs. # (Npart[0]+...+Npart[5])*int
-    id = array.array('i')
-    id.fromfile(f, NpartTot)
-    id = np.array(id)
+    ids = array.array('i')
+    ids.fromfile(f, NpartTot)
+    ids = np.array(ids)
     f.read(4+4) # Read block size fields.
         
     ### Variable particle masses. 
@@ -353,6 +118,9 @@ def load_gadget_binary_particledat(f, header, ptype, skip_bh=0):
     Npart_MassCode[(Npart <= 0) | (np.array(Massarr,dtype='d') > 0.0)] = 0
     NwithMass = np.sum(Npart_MassCode)
     mass = array.array('f')
+
+    #print "\n\nmass loaded in binary reader: ", mass
+
     mass.fromfile(f, NwithMass)
     f.read(4+4) # Read block size fields.
     if (Massarr[ptype]==0.0):
@@ -369,10 +137,15 @@ def load_gadget_binary_particledat(f, header, ptype, skip_bh=0):
             gas_u = array.array('f')
             gas_rho = array.array('f')
             gas_hsml = array.array('f')
+
+
+            ############## EDITING HERE NOW #######################
+            #### edit edit edit ###
+
             try:
-                gas_u.fromfile(f, Npart[0])
+                gas_u.fromfile(f, Npart[0]) ### <---- EDIT maybe this is the keyword for internal energy????
                 gas_rho.fromfile(f, Npart[0])
-                print 'gas_u.whatever', gas_u.fromfile(f, Npart[0])
+                #print 'gas_u.whatever', gas_u.fromfile(f, Npart[0])
 
                 ### Smoothing length (kpc/h). ###
                 gas_hsml.fromfile(f, Npart[0])
@@ -434,117 +207,55 @@ def load_gadget_binary_particledat(f, header, ptype, skip_bh=0):
                 bh_mdot.fromfile(f, Npart[5])
                 f.read(4+4) # Read block size fields.
     
-    return {'Coordinates':pos[n0:n1,:], 'Velocities':vel[n0:n1,:], 'ParticleIDs':id[n0:n1], \
+    return {'Coordinates':pos[n0:n1,:], 'Velocities':vel[n0:n1,:], 'ParticleIDs':ids[n0:n1], \
         'Masses':mm, 'Metallicity':zmet, 'StellarFormationTime':star_age, 'BH_Mass':bh_mass, \
         'BH_Mdot':bh_mdot, 'InternalEnergy':gas_u, 'Density':gas_rho, 'SmoothingLength':gas_hsml, \
         'ElectronAbundance':gas_ne, 'NeutralHydrogenAbundance':gas_nhi, 'StarFormationRate':gas_SFR}
 
 
-##########################################
+
+def make_IC_binary(fname, mp, x, y, z,**kwargs):
+    central_mass=float(kwargs.get('central_mass', 10e6)) #<-----WARNING!! not properly handled!!!
+    print "mp in make_IC_binary is", mp
+    import pyIC as pygadgetic
+    total_number_of_particles=len(x)
+    npart=[total_number_of_particles,0,0,0,0,0]
+
+    my_header=pygadgetic.Header()
+    my_body=pygadgetic.Body(npart)
+    my_header.NumPart_ThisFile = np.array(npart)
+    my_header.NumPart_Total = np.array(npart)
+
+    ##fill the body with minimal information
+    my_body.id[:]=np.arange(0,total_number_of_particles) #id_g
+    my_body.mass[:]=0.*x + mp #particle_masses
+    my_body.hsml[:]=0.*x + (-1)  #shazrene says -1 but that's not working at all
+
+    my_body.pos[:,0]=x
+    my_body.pos[:,1]=y
+    my_body.pos[:,2]=z
+
+    my_body.vel[:,0]=0.*x
+    my_body.vel[:,1]=0.*x
+    my_body.vel[:,2]=0.*x
+
+    rho_desired = 1.0
+    P_desired = 1.0 
+    gamma_eos = 5./3.
+    U=P_desired/((gamma_eos-1.)*rho_desired) # internal energy 
+    my_body.u[:]=U + 0.*x#internal_energy ### <--------- load this from MESA directly
+
+    pygadgetic.dump_ic(my_header,my_body,fname)
+    return fname
+
+
+
+
+#####################################################################
 #
-# read_write_HDF5.py
+# hdf5 routines
 #
-#########################################
-############ 
-#DATABLOCKS#
-############
-#descriptions of all datablocks -> add new datablocks here!
-#format -> TAG:[HDF5_NAME, DIMENSION]
-datablocks = { 	"POS ":["Coordinates",3], 
-		"VEL ":["Velocities",3],
-		"ID  ":["ParticleIDs",1],
-		"MASS":["Masses",1],
-		"U   ":["InternalEnergy",1],
-		"RHO ":["Density",1],
-		"VOL ":["Volume",1],
-		"CMCE":["Center-of-Mass",3],
-		"AREA":["Surface Area",1],
-		"NFAC":["Number of faces of cell",1],
-		"NE  ":["ElectronAbundance",1],
-		"NH  ":["NeutralHydrogenAbundance",1],
-		"HSML":["SmoothingLength",1],
-		"SFR ":["StarFormationRate",1],
-		"AGE ":["StellarFormationTime",1],
-		"Z   ":["Metallicity",1],
-		"ACCE":["Acceleration",3],
-		"VEVE":["VertexVelocity",3],
-		"FACA":["MaxFaceAngle",1],              
-		"COOR":["CoolingRate",1],
-		"POT ":["Potential",1],
-		"MACH":["MachNumber",1],
-		"DMHS":["DM Hsml",1],
-		"DMDE":["DM Density",1],
-		"PHKE":["PHKey",1],
-		"GROU":["GroupNr",1],
-		#SIDM (GADGET)
-		"PTSU":["PSum",1],
-		"DMNB":["DMNumNgb",1],
-		"NTSC":["NumTotalScatter",1],
-		"SHSM":["SIDMHsml",1],
-		"SRHO":["SIDMRho",1],
-		"SVEL":["SVelDisp",1],
-		#SIDM (AREPO)
-		"PTSU":["SIDM_Psum",1],
-		"DMNB":["SIDM_NumNgb",1],
-		"NTSC":["SIDM_NumTotalScatter",1],
-		"SHSM":["SIDM_Hsml",1],
-		"SRHO":["SIDM_Density",1],
-		"SVEL":["SIDM_VelDisp",1],
-		#TRACER
-                "TRCE":["TracerField", 1],
-                #TRACERMC
-                "TRNT":["NumTracers", 1],       #parttypes: 0,4,5
-                "TRFQ":["FluidQuantities", 13], #parttype: 3
-	        "TRID":["TracerID", 1],         #parttype: 3
-        	"TRPR":["ParentID", 1],         #parttype: 3
-		#GFM 
-		"GAGE":["GFM_StellarFormationTime",1],
-		"GIMA":["GFM_InitialMass",1],
-		"GZ  ":["GFM_Metallicity",1],
-		"GMET":["GFM_Metals",9],
-		"GWHV":["GFM_WindHostVal",1],
-		"GCOL":["GFM_CoolingRate",1],
-		"GSPH":["GFM_StellarPhotometrics",8], #band luminosities: U, B, V, K, g, r, i, z
-		"AGNR":["GFM_AGNRadiation",1],
-		#GDE
-		"CACO":["CausticCounter",1],
-		"STDE":["StreamDensity",1],
-		"PSDE":["PhaseSpaceDensity",1],
-		"FLDE":["FlowDeterminant",1],
-		"TIPS":["TidalTensorPS",9],
-		"DIPS":["DistortionTensorPS",36],
-		"SHOR":["SheetOrientation", 9],
-		"INDE":["InitDensity",1],
-		#ISM
-		"BRD ":["BlastRadius", 1],
-		"CSO ":["CoolShutoffTime", 1],
-		"RadP":["RadiationPressureMoment",1], 
-		#SUBFIND
-		"SFDE":["SubfindDensity", 1],
-		"SFHS":["SubfindHsml", 1],
-		"SFVD":["SubfindVelDisp", 1],
-		#BHs
-		"BHMD":["BH_Mdot", 1],
-		"BHHS":["BH_Hsml", 1],
-		"BHMA":["BH_Mass", 1],
-		"REBH":["RefBHCounter", 1],
-		"BHHG":["BH_HaloGasMass", 1],
-		"BHCL":["BH_CoolingLuminosity", 1],
-		"BHMR":["BH_Mdot_Radio", 1], 
-		"BHPR":["BH_Progs", 1],
-                "BCEQ":["BH_CumEgyInjection_QM",1],
-                "BHMB":["BH_Mass_bubbles",1]
-             }
-		
-
-#####################################################################################################################
-#                                                    READING ROUTINES			                            #
-#####################################################################################################################
-
-
-########################### 
-#CLASS FOR SNAPSHOT HEADER#
-###########################  
+#####################################################################
 class snapshot_header:
 	def __init__(self, *args, **kwargs):
 		if (len(args) == 1):
@@ -637,12 +348,8 @@ class snapshot_header:
 				self.double = np.array([0], dtype="int32")
 
 
-
-
-##############################
-#READ ROUTINE FOR SINGLE FILE#
-############################## 
-def read_block_single_file(filename, block_name, dim2, parttype=-1, no_mass_replicate=False, fill_block_name="", slab_start=-1, slab_len=-1, verbose=False):
+def read_block_single_file(filename, block_name, dim2, parttype=-1, no_mass_replicate=False,\
+ fill_block_name="", slab_start=-1, slab_len=-1, verbose=False):
 
 	if (verbose):
 		print( "[single] reading file           : ", filename   )	
@@ -656,7 +363,6 @@ def read_block_single_file(filename, block_name, dim2, parttype=-1, no_mass_repl
 	filenum = head.filenum
 	doubleflag = head.double #GADGET-2 change
 	#doubleflag = 0          #GADGET-2 change
-
 
 	if (parttype!=-1):
 		if (head.npart[parttype]==0):
@@ -678,7 +384,6 @@ def read_block_single_file(filename, block_name, dim2, parttype=-1, no_mass_repl
 		sys.stdout.flush() 
 
 	f=hdf5lib.OpenFile(filename)
-
 
 	#read specific particle type (parttype>=0, non-default)
 	if parttype>=0:
@@ -771,384 +476,21 @@ def read_block_single_file(filename, block_name, dim2, parttype=-1, no_mass_repl
 			if (verbose):
 				print( "[single] reshape done: ", ret_val.shape)
 				sys.stdout.flush()
-
-
 	f.close()
-
-
 	return [ret_val, True]
 
-##############
-#READ ROUTINE#
-##############
-def read_block(filename, block, parttype=-1, no_mass_replicate=False, fill_block="", slab_start=-1, slab_len=-1, verbose=False):
-	if (verbose):
-		print( "reading block          : ", block)
-		sys.stdout.flush()	
-
-	if parttype not in [-1,0,1,2,3,4,5]:
-		print( "[error] wrong parttype given")
-		sys.stdout.flush()
-		sys.exit()
-
-	if os.path.exists(filename):
-		curfilename=filename
-		multiple_files=False
-	elif os.path.exists(filename+".hdf5"):
-		curfilename = filename+".hdf5"
-		multiple_files=False
-	elif os.path.exists(filename+".0.hdf5"):
-		curfilename = filename+".0.hdf5"
-		multiple_files=True
-	else:
-		print( "[error] file not found : ", filename)
-		sys.stdout.flush()
-		sys.exit()
-
-	slabflag=False
-	if ((slab_start!=-1) | (slab_len!=-1)):
-		slabflag=True
-		if (parttype==-1):
-			print( "[error] slabs only supported for specific parttype")
-			sys.stdout.flush()
-			sys.exit()
-
-	head = snapshot_header(curfilename)
-	filenum = head.filenum
-	del head
 
 
-	if (datablocks.has_key(block)):
-		block_name=datablocks[block][0]
-		dim2=datablocks[block][1]
-		first=True
-		if (verbose):
-			print( "Reading HDF5           : ", block_name)
-			print( "Data dimension         : ", dim2)
-			print( "Multiple file          : ", multiple_files)
-			print( "Slab data              : ", slabflag)
-			sys.stdout.flush()
-	else:
-		print( "[error] Block type ", block, "not known!")
-		sys.stdout.flush()
-		sys.exit()
-
-	fill_block_name=""
-	if (fill_block!=""):
-		if (datablocks.has_key(fill_block)):
-			fill_block_name=datablocks[fill_block][0]
-			dim2=datablocks[fill_block][1]
-			if (verbose):
-				print( "Block filling active   : ", fill_block_name)
-				sys.stdout.flush()
-
-	if (multiple_files):	
-		if (slabflag==False):
-			first=True
-			dim1=long(0)
-			for num in range(0,filenum):
-				curfilename=filename+"."+str(num)+".hdf5"
-				if (verbose):
-					print( "Reading file           : ", num, curfilename)
-					sys.stdout.flush() 
-				if (first):
-					data, succ = read_block_single_file(curfilename, block_name, dim2, parttype, no_mass_replicate, fill_block_name, slab_start, slab_len, verbose)
-					if (succ == True):
-						dim1+=long(data.shape[0])
-						ret_val = data
-						first = False 
-				else:	 
-					data, succ = read_block_single_file(curfilename, block_name, dim2, parttype, no_mass_replicate, fill_block_name, slab_start, slab_len, verbose)
-					if (succ == True):
-						dim1+=long(data.shape[0])
-						ret_val=np.append(ret_val, data)
-				if (verbose):
-					if (succ):
-						print( "Read particles (total) : ", ret_val.shape[0]/dim2)
-						sys.stdout.flush()
-					else:
-						print( "Read particles (total) : none")
-						sys.stdout.flush()
-
-
-		if (slabflag==True):
-			off=slab_start
-			left=slab_len
-			first=True
-			dim1=long(0)
-			for num in range(0,filenum):
-				curfilename=filename+"."+str(num)+".hdf5"
-				head = snapshot_header(curfilename)
-				nloc=head.npart[parttype]
-				if (nloc > off):
-					start = off
-					if (nloc - off > left):
-						count = left
-					else:
-						count = nloc - off
-					if (verbose):
-						print( "Reading file           : ", num, curfilename, start, count)
-						sys.stdout.flush()
-					if (first):
-						data, succ = read_block_single_file(curfilename, block_name, dim2, parttype, no_mass_replicate, fill_block_name, slab_start=start, slab_len=count, verbose=verbose)
-						if (succ == True):
-							dim1+=data.shape[0]
-							ret_val = data
-							first = False
-					else:
-						data, succ = read_block_single_file(curfilename, block_name, dim2, parttype, no_mass_replicate, fill_block_name, slab_start=start, slab_len=count, verbose=verbose)
-						if (succ == True):
-							dim1+=data.shape[0]
-							ret_val=np.append(ret_val, data)
-					if (verbose):
-						if (succ):
-							print( "Read particles (total) : ", ret_val.shape[0]/dim2)
-							sys.stdout.flush()
-						else:
-							print( "Read particles (total) : none")
-							sys.stdout.flush()
-
-					left -= count
-					off += count
-				if (left==0):
-					break
-				off -= nloc
-
-
-
-		if (verbose):
-			print( "all partial files read in")
-			sys.stdout.flush()
-
-		if ((dim1>0) & (dim2>1)):
-			ret_val=ret_val.reshape(dim1,dim2)
-			if (verbose):
-				print( "Reshape done (total): ", ret_val.shape)
-				sys.stdout.flush()
-
-
-	else:	
-		ret_val, succ = read_block_single_file(curfilename, block_name, dim2, parttype, no_mass_replicate, fill_block_name, slab_start, slab_len, verbose)
-
-	return ret_val
-
-
-#############
-#LIST BLOCKS#
-#############
-def list_blocks(filename, parttype=-1, verbose=False):
-
-	if os.path.exists(filename):
-		curfilename=filename
-	elif os.path.exists(filename+".hdf5"):
-		curfilename = filename+".hdf5"
-	elif os.path.exists(filename+".0.hdf5"):
-		curfilename = filename+".0.hdf5"
-	else:
-		print( "[error] file not found : ", filename)
-		sys.stdout.flush()
-		sys.exit()
-
-	f=hdf5lib.OpenFile(curfilename)
-	for parttype in range(0,6):
-		part_name='PartType'+str(parttype)
-		if (hdf5lib.Contains(f,"",part_name)):
-			print( "Parttype contains : ", parttype)
-			print( "-------------------")
-			sys.stdout.flush()
-			iter = it=datablocks.__iter__()
-			next = iter.next()
-			while (1):
-				if (verbose):
-					print( "check ", next, datablocks[next][0])
-					sys.stdout.flush()
-				if (hdf5lib.Contains(f,part_name,datablocks[next][0])):
-					print( next, datablocks[next][0])
-					sys.stdout.flush()
-				try:
-					next=iter.next()
-				except StopIteration:
-					break	
-	f.close() 
-
-#################
-#CONTAINS BLOCKS#
-#################
-def contains_block(filename, tag, parttype=-1, verbose=False):
-
-	if os.path.exists(filename):
-		curfilename=filename
-	elif os.path.exists(filename+".hdf5"):
-		curfilename = filename+".hdf5"
-	elif os.path.exists(filename+".0.hdf5"):
-		curfilename = filename+".0.hdf5"
-	else:
-		print( "[error] file not found : ", filename)
-		sys.stdout.flush()
-		sys.exit()
-
-	contains_flag=False
-	f=hdf5lib.OpenFile(curfilename)
-	part_name='PartType'+str(parttype)
-	if (hdf5lib.Contains(f,"",part_name)):
-		iter = it=datablocks.__iter__()
-		next = iter.next()
-		while (1):
-			if (verbose):
-				print( "check ", next, datablocks[next][0])
-				sys.stdout.flush()
-			if (hdf5lib.Contains(f,part_name,datablocks[next][0])):
-				if (next.find(tag)>-1):
-					contains_flag=True	
-			try:
-				next=iter.next()
-			except StopIteration:
-				break
-	f.close() 
-	return contains_flag
-
-############
-#CHECK FILE#
-############
-def check_file(filename):
-	f=hdf5lib.OpenFile(filename)
-	f.close()
-		  
-
-
-#####################################################################################################################
-#                                                    WRITING ROUTINES    		                            #
-#####################################################################################################################
-#######################
-#OPEN FILE FOR WRITING#
-#######################
-def openfile(filename, mode="w"):
-	f=hdf5lib.OpenFile(filename, mode = mode)	 
-	return f
-
-############
-#CLOSE FILE#
-############
-def closefile(f):
-	f.close()
-
-##############################
-#WRITE SNAPSHOT HEADER OBJECT#
-##############################
-def writeheader(f, header):	
-	group_header=hdf5lib.CreateGroup(f, "Header")
-	hdf5lib.SetAttr(group_header, "NumPart_ThisFile", header.npart)
-	hdf5lib.SetAttr(group_header, "NumPart_Total", header.nall)
-	hdf5lib.SetAttr(group_header, "NumPart_Total_HighWord", header.nall_highword)
-	hdf5lib.SetAttr(group_header, "MassTable", header.massarr)
-	hdf5lib.SetAttr(group_header, "Time", header.time)
-	hdf5lib.SetAttr(group_header, "Redshift", header.redshift)
-	hdf5lib.SetAttr(group_header, "BoxSize", header.boxsize)
-	hdf5lib.SetAttr(group_header, "NumFilesPerSnapshot", header.filenum)
-	hdf5lib.SetAttr(group_header, "Omega0", header.omega0)
-	hdf5lib.SetAttr(group_header, "OmegaLambda", header.omegaL)
-	hdf5lib.SetAttr(group_header, "HubbleParam", header.hubble)
-	hdf5lib.SetAttr(group_header, "Flag_Sfr", header.sfr)
-	hdf5lib.SetAttr(group_header, "Flag_Cooling", header.cooling)
-	hdf5lib.SetAttr(group_header, "Flag_StellarAge", header.stellar_age)
-	hdf5lib.SetAttr(group_header, "Flag_Metals", header.metals)
-	hdf5lib.SetAttr(group_header, "Flag_Feedback", header.feedback)
-	hdf5lib.SetAttr(group_header, "Flag_DoublePrecision", header.double)
-
-###############
-#WRITE ROUTINE#
-###############
-def write_block(f, block, parttype, data):   
-	##operates on these block objects which are in the dictionary at the top of this thing
-	## 9/5/17 meridith editf
-	part_name="PartType"+str(parttype)
-	if (hdf5lib.Contains(f, "", part_name)==False):
-		group=hdf5lib.CreateGroup(f, part_name)
-	else:
-		group=hdf5lib.GetGroup(f, part_name)	
-
-	if (datablocks.has_key(block)):
-		block_name=datablocks[block][0]
-		dim2=datablocks[block][1]		
-		if (hdf5lib.ContainsGroup(group, block_name)==False):
-			hdf5lib.CreateArray(f, group, block_name, data)
-		else:
-			print( "I/O block already written")
-			sys.stdout.flush()
-	else:
-		print( "Unknown I/O block")
-		sys.stdout.flush()		
-
-################################################################################################
-#
-# 4/16/18
-#
-################################################################################################
 #######################################################################
 #
-# Gadget Input Functions
+# hdf5 IC 
 #
 #######################################################################
+def make_IC_hdf5(out_fname, mp, x, y, z,**kwargs):
+    file = h5py.File(out_fname,'w') 
+    Ngas = len(x)
+    npart = np.array([len(x),0,0,0,0,0]) # we have gas and particles we will set for type 3 here, zero for all others
 
-
-#def make_IC_hdf5(out_fname, mp, coord_file, **kwargs):
-#x,y,z=np.loadtxt(coord_file, usecols=(0,1,2), unpack=True)
-def make_IC_hdf5(out_fname, mp, x, y, z,**kwargs):    #rho out
-    ## from kwargs choose either hdf5 or binary, when I feel like doing this
-    userho=kwargs.get("userho",False)
-
-    fname=out_fname
-    Lbox = 1.0                  # box side length
-    rho_desired = 1.0           # box average initial gas density
-    P_desired = 1.0             # initial gas pressure
-    vgrainrms=0.0               # mjoyce- for me, all particles stationary bc star
-    dust_to_gas_ratio = 0.01    # mass ratio of collisionless particles to gas
-    gamma_eos = 5./3.           # polytropic index of ideal equation of state the run will assume
-    #temp = 
-
-    Ngas = len(x)#xv_g.size
-
-    x=x*Lbox                    #positions
-    y=y*Lbox 
-    z=z*Lbox; 
-
-    if userho:
-        print 'using rho'
-        rho=rho
-
-    vx=0.*x                     #3D velocities
-    vy=0.*y                     
-    vz=0.*z
-
-    bx=0.*x                     #magnetic field components
-    by=0.*y
-    bz=0.*z
-
-    mv_g=mp + 0.*x              #particle mass
-    U=P_desired/((gamma_eos-1.)*rho_desired)    #internal energy 
-    id_g=np.arange(1,Ngas+1)    #particle IDs
-
-    xv_d=x
-    yv_d=y
-    zy_d=z
-
-    Ngrains=int(len(xv_d)) #length of arrays loaded from healpix
-    print Ngrains, type(Ngrains)
-    ###only pick one of Ngrains / Ngas because we only want one particle type
-
-    # set the IDs: these must be unique, so we start from the maximum gas ID and go up
-    id_d = np.arange(Ngas+1,Ngrains+Ngas+1)
-
-    vx_d = np.random.randn(Ngrains) * vgrainrms/np.sqrt(3.)
-    vy_d = np.random.randn(Ngrains) * vgrainrms/np.sqrt(3.)
-    vz_d = np.random.randn(Ngrains) * vgrainrms/np.sqrt(3.)
-
-    ############# mjoyce ########################################
-    # if we had other particle types besides gas, set their masses separately 
-    # mv_d = mp + 0.*xv_d
-
-    file = h5py.File(fname,'w') 
-    npart = np.array([Ngas,0,0,0,0,0]) # we have gas and particles we will set for type 3 here, zero for all others
     h = file.create_group("Header");
     h.attrs['NumPart_ThisFile'] = npart; 
     h.attrs['NumPart_Total'] = npart; # npart set as above
@@ -1169,151 +511,41 @@ def make_IC_hdf5(out_fname, mp, x, y, z,**kwargs):    #rho out
     h.attrs['Flag_DoublePrecision'] = 0; # flag indicating whether ICs are in single/double precision
     h.attrs['Flag_IC_Info'] = 0; # flag indicating extra options for ICs
 
-    p = file.create_group("PartType0")
+    particles = file.create_group("PartType0")
 
-    q=np.zeros((Ngas,3)); q[:,0]=x; q[:,1]=y; q[:,2]=z;
-    p.create_dataset("Coordinates",data=q)
-    
-    q=np.zeros((Ngas,3)); q[:,0]=vx; q[:,1]=vy; q[:,2]=vz;
-    p.create_dataset("Velocities",data=q)
-    
-    p.create_dataset("ParticleIDs",data=id_g)
-    p.create_dataset("Masses",data=mv_g)
+    rho_desired = 1.0           # box average initial gas density
+    P_desired = 1.0             # initial gas pressure
+    gamma_eos = 5./3.           # polytropic index of ideal equation of state the run will assume
 
-    #rho_desired = 1.0 
-    uv_g = U + 0.*xv_d#
-    p.create_dataset("InternalEnergy",data=uv_g)
-   
+    IDs=np.arange(1,Ngas+1)
+    masses=mp + 0.*x 
+    hsml=0.*x + (-1)
+    U=P_desired/((gamma_eos-1.)*rho_desired) 
+    internalE = U + 0.*x
+    dens=0.*x 
 
-    q=np.zeros((Ngas,3)); q[:,0]=bx; q[:,1]=by; q[:,2]=bz;
-    
-    p.create_dataset("MagneticField",data=q)
+    pos=np.zeros((Ngas,3))
+    pos[:,0]=x
+    pos[:,1]=y
+    pos[:,2]=z
 
-    #### NO! DO NOT FORCE THIS!!
-    if userho:
-        print "creating density data set"
+    vel=np.zeros((Ngas,3))
+    vel[:,0]=0.*x
+    vel[:,1]=0.*x
+    vel[:,2]=0.*x
 
-    ### force density to be zero?
-    rho = rho_desired + 0.*xv_d
-    p.create_dataset("Density",data=rho)
+    print "masses being used in hdf5: ", masses
+   #internal energy 
+    #particle IDs
 
-    # no PartType1 for this IC
-    # no PartType2 for this IC
-    # no PartType4 for this IC
-    # no PartType5 for this IC
+    particles.create_dataset("ParticleIDs",data=IDs)
+    particles.create_dataset("Masses",data=masses)
+    particles.create_dataset("Coordinates",data=pos)
+    particles.create_dataset("Velocities",data=vel)
+    particles.create_dataset("InternalEnergy",data=internalE)
+
+    particles.create_dataset("HSML", data=hsml)
+    particles.create_dataset("Density",data=dens)
+
     file.close()
     return file
-
-#########################################################################
-
-def make_IC_binary(out_fname, mp, x, y, z,**kwargs):    #rho???
-    ##############################################################################
-    #
-    # binary   binary   binary   binary  binary   binary   binary   
-    #
-    ###############################################################################
-    userho=kwargs.get("userho",False) ## don't know how this works yet
-    central_mass=float(kwargs.get('central_mass', 10e6))
-
-    fname=out_fname
-    Ngas = len(x)#xv_g.size
-    id_g=np.arange(1,Ngas+1)    #particle IDs
-
-    # if userho:
-    #     print 'using rho'
-    #     rho=rho
-
-    try:
-        import pygadgetic
-    except ImportError:
-        print("Cannot run make_IC_binary without pygadgetic.")
-        print("The package pygadgetic is available at https://github.com/ldocao/pygadgetic")
-        print("To install run this package's setup script or move pygadgetic/pygadgetic into"
-              "MESA2GADGET/mesalib directory")
-        sys.exit(1)
-
-    ##define number of particles
-    npart=[Ngas,0,0,0,0,0] ### need to add a central particle with the mass of the star
-    total_number_of_particles=np.sum(npart) #total number of particles
-
-    ##create objects
-    my_header=pygadgetic.Header()
-    my_body=pygadgetic.Body(npart)
-    my_header.NumPart_ThisFile = np.array(npart)
-    my_header.NumPart_Total = np.array(npart)
-
-    ##fill the body with minimal information
-    my_body.pos[:,0]=x#np.array([0,0,0]) #the first particle will be at the center
-    my_body.pos[:,1]=y#np.array([1,1,1])
-    my_body.pos[:,2]=z#np.array([-1,0,1])
-    my_body.vel[:,:]=0.
-
-    print "xyz[6] given to binary", x[6],y[6],z[6]
-
-    my_body.id[:]=id_g#np.arange(0,total_number_of_particles) 
-    particle_masses=mp + 0.*x  
-    my_body.mass[:]=particle_masses
-
-    rho_desired = 1.0
-    P_desired = 1.0                          # initial gas pressure 
-    gamma_eos = 5./3.                        # polytropic index of ideal equation of state
-    U=P_desired/((gamma_eos-1.)*rho_desired) # internal energy 
-
-    internal_energy = U + 0.*x
-    #p.create_dataset("InternalEnergy",data=internal_energy)
-    my_body.u[:]=internal_energy
-
-    pygadgetic.dump_ic(my_header,my_body,fname)
-
-    return fname
-
-
-
-
-
-
-##########################################################
-#
-# Make the initial conditions file from an NR file
-#
-###########################################################
-def get_IC(NR_file_name,output_filename,rmax,mp, *args, **kwargs):
-    filetype=str(kwargs.get('filetype','binary'))
-
-    #tag=str(output_filename)
-    hdf5file=str(output_filename)+ '.hdf5'
-    binaryfile=str(output_filename)+ '.bin'
-    #saveNR=str(NR_file_name)
-
-    N,rmid=np.loadtxt(NR_file_name, usecols=(0,1), unpack=True) 
-    #if make_IC_file:
-    super_x=[]
-    super_y=[]
-    super_z=[]
-    for i in range(len(N)):
-        NSIDE= N[i]
-        r_mid= rmid[i]
-        radius=float(rmid[i])/float(rmax)
-        ###############################################################
-        #
-        # Arbitrarily rotate shells
-        #
-        ###############################################################
-        x,y,z=cf.get_coords(NSIDE)
-        x=x*radius
-        y=y*radius
-        z=z*radius
-        super_x=np.concatenate((super_x,x),axis=0)
-        super_y=np.concatenate((super_y,y),axis=0)
-        super_z=np.concatenate((super_z,z),axis=0)
-        r_super=np.sqrt(super_x**2.0+ super_y**2.0 + super_z**2.0)
-    super_x=cf.to_array(super_x)
-    super_y=cf.to_array(super_y)
-    super_z=cf.to_array(super_z)
-    if filetype=='hdf5':
-        var=make_IC_hdf5(hdf5file, mp, super_x, super_y, super_z, userho=False) #super_rho
-    else:
-        var=make_IC_binary(binaryfile, mp, super_x, super_y, super_z, central_mass=1) 
-    print var, type(var)
-
-    return
