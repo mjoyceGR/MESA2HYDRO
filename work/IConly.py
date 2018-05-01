@@ -27,7 +27,7 @@ make_NR_file=False
 
 make_IC_file=True
 
-MESA_file=os.path.join(MESA_PKG_DIR, 'out/sample_MESA_output/profile_mainsequence.data')
+MESA_file=os.path.join(MESA_PKG_DIR, 'out/sample_MESA_output/profile_mainsequence_logE.data')
 masscut=0.95
 N=8
 mp=1e-7 ##IN UNITES OF Msolar!!!
@@ -39,8 +39,8 @@ startype='ms'#'wd_from_mod'
 #saveNR=os.path.join(MESA_PKG_DIR, "work/NR_files/saveNR_"+startype+".dat")
 #
 # temp adjustment
-saveNR='/home/meridith/UCT_SAAO/detached_shells/MESA2GADGET_in_dev/work/NR_files/saveNR_ms.dat'
-outname='ms_test'
+saveNR='/home/meridith/UCT_SAAO/detached_shells/MESA2GADGET/work/NR_files/saveNR_ms_logE_partial.dat'
+outname='ms_logE_test'
 
 
 rough_Nshells=1000.
@@ -51,10 +51,8 @@ if make_NR_file:
 fit_region_R=mn.MESA_r(MESA_file, masscut)
 fit_region_rho=mn.MESA_rho(MESA_file, masscut)
 
-
-
 rmax=fit_region_R.max()
-print "rmax: ", rmax
+
 
 
 if make_IC_file:

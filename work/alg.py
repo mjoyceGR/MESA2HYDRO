@@ -43,30 +43,14 @@ VALID_CONFIGS = {
     'make_IC_file': True,
     'try_reload': False,
     'format_type': 'binary',
-    'MESA_file': path_from_package('out/sample_MESA_output/profile_OB.data'),
+    'MESA_file': path_from_package('out/sample_MESA_output/profile_mainsequence_logE.data'),
     'masscut': 0.95,
     'N': 16,
     'mp': 1e-7,
-    'startype': 'OB_latest',
+    'startype': 'latest',
     'saveNR': 'work/NR_files/saveNR_ms.dat',
     'tag': 'main_sequence'}
     
-#check_MESA=False
-#make_NR_file=True
-#make_IC_file=True
-#try_reload=True
-#format_type='binary' 
-#MESA_file='../out/sample_MESA_output/profile_OB.data'
-#masscut=0.95
-#N=32
-#mp=1e-5 ##IN UNITES OF Msolar!!!
-
-#startype='OB_latest'#'wd_from_mod'
-#tag=startype+'_m'+str(masscut)+'_N'+str(N)+'_'+'mp'+str(mp)
-#outname=tag
-
-#saveNR="./NR_files/saveNR_"+startype+".dat"
-
 ##############################################################
 #
 # Argument input
@@ -101,6 +85,7 @@ config_args.add_argument('--format-type', default=VALID_CONFIGS['format_type'],
                          help='Type of the format (binary...)')
 config_args.add_argument('--MESA-file',
                          default=VALID_CONFIGS['MESA_file'],
+
                          help='Path to input MESA output')
 config_args.add_argument('--masscut', default=VALID_CONFIGS['masscut'],
                          help='Sets masscut')
@@ -217,23 +202,21 @@ else:
     mp = args.mp
     startype = args.star_type
     #tag = startype + '_m' + str(masscut) + '_N' + str(N) + '_' + 'mp' + str(mp)
-    tag = 'main_sequence'
+    tag = 'main_sequence_logE'
     outname = tag
     # If a saveNR path is given use that
     # otherwise construct one from other variables
     if args.saveNR:
        saveNR = args.saveNR
     else: 
-        saveNR = "work/NR_files/saveNR_ms.dat"
+        saveNR = "work/NR_files/saveNR_ms_logE.dat"
 
 # If the given path exists use that otherwise
 # prepend the package path
 if not os.path.exists(saveNR):
     saveNR = path_from_package(saveNR)
         
-        
     
-
 ##############################################################
 #
 # Generate shell placement radii
@@ -246,11 +229,20 @@ print "estimated stepsize: ", stepsize
 
 stepsize=2.45e6 #87580000 #(cm)
 
+if check_MESA:
+    mn.check_MESA(MESA_file, masscut)
 
+
+
+### need to include internal energy here
 if make_NR_file:
+    ## saveNR must now be in four column (NOT three column) format!!!!
 	outf=open(saveNR,"w")
-	mn.make_NR_file(MESA_file,masscut,N,mp, stepsize,outf,check_MESA=check_MESA)
+	mn.make_NR_file(MESA_file,masscut,N,mp, stepsize,outf)#,check_MESA=check_MESA)
 	outf.close()
+
+
+
 
 ##############################################################
 #
@@ -260,8 +252,8 @@ if make_NR_file:
 fit_region_R=mn.MESA_r(MESA_file, masscut)
 fit_region_rho=mn.MESA_rho(MESA_file, masscut)
 rmax=fit_region_R.max()
-
 print "rmax: ", rmax
+
 
 if make_IC_file:
 	mn.get_IC(saveNR,outname,mp,format_type=format_type)

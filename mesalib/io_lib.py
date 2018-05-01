@@ -217,9 +217,10 @@ def load_gadget_binary_particledat(f, header, ptype, skip_bh=0):
 # binary writing routine
 #
 ###############################################################
-def make_IC_binary(fname, mp, x, y, z,**kwargs):
+def make_IC_binary(fname, mp, x, y, z, E, **kwargs):
     central_mass=float(kwargs.get('central_mass', 10e6)) #<-----WARNING!! not properly handled!!!
     print "mp in make_IC_binary is", mp
+ 
     import pyIC as pygadgetic
     total_number_of_particles=len(x)
     npart=[total_number_of_particles,0,0,0,0,0]
@@ -245,8 +246,12 @@ def make_IC_binary(fname, mp, x, y, z,**kwargs):
     rho_desired = 1.0
     P_desired = 1.0 
     gamma_eos = 5./3.
-    U=P_desired/((gamma_eos-1.)*rho_desired) # internal energy 
-    my_body.u[:]=U + 0.*x#internal_energy ### <--------- load this from MESA directly
+  #  U=P_desired/((gamma_eos-1.)*rho_desired) # internal energy 
+  
+    ## trying to load this from MESA!
+    my_body.u[:]=E 
+
+    #U + 0.*x#internal_energy ### <--------- load this from MESA directly
 
     pygadgetic.dump_ic(my_header,my_body,fname)
     return fname
@@ -489,7 +494,7 @@ def read_block_single_file(filename, block_name, dim2, parttype=-1, no_mass_repl
 # hdf5 writing routine
 #
 ###############################################################
-def make_IC_hdf5(out_fname, mp, x, y, z,**kwargs):
+def make_IC_hdf5(out_fname, mp, x, y, z,E, **kwargs):
 
     print "using updated hdf5 writer"
 
@@ -526,8 +531,9 @@ def make_IC_hdf5(out_fname, mp, x, y, z,**kwargs):
     IDs=np.arange(1,Ngas+1)
     masses=mp + 0.*x 
     hsml=0.*x + (-1)
-    U=P_desired/((gamma_eos-1.)*rho_desired) 
-    internalE = U + 0.*x
+    #U=P_desired/((gamma_eos-1.)*rho_desired) 
+    #internalE = U + 0.*x
+    internalE=E
     dens=0.*x 
 
     pos=np.zeros((Ngas,3))
