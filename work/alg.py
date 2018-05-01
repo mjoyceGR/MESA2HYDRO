@@ -56,6 +56,9 @@ def path_from_package(path):
 # Argument input
 #
 ##############################################################
+
+### edited defaults!!!!
+
 parser = argparse.ArgumentParser(description='Program for converting MESA output to Gadget simulation files')
 parser.add_argument('--config-file', type=file,
                          help='Path to configuration file')
@@ -71,11 +74,11 @@ config_args.add_argument('--try-reload', action='store_true',
 config_args.add_argument('--format-type', default='binary',
                          help='Type of the format (binary...)')
 config_args.add_argument('--MESA-file',
-                         default=path_from_package('out/sample_MESA_output/profile_OB.data'),
+                         default=path_from_package('out/sample_MESA_output/profile_mainsequence.data'),
                          help='Path to input MESA output')
 config_args.add_argument('--masscut', default=0.95,
                          help='Sets masscut')
-config_args.add_argument('--N', default=16,
+config_args.add_argument('--N', default=8,
                          help='Sets N')
 config_args.add_argument('--mp', default=1e-7,
                          help='Set the mp value in Msolar units')
@@ -127,7 +130,7 @@ rough_Nshells=1000.
 stepsize=mn.estimate_stepsize(MESA_file,masscut,rough_Nshells)
 print "estimated stepsize: ", stepsize
 
-stepsize=87580000 #(cm)
+stepsize=2.45e6 #87580000 #(cm)
 
 
 if make_NR_file:
