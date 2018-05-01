@@ -60,7 +60,7 @@ VALID_CONFIGS = {
 
 parser = argparse.ArgumentParser(description='Program for converting MESA output to Gadget simulation files')
 parser.add_argument('--config-file',
-                    help='Path to configuration file which should be in \'INI\' format')
+                    help='Path to configuration file')
 config_args = parser.add_argument_group("Configuration")
 
 # Boolean option flags set opposite of file default
