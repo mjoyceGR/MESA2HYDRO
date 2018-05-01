@@ -5,8 +5,8 @@ import sys
 import os
 m2g_path=os.environ['MESA2GADGET_ROOT']
 sys.path.append(m2g_path+'/src/')
-import MESAlibjoyce as MJ
-import converge_funcs as cf
+import MESA2GADGET.mesalib.MESAlibjoyce as MJ
+import MESA2GADGET.mesalib.converge_funcs as cf
 ###################################################
 M_to_solar=1.988*10.0**33.0 ## g/Msolar
 R_to_solar=6.957*10.0**10.0 ## cm/Rsolar
