@@ -27,7 +27,6 @@ make_NR_file=False
 
 make_IC_file=True
 
-
 MESA_file=os.path.join(MESA_PKG_DIR, 'out/sample_MESA_output/profile_mainsequence.data')
 masscut=0.95
 N=8
@@ -56,7 +55,6 @@ fit_region_rho=mn.MESA_rho(MESA_file, masscut)
 
 rmax=fit_region_R.max()
 print "rmax: ", rmax
-
 
 
 if make_IC_file:

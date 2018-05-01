@@ -94,13 +94,13 @@ def load_gadget_binary_particledat(f, header, ptype, skip_bh=0):
     n1 = NpartCum[ptype]
     
     ### particles positions. 3*Npart*float.
-    pos = array.array('f')
+    pos = array.array('d')
     pos.fromfile(f, 3*NpartTot)
     pos = np.reshape(pos, (NpartTot,3))
     f.read(4+4) # Read block size fields.
 
     ### particles velocities. 3*Npart*float.
-    vel = array.array('f')
+    vel = array.array('d')
     vel.fromfile(f, 3*NpartTot)
     vel = np.reshape(vel, (NpartTot,3))
     f.read(4+4) # Read block size fields.
@@ -116,7 +116,7 @@ def load_gadget_binary_particledat(f, header, ptype, skip_bh=0):
     Npart=np.array(Npart)
     Npart_MassCode[(Npart <= 0) | (np.array(Massarr,dtype='d') > 0.0)] = 0
     NwithMass = np.sum(Npart_MassCode)
-    mass = array.array('f')
+    mass = array.array('d')
 
     #print "\n\nmass loaded in binary reader: ", mass
 
@@ -133,9 +133,9 @@ def load_gadget_binary_particledat(f, header, ptype, skip_bh=0):
             f.read(4+4) # Read block size fields.
             ### Density for the gas paraticles (units?).
 
-            gas_u = array.array('f')
-            gas_rho = array.array('f')
-            gas_hsml = array.array('f')
+            gas_u = array.array('d')
+            gas_rho = array.array('d')
+            gas_hsml = array.array('d')
 
 
             ############## EDITING HERE NOW #######################
@@ -158,11 +158,11 @@ def load_gadget_binary_particledat(f, header, ptype, skip_bh=0):
 
             if (header['Flag_Cooling'] > 0):
                 ### Electron number density for gas particles (fraction of n_H; can be >1).
-                gas_ne = array.array('f')
+                gas_ne = array.array('d')
                 gas_ne.fromfile(f, Npart[0])
                 f.read(4+4) # Read block size fields.
                 ### Neutral hydrogen number density for gas particles (fraction of n_H).
-                gas_nhi = array.array('f')
+                gas_nhi = array.array('d')
                 gas_nhi.fromfile(f, Npart[0])
                 f.read(4+4) # Read block size fields.
 
@@ -170,7 +170,7 @@ def load_gadget_binary_particledat(f, header, ptype, skip_bh=0):
 
             if (header['Flag_Sfr'] > 0):
                 ### Star formation rate (Msun/yr). ###
-                gas_SFR = array.array('f')
+                gas_SFR = array.array('d')
                 gas_SFR.fromfile(f, Npart[0])
                 f.read(4+4) # Read block size fields.
 
@@ -178,7 +178,7 @@ def load_gadget_binary_particledat(f, header, ptype, skip_bh=0):
             if (header['Flag_Sfr'] > 0):
                 if (header['Flag_StellarAge'] > 0):
                     ### Star formation time (in code units) or scale factor ###
-                    star_age = array.array('f')
+                    star_age = array.array('d')
                     star_age.fromfile(f, Npart[4])
                     f.read(4+4) # Read block size fields.
         
@@ -186,10 +186,10 @@ def load_gadget_binary_particledat(f, header, ptype, skip_bh=0):
             if (header['Flag_Metals'] > 0):
                 ## Metallicity block (species tracked = Flag_Metals)
                 if (Npart[0]>0):
-                    gas_z = array.array('f')
+                    gas_z = array.array('d')
                     gas_z.fromfile(f, header['Flag_Metals']*Npart[0])
                 if (Npart[4]>0):
-                    star_z = array.array('f')
+                    star_z = array.array('d')
                     star_z.fromfile(f, header['Flag_Metals']*Npart[4])
                 f.read(4+4) # Read block size fields.
                 if (ptype==0): zmet=np.reshape(gas_z,(-1,header['Flag_Metals']))
@@ -198,11 +198,11 @@ def load_gadget_binary_particledat(f, header, ptype, skip_bh=0):
         if (Npart[5]>0):
             if (skip_bh > 0):
                 ## BH mass (same as code units, but this is the separately-tracked BH mass from particle mass)
-                bh_mass = array.array('f')
+                bh_mass = array.array('d')
                 bh_mass.fromfile(f, Npart[5])
                 f.read(4+4) # Read block size fields.
                 ## BH accretion rate in snapshot
-                bh_mdot = array.array('f')
+                bh_mdot = array.array('d')
                 bh_mdot.fromfile(f, Npart[5])
                 f.read(4+4) # Read block size fields.
     
@@ -514,7 +514,7 @@ def make_IC_hdf5(out_fname, mp, x, y, z,**kwargs):
     h.attrs['Flag_StellarAge'] = 0; # flag indicating whether stellar ages are to be saved
     h.attrs['Flag_Metals'] = 0; # flag indicating whether metallicity are to be saved
     h.attrs['Flag_Feedback'] = 0; # flag indicating whether some parts of springel-hernquist model are active
-    h.attrs['Flag_DoublePrecision'] = 0; # flag indicating whether ICs are in single/double precision
+    h.attrs['Flag_DoublePrecision'] = 1; # flag indicating whether ICs are in single/double precision
     h.attrs['Flag_IC_Info'] = 0; # flag indicating extra options for ICs
 
     particles = file.create_group("PartType0")
