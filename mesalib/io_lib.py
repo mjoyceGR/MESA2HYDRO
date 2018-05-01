@@ -18,7 +18,6 @@ import hdf5lib as hdf5lib
 # binary routines
 #
 ####################################################
-
 def load_gadget_binary_header(f):
     import array
     f.read(4)
@@ -213,7 +212,11 @@ def load_gadget_binary_particledat(f, header, ptype, skip_bh=0):
         'ElectronAbundance':gas_ne, 'NeutralHydrogenAbundance':gas_nhi, 'StarFormationRate':gas_SFR}
 
 
-
+###############################################################
+#
+# binary writing routine
+#
+###############################################################
 def make_IC_binary(fname, mp, x, y, z,**kwargs):
     central_mass=float(kwargs.get('central_mass', 10e6)) #<-----WARNING!! not properly handled!!!
     print "mp in make_IC_binary is", mp
@@ -481,12 +484,15 @@ def read_block_single_file(filename, block_name, dim2, parttype=-1, no_mass_repl
 
 
 
-#######################################################################
+###############################################################
 #
-# hdf5 IC 
+# hdf5 writing routine
 #
-#######################################################################
+###############################################################
 def make_IC_hdf5(out_fname, mp, x, y, z,**kwargs):
+
+    print "using updated hdf5 writer"
+
     file = h5py.File(out_fname,'w') 
     Ngas = len(x)
     npart = np.array([len(x),0,0,0,0,0]) # we have gas and particles we will set for type 3 here, zero for all others
@@ -539,13 +545,13 @@ def make_IC_hdf5(out_fname, mp, x, y, z,**kwargs):
     #particle IDs
 
     particles.create_dataset("ParticleIDs",data=IDs)
-    particles.create_dataset("Masses",data=masses)
-    particles.create_dataset("Coordinates",data=pos)
-    particles.create_dataset("Velocities",data=vel)
-    particles.create_dataset("InternalEnergy",data=internalE)
+    particles.create_dataset("Masses",data=masses,dtype=np.dtype('d'))
+    particles.create_dataset("Coordinates",data=pos,dtype=np.dtype('d'))
+    particles.create_dataset("Velocities",data=vel,dtype=np.dtype('d'))
+    particles.create_dataset("InternalEnergy",data=internalE,dtype=np.dtype('d'))
 
-    particles.create_dataset("HSML", data=hsml)
-    particles.create_dataset("Density",data=dens)
+    particles.create_dataset("HSML", data=hsml.astype(float))
+    particles.create_dataset("Density",data=dens.astype(float))
 
     file.close()
     return file

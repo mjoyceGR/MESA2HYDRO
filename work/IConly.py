@@ -26,9 +26,6 @@ make_NR_file=False
 
 
 make_IC_file=True
-# try_reload=True
-format_type='binary' 
-
 
 MESA_file=os.path.join(MESA_PKG_DIR, 'out/sample_MESA_output/profile_mainsequence.data')
 masscut=0.95
@@ -39,7 +36,10 @@ startype='ms'#'wd_from_mod'
 # tag=startype+'_m'+str(masscut)+'_N'+str(N)+'_'+'mp'+str(mp)
 # outname=tag
 
-saveNR=os.path.join(MESA_PKG_DIR, "work/NR_files/saveNR_"+startype+".dat")
+#saveNR=os.path.join(MESA_PKG_DIR, "work/NR_files/saveNR_"+startype+".dat")
+#
+# temp adjustment
+saveNR='/home/meridith/UCT_SAAO/detached_shells/MESA2GADGET_in_dev/work/NR_files/saveNR_ms.dat'
 outname='ms_test'
 
 
@@ -57,16 +57,10 @@ rmax=fit_region_R.max()
 print "rmax: ", rmax
 
 
-#ftypes=['hdf5'] #'binary',
-#for i in range(len(ftypes)):
-#	format_type=ftypes[i]
-
 if make_IC_file:
 	mn.get_IC(saveNR,outname,mp,format_type='binary')#temp remove rmax
 	mn.get_IC(saveNR,outname,mp,format_type='hdf5')
 
-#if try_reload:
-#put GADGET data in simple units
 
 N,r_set,m_cont=np.loadtxt(saveNR, usecols=(0,1,2), unpack=True)
 
@@ -76,7 +70,22 @@ r_temp_h,masses_h=mn.reload_IC(outname,'hdf5') #saveNR
 
 print len(masses_b), len(masses_h)
 #print 'r_temp_h', r_temp_h
-print "r_temp_b/r_temp_h", (r_temp_b/r_temp_h), '\n\n'#/rmax,
+
+
+def suppress_digits(array, digit, divisor=1e10):
+    divisor=float(divisor)
+    array=cf.to_array([round(i/divisor,digit) for i in array])
+    array=array*divisor
+    return array
+
+#try retaining only step size level of precision
+# precision=20
+# r_temp_h=suppress_digits(r_temp_h,precision,divisor=1e10)
+# r_temp_b=suppress_digits(r_temp_h,precision,divisor=1e10)
+# masses_b=suppress_digits(masses_b,5,divisor=1e26)
+# masses_h=suppress_digits(masses_h,5,divisor=1e26)
+
+print "r_temp_b-r_temp_h", (r_temp_b-r_temp_h), '\n\n'#/rmax,
 # print "masses_b", masses_b
 # print "masses_h", masses_h
 print "masses_b/masses_h", (masses_b/masses_h)
@@ -85,6 +94,7 @@ print "masses_b/masses_h", (masses_b/masses_h)
 # plt.show()
 # plt.close()
 
+#sys.exit()
 
 
 p_mass=masses_h[5]
@@ -101,14 +111,10 @@ for i in range(len(r_set)-1):
 
     if len(r_temp_b[region])==0:
         break
-    #print "length of r_recovered*mp", len(r_recovered[region])*p_mass
-    #print "volume of shell r2-r1: ", cf.volume(r2)-cf.volume(r1)
-    #print "r_rec[ r1 to r2 ]*mp / vol(r2-r1): ", len(r_recovered[region])*p_mass/(cf.volume(r2)-cf.volume(r1))
     num_recovered_b.append((len(r_temp_b[region]))) 
     m_b.append(len(r_temp_b[region])*p_mass)
     r_b.append(r2)
     rho_b.append( len(r_temp_b[region])*p_mass/(cf.volume(r2)-cf.volume(r1))  )
-
 
 
 r1=r_temp_h.min() 
@@ -123,9 +129,6 @@ for i in range(len(r_set)-1):
 
     if len(r_temp_h[region])==0:
         break
-    #print "length of r_recovered*mp", len(r_recovered[region])*p_mass
-    #print "volume of shell r2-r1: ", cf.volume(r2)-cf.volume(r1)
-    #print "r_rec[ r1 to r2 ]*mp / vol(r2-r1): ", len(r_recovered[region])*p_mass/(cf.volume(r2)-cf.volume(r1))
     num_recovered_h.append((len(r_temp_h[region])) )
     m_h.append( (len(r_temp_h[region])*p_mass) ) 
     r_h.append(r2)
@@ -136,13 +139,7 @@ for i in range(len(r_set)-1):
 
 
 
-
-
-
-
-
-
-plt.plot(r_h, rho_h,'r.', markersize=4, label='GADGET hdf5 data')
+plt.plot(r_h, rho_h,'r^', markersize=5, label='GADGET hdf5 data')
 plt.plot(r_b, rho_b,'g.', markersize=4, label='GADGET binary data')
 plt.plot(fit_region_R, fit_region_rho, "b.", markersize=4, label='MESA data') #cf.to_log()
 plt.xlabel("R")
@@ -151,7 +148,7 @@ plt.legend(loc=1)
 plt.savefig('lin_'+outname+'_both.png')
 plt.close()
 
-plt.plot(r_h, num_recovered_h,'r.', markersize=4, label='GADGET hdf5 data')
+plt.plot(r_h, num_recovered_h,'r^', markersize=5, label='GADGET hdf5 data')
 plt.plot(r_b, num_recovered_b,'g.', markersize=4, label='GADGET binary data')
 #plt.plot(fit_region_R, fit_region_, "b.", markersize=4, label='MESA data') #cf.to_log()
 plt.xlabel("R")
@@ -162,7 +159,7 @@ plt.close()
 
 
 
-plt.plot(r_h, m_h,'r.', markersize=4, label='GADGET hdf5 data')
+plt.plot(r_h, m_h,'r^', markersize=5, label='GADGET hdf5 data')
 plt.plot(r_b, m_b,'g.', markersize=4, label='GADGET binary data')
 #plt.plot(fit_region_R, fit_region_, "b.", markersize=4, label='MESA data') #cf.to_log()
 plt.xlabel("R")
@@ -174,43 +171,15 @@ plt.close()
 
 
 plt.plot(fit_region_R, cf.to_log(fit_region_rho), "b.", markersize=4, label='MESA data') #cf.to_log()
-plt.plot(r_h, cf.to_log(rho_h),'r.', markersize=4, label='GADGET hdf5 data')
+plt.plot(r_h, cf.to_log(rho_h),'r^', markersize=5, label='GADGET hdf5 data')
 plt.plot(r_b, cf.to_log(rho_b),'g.', markersize=4, label='GADGET binary data')
-#plt.ylim(-2.5,0.3)
+plt.ylim(-2.5,0.3)
 plt.xlabel("R")
 plt.ylabel("log(test density)")
 plt.legend(loc=1)
 plt.savefig('log_'+outname+'_both.png')
 plt.close()
 
-# renormalize the MESA data
-#M_to_solar=1.988*10.0**33.0 ## g/Msolar
-#fit_region_R=fit_region_R/rmax
-#fit_region_rho=fit_region_rho/M_to_solar
-
-
-# plt.plot(r_temp, rho_temp,'r.', markersize=6, label='GADGET data')
-# plt.plot(fit_region_R, fit_region_rho, "b.", markersize=4, label='MESA data') #cf.to_log()
-# plt.xlabel("R")
-# plt.ylabel("test density")
-# plt.legend(loc=1)
-# if format_type=='hdf5':
-# 	plt.savefig('lin_'+outname+'_hdf5.png')
-# else:
-# 	plt.savefig('lin_'+outname+'_bin.png')
-# plt.close()
-
-# plt.plot(fit_region_R, cf.to_log(fit_region_rho), "b.", markersize=4, label='MESA data') #cf.to_log()
-# plt.plot(r_temp, cf.to_log(rho_temp),'r.', markersize=6, label='GADGET data')
-# #plt.ylim(-2.5,0.3)
-# plt.xlabel("R")
-# plt.ylabel("log(test density)")
-# plt.legend(loc=1)
-# if format_type=='hdf5':
-# 	plt.savefig('log_'+outname+'_hdf5.png')
-# else:
-# 	plt.savefig('log_'+outname+'_bin.png')
-# plt.close()
 
 
 print "total execution length: "
