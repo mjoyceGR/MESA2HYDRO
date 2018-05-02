@@ -6,14 +6,15 @@ import sys
 import os
 import re
 m2g_path=os.environ['MESA2GADGET_ROOT']
-sys.path.append(m2g_path+'/src/')
+sys.path.append(m2g_path+'/mesalib/')
 try:
     import MESA2GADGET.mesalib.MESAlibjoyce as MJ
     import MESA2GADGET.mesalib.converge_funcs as cf
     import MESA2GADGET.mesalib.io_lib as rw
     import MESA2GADGET.mesalib.mainlib as mn
     from MESA2GADGET import MESA_PKG_DIR
-except ImportError:
+except ImportError as err:
+    print("Err: {}".format(err))
     print("Problem with MESA2GADGET installation")
     print("To use this package please run sudo python setup.py install")
     print("or set your PYTHONPATH environment variable to the directory")
@@ -39,7 +40,7 @@ def path_from_package(path):
 VALID_CONFIGS = {
     'check_MESA': False,
     'make_NR_file': False,
-    'make_IC_file': True,
+    'make_IC_file': False,
     'try_reload': False,
     'format_type': 'binary',
     'masscut': 0.95,
@@ -47,6 +48,8 @@ VALID_CONFIGS = {
     'mp': 1e-7,
     'stepsize': 2.45e6,
     'startype': 'main_sequence',
+    'new_NR_filename': 'newNR.dat',
+    'new_IC_filename': 'newIC',
     'MESA_file': path_from_package('out/sample_MESA_output/profile_mainsequence_logE.data'),
     'saveNR': 'work/NR_files/saveNR_ms.dat',
     'tag': 'main_sequence'}
@@ -56,8 +59,6 @@ VALID_CONFIGS = {
 # Argument input
 #
 ##############################################################
-
-### edited defaults!!!!
 
 parser = argparse.ArgumentParser(description='Program for converting MESA output to Gadget simulation files')
 parser.add_argument('--config-file',
@@ -139,7 +140,6 @@ elif args.config_file:
             if re.search(name, config_file):
                 print("{} was malformed in config file".format(name))
             return default
-
 
     def get_str_option(name, default):
         m = re.search('^\s*{}\s*=\s*(?P<value>\w+)'.format(name),
@@ -224,8 +224,20 @@ elif args.config_file:
     tag = VALID_CONFIGS['tag']
     outname = tag
 
-    saveNR=get_path_option('saveNR', VALID_CONFIGS['saveNR'])
-    
+    saveNR = get_path_option('saveNR', VALID_CONFIGS['saveNR'])
+
+    if make_NR_file:
+        new_NR_filename = get_str_option('new_NR_filename',
+                                         VALID_CONFIGS['new_NR_filename'])
+    else:
+        new_NR_filename = None
+
+    if make_IC_file:
+        new_IC_filename = get_str_option('new_IC_filename',
+                                         VALID_CONFIGS['new_IC_filename'])
+    else:
+        new_IC_filename = None
+
 else:
     check_MESA = args.check_MESA
     make_NR_file = args.make_NR_file
