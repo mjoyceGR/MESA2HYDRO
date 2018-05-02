@@ -83,10 +83,7 @@ def load_gadget_binary_particledat(f, header, ptype, skip_bh=0):
     zmet=0.; bh_mass=0.; bh_mdot=0.; mm=0.;
     Npart = header['NumPart_ThisFile']
 
-
-
     Massarr = header['MassTable']
-
 
     NpartTot = np.sum(Npart)
     NpartCum = np.cumsum(Npart)

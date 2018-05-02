@@ -39,7 +39,7 @@ startype='ms'#'wd_from_mod'
 #saveNR=os.path.join(MESA_PKG_DIR, "work/NR_files/saveNR_"+startype+".dat")
 #
 # temp adjustment
-saveNR='/home/meridith/UCT_SAAO/detached_shells/MESA2GADGET/work/NR_files/saveNR_ms_logE_partial.dat'
+saveNR='/home/meridith/UCT_SAAO/detached_shells/MESA2GADGET/work/NR_files/saveNR_ms_logE.dat'
 outname='ms_logE_test'
 
 

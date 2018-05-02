@@ -82,7 +82,7 @@ def make_NR_file(MESA_file,masscut,N,mp, RKstep,NR_file, *args, **kwargs):
     outf=NR_file
     print >> outf, '## fname',MESA_file ,' masscut',masscut,'   N', N, '  mp (Ms)', mp/M_to_solar,\
        '  mp (g)', mp,'  RKstep',('%1.3e'% RKstep)
-    print >> outf, '#N    (ru+rl)/2 (cm)    M(g) contained in shell ru-rl   internal energy E (unlog)'
+    print >> outf, '#N    (ru+rl)/2 (cm)    M(g) contained in shell ru-rl   internal energy E (unlog)...ergs?'
 
     ru=rl
     while ru <= rmax:
@@ -161,7 +161,7 @@ def get_IC(NR_file_name,output_filename,mp, *args, **kwargs): #temp remove rmax
     if filetype=='hdf5':
         var=rw.make_IC_hdf5(hdf5file, mp, super_x, super_y, super_z,super_E) #, userho=False
     else:
-        var=rw.make_IC_binary(binaryfile, mp, super_x, super_y, super_z,super_E)#central mass not handled 
+        var=rw.make_IC_binary(binaryfile, mp, super_x, super_y, super_z, super_E)#central mass not handled 
     print var, type(var)
     return
 
