@@ -38,15 +38,16 @@ def path_from_package(path):
 ########################################################
 VALID_CONFIGS = {
     'check_MESA': False,
-    'make_NR_file': True,
+    'make_NR_file': False,
     'make_IC_file': True,
     'try_reload': False,
     'format_type': 'binary',
-    'MESA_file': path_from_package('out/sample_MESA_output/profile_mainsequence_logE.data'),
     'masscut': 0.95,
-    'N': 16,
+    'N': 32,
     'mp': 1e-7,
-    'startype': 'latest',
+    'stepsize': 2.45e6,
+    'startype': 'main_sequence',
+    'MESA_file': path_from_package('out/sample_MESA_output/profile_mainsequence_logE.data'),
     'saveNR': 'work/NR_files/saveNR_ms.dat',
     'tag': 'main_sequence'}
     
@@ -61,6 +62,8 @@ VALID_CONFIGS = {
 parser = argparse.ArgumentParser(description='Program for converting MESA output to Gadget simulation files')
 parser.add_argument('--config-file',
                     help='Path to configuration file')
+parser.add_argument('--defaults', action='store_true',
+                    help='Lists the scripts default parameters and exits')
 config_args = parser.add_argument_group("Configuration")
 
 # Boolean option flags set opposite of file default
@@ -87,18 +90,30 @@ config_args.add_argument('--MESA-file',
 
                          help='Path to input MESA output')
 config_args.add_argument('--masscut', default=VALID_CONFIGS['masscut'],
+                         type=float,
                          help='Sets masscut')
 config_args.add_argument('--N', default=VALID_CONFIGS['N'],
+                         type=int,
                          help='Sets N')
 config_args.add_argument('--mp', default=VALID_CONFIGS['mp'],
+                         type=float,
                          help='Set the mp value in Msolar units')
+config_args.add_argument('--step-size', default=VALID_CONFIGS['stepsize'],
+                         type=float,
+                         help='Sets the step size to the given value. Units in cm')
 config_args.add_argument('--star-type', default=VALID_CONFIGS['startype'],
                          help='Set start type')
 config_args.add_argument('--saveNR', default=None,
                          help='Set the saveNR file')
 
 args = parser.parse_args()
-if args.config_file:
+if args.defaults:
+    for config, value in VALID_CONFIGS.items():
+        print("{} = {}".format(config, value))
+
+    exit(0)
+
+elif args.config_file:
     if not os.path.exists(args.config_file):
         args.config_file = path_from_package(args.config_file)
 
@@ -113,6 +128,19 @@ if args.config_file:
              if not re.match('\s*#', line) and '=' in line]
     config_file = "\n".join(lines)
 
+    def get_path_option(name, default):
+        m = re.search('^\s*{}\s*=\s*(?P<value>[\w\./]+)'.format(name),
+                      config_file, re.MULTILINE)
+        if m:
+            value = m.group('value')
+            print("Using config file value for {} of {}".format(name, value))
+            return value
+        else:
+            if re.search(name, config_file):
+                print("{} was malformed in config file".format(name))
+            return default
+
+
     def get_str_option(name, default):
         m = re.search('^\s*{}\s*=\s*(?P<value>\w+)'.format(name),
                       config_file, re.MULTILINE)
@@ -121,6 +149,8 @@ if args.config_file:
             print("Using config file value for {} of {}".format(name, value))
             return value
         else:
+            if re.search(name, config_file):
+                print("{} was malformed in config file".format(name))
             return default
 
     def get_float_option(name, default):
@@ -136,6 +166,8 @@ if args.config_file:
                 print("{} has a misformed value. {} is not a recognized float"
                       .format(name, value))
         else:
+            if re.search(name, config_file):
+                print("{} was malformed in config file".format(name))
             return default
 
     def get_int_option(name, default):
@@ -151,6 +183,8 @@ if args.config_file:
                 print("{} has a misformed value. {} is not a recognized float"
                       .format(name, value))
         else:
+            if re.search(name, config_file):
+                print("{} was malformed in config file".format(name))
             return default
 
     def get_bool_option(name, default):
@@ -169,6 +203,8 @@ if args.config_file:
             print("{} needs to have true or false and is {}".format(name, value))
             return default
         else:
+            if re.search(name, config_file):
+                print("{} was malformed in config file".format(name))
             return default
 
     check_MESA = get_bool_option('check_MESA', VALID_CONFIGS['check_MESA'])
@@ -178,16 +214,17 @@ if args.config_file:
     format_type = get_str_option('format_type', VALID_CONFIGS['format_type'])
 
 
-    MESA_file = get_str_option('MESA_file', VALID_CONFIGS['MESA_file'])
+    MESA_file = get_path_option('MESA_file', VALID_CONFIGS['MESA_file'])
     masscut = get_float_option('masscut', VALID_CONFIGS['masscut'])
     N = get_int_option('N', VALID_CONFIGS['N'])
     mp = get_float_option('mp', VALID_CONFIGS['mp']) ##IN UNITES OF Msolar!!!
+    stepsize = get_float_option('stepsize', VALID_CONFIGS['stepsize']) ##IN UNITES OF cm
 
     startype = get_str_option('startype', VALID_CONFIGS['startype'])
     tag = VALID_CONFIGS['tag']
     outname = tag
 
-    saveNR=get_str_option('saveNR', VALID_CONFIGS['saveNR'])
+    saveNR=get_path_option('saveNR', VALID_CONFIGS['saveNR'])
     
 else:
     check_MESA = args.check_MESA
@@ -200,6 +237,7 @@ else:
     N = args.N
     mp = args.mp
     startype = args.star_type
+    stepsize = args.step_size
     #tag = startype + '_m' + str(masscut) + '_N' + str(N) + '_' + 'mp' + str(mp)
     tag = 'main_sequence_logE'
     outname = tag
@@ -223,10 +261,10 @@ if not os.path.exists(saveNR):
 #############################################################
 rough_Nshells=1000.
 #outer_step=mn.estimate_stepsize(MESA_file,masscut,rough_Nshells)
-stepsize=mn.estimate_stepsize(MESA_file,masscut,rough_Nshells)
-print "estimated stepsize: ", stepsize
+#stepsize=mn.estimate_stepsize(MESA_file,masscut,rough_Nshells)
+#print "estimated stepsize: ", stepsize
 
-stepsize=2.45e6 #87580000 #(cm)
+#stepsize=2.45e6 #87580000 #(cm)
 
 if check_MESA:
     mn.check_MESA(MESA_file, masscut)
