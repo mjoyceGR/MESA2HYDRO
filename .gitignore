@@ -1,6 +1,9 @@
 # ignore all these files
 
+
 **/*.pyc
 **/*.png
 **/*.bin
 **/*.hdf5
+
+!out/recovery_images/*.png
