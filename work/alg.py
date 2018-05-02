@@ -88,12 +88,16 @@ config_args.add_argument('--MESA-file',
 
                          help='Path to input MESA output')
 config_args.add_argument('--masscut', default=VALID_CONFIGS['masscut'],
+                         type=float,
                          help='Sets masscut')
 config_args.add_argument('--N', default=VALID_CONFIGS['N'],
+                         type=int,
                          help='Sets N')
 config_args.add_argument('--mp', default=VALID_CONFIGS['mp'],
+                         type=float,
                          help='Set the mp value in Msolar units')
 config_args.add_argument('--step-size', default=VALID_CONFIGS['stepsize'],
+                         type=float,
                          help='Sets the step size to the given value. Units in cm')
 config_args.add_argument('--star-type', default=VALID_CONFIGS['startype'],
                          help='Set start type')
