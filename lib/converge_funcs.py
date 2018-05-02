@@ -52,6 +52,7 @@ def Mshell_from_RK(rl, rmax, step, MESA_file,masscut, *args,**kwargs):
 	m=0
 	while r<rmax:
 	    r, m= RK1(r,m, density_integral_numeric, step, MESA_file,masscut)#, load_unlogged=use_unlog)
+	Mshell=m
 	return Mshell
 
 

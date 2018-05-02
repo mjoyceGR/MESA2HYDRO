@@ -4,12 +4,12 @@ import matplotlib.pyplot as plt
 import sys
 import os
 m2g_path=os.environ['MESA2GADGET_ROOT']
-sys.path.append(m2g_path+'/mesalib/')
+sys.path.append(m2g_path+'/lib/')
 try:
-    import MESA2GADGET.mesalib.MESAlibjoyce as MJ
-    import MESA2GADGET.mesalib.converge_funcs as cf
-    import MESA2GADGET.mesalib.io_lib as rw
-    import MESA2GADGET.mesalib.mainlib as mn
+    import MESA2GADGET.lib.MESAlibjoyce as MJ
+    import MESA2GADGET.lib.converge_funcs as cf
+    import MESA2GADGET.lib.io_lib as rw
+    import MESA2GADGET.lib.mainlib as mn
     from MESA2GADGET import MESA_PKG_DIR
 except ImportError:
     print("Problem with MESA2GADGET installation")

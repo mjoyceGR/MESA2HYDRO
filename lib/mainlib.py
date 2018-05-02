@@ -55,16 +55,24 @@ def MESA_internalE(MESA_file,masscut):
 # Make an NR file from MESA data
 #
 ###########################################################
-def check_MESA(MESA_file, masscut):
-    #if check_MESA:
+def check_MESA(MESA_file, masscut,uselog=True,save=True):
     fit_region_R=MESA_r(MESA_file,masscut)
     fit_region_rho=MESA_rho(MESA_file,masscut)
-
     import matplotlib.pyplot as plt
+   
+    if uselog:
+        fit_region_R=cf.to_log(fit_region_R)
+        fit_region_rho=cf.to_log(fit_region_rho)
+
     plt.plot(fit_region_R, fit_region_rho,'b.')
     plt.xlabel('Radius (cm)')
     plt.ylabel(r'$\rho$ (g/cm$^3$)')
+    if uselog:
+        plt.xlabel('log R (cm)')
+        plt.ylabel(r'log $\rho$ (g/cm$^3$)')
     plt.title(MESA_file)
+    if save:
+        plt.savefig('latest_loaded_MESA_profile.png')
     plt.show()
     plt.close()
     return 
