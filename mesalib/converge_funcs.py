@@ -27,44 +27,35 @@ def RK1(r, m, fx, h,MESA_file,masscut, *args, **kwargs):
 	#need to pass the value of rho roughly at r but don't update it, just need it for calculation
 	use_unlog=bool(kwargs.get('load_unlogged',False))
 
-	rho_k0=rho_r(r,MESA_file,masscut,load_unlogged=use_unlog)
-	#print ">>>>>>>>>>>>>>>>>r, m, rho in start RK:", r, m, rho_k0#, ('%1.5e'%h)
-	rho_k12=rho_r(r+0.5*h,MESA_file,masscut,load_unlogged=use_unlog)
-	rho_k3=rho_r(r+h,MESA_file,masscut,load_unlogged=use_unlog)
+	rho_k0=rho_r(r,MESA_file,masscut)#,load_unlogged=use_unlog)
+	rho_k12=rho_r(r+0.5*h,MESA_file,masscut)#,load_unlogged=use_unlog)
+	rho_k3=rho_r(r+h,MESA_file,masscut)#,load_unlogged=use_unlog)
 
 	k0=fx(r, rho_k0 )*h
-	#print "k0:", k0
 	k1=fx(r + 0.5*h, rho_k12 )*h  #+ 0.5*k0
 	k2=fx(r + 0.5*h, rho_k12 )*h  #+ 0.5*k1
 	k3=fx(r + h, rho_k3 )*h  #+ k2
 	r     = r     + h
 	m = m + (k0 + 2.0*k1 + 2.0*k2 + k3)/6.0
-	#print ">>>>>>>>>>>>>>>>>r, m, rho in end RK:", r, m, rho_k3
 	return r, m
 
 def density_integral_numeric(r, rho_r): 
 	# will need to write an interpolation function to go between points in order to have
-	# a rho_r value for any possible r
 	dmdr=4.0*np.pi*r**2.0*rho_r
-	#print "value of r, rho_r, dmdr:", r, rho_r, dmdr
 	return dmdr
 
 
 def Mshell_from_RK(rl, rmax, step, MESA_file,masscut, *args,**kwargs):
-	use_unlog=bool(kwargs.get('load_unlogged',False))
-	#print "value for use_unlog sent to Mshell_from_RK:", use_unlog
+	#use_unlog=bool(kwargs.get('load_unlogged',False))
 	### rmax is NOT MODIFIED BY THIS ROUTINE, it is simply a STOPPING CRITERION
 	r = rl      
 	m=0
 	while r<rmax:
-	    r, m= RK1(r,m, density_integral_numeric, step, MESA_file,masscut, load_unlogged=use_unlog) #rho_r(r,MESA_file,masscut,load_unlogged=use_unlog)
-	    #print "r being used in Mshell_from_RK:",r,m
-	    #sys.exit()
-	Mshell=m
-	return Mshell#, r#, rho_r
+	    r, m= RK1(r,m, density_integral_numeric, step, MESA_file,masscut)#, load_unlogged=use_unlog)
+	return Mshell
+
 
 def find_nearest(array,value):
-	# this isn't quite right, use bisect??
     idx = (np.abs(array-value)).argmin()
     return array[idx],idx
 
@@ -78,27 +69,8 @@ def rho_r(r,MESA_file,masscut, *args, **kwargs):
 	############################################################
 	fit_region_R=mn.MESA_r(MESA_file,masscut)
 	fit_region_rho=mn.MESA_rho(MESA_file,masscut)
-
-	# use_unlog=bool(kwargs.get('load_unlogged',False))
-	# #print "value of use_unlog in rho_r:", use_unlog
-
-
-	# fit_region_R = get_MESA_profile_edge(MESA_file, quantity='logR', masscut=masscut,strip=False)
-	# fit_region_R=unlog(fit_region_R)
-
-	# if use_unlog:
-	# 	fit_region_rho = get_MESA_profile_edge(MESA_file, quantity='rho', masscut=masscut ,strip=False)
-	# else:
-	# 	fit_region_rho = get_MESA_profile_edge(MESA_file, quantity='logRho', masscut=masscut ,strip=False)
-	# 	fit_region_rho=unlog(fit_region_rho)
-
-	# ## convert unlogged radii from Rsolar units to cgs
-	# fit_region_R=fit_region_R*R_to_solar
-
-
 	r0,idx=find_nearest(fit_region_R,r)
 	# WARNING! THIS RELIES ON LOADED DATA BEING SORTED! DO NOT TAMPER!
-
 	if r0 <= r:
 		rho0=fit_region_rho[idx]
 		r1=fit_region_R[idx-1]
@@ -144,17 +116,6 @@ def get_logE(r,MESA_file,masscut):
 
 
 
-
-
-
-
-
-
-
-
-
-
-
 def target_Mshell(N,mp):
 	Mshell=N**2.0*12.0*mp
 	return Mshell
@@ -162,20 +123,16 @@ def target_Mshell(N,mp):
 
 def get_placement_radii(rl, ru, RKstep, force_N, mp, MESA_file, masscut, *args, **kwargs):
 	############### FINE
-	use_unlog=bool(kwargs.get('load_unlogged',True))
+	#use_unlog=bool(kwargs.get('load_unlogged',True))
 	SO=bool(kwargs.get('suppress_output',False))
 
-	##print "value of use_unlog:", use_unlog
 
 	Mshell_target=target_Mshell(force_N,mp)
-	#print "target_Mshell", Mshell_target
-	#sys.exit()
-
 	Mshell=0
 	Mshell_temp=0
 	oldru=rl
 	while Mshell <= Mshell_target:
-		Mshell=Mshell_temp+Mshell_from_RK(oldru, ru, RKstep, MESA_file,masscut, load_unlogged=use_unlog)
+		Mshell=Mshell_temp+Mshell_from_RK(oldru, ru, RKstep, MESA_file,masscut)#, load_unlogged=use_unlog)
 		oldru=ru
 		Mshell_temp=Mshell
 		ru=ru+RKstep
@@ -188,7 +145,6 @@ def get_placement_radii(rl, ru, RKstep, force_N, mp, MESA_file, masscut, *args, 
 		"  rl, ru:", ('%1.3e'%rl),('%1.3e'%ru), "  RKstep: ",  ('%1.3e'%RKstep)
 	r_place=(ru+rl)/2.0
 	return r_place,Mshell
-
 
 
 
@@ -361,7 +317,4 @@ def min_index(array):
 def volume(r):
 	r=float(r)
 	vol=(4.0/3.0)*np.pi*r**3.0
-	#vol=vol*(np.pi/2.0)
-	#vol=(4.0/3.0)*r**3.0
-	#vol=4.0*np.pi*r**2.0 ## this is actually the surface area but fuck it
 	return float(vol)

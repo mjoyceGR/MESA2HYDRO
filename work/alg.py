@@ -254,31 +254,27 @@ if not os.path.exists(saveNR):
     saveNR = path_from_package(saveNR)
         
     
+
+##############################################################
+#
+# make sure MESA density profile being loaded isn't nonsense
+#
+#############################################################
+if check_MESA:
+    mn.check_MESA(MESA_file, masscut)
+
+
 ##############################################################
 #
 # Generate shell placement radii
 #
 #############################################################
-rough_Nshells=1000.
-#outer_step=mn.estimate_stepsize(MESA_file,masscut,rough_Nshells)
-#stepsize=mn.estimate_stepsize(MESA_file,masscut,rough_Nshells)
-#print "estimated stepsize: ", stepsize
-
-#stepsize=2.45e6 #87580000 #(cm)
-
-if check_MESA:
-    mn.check_MESA(MESA_file, masscut)
-
-
-
 ### need to include internal energy here
 if make_NR_file:
     ## saveNR must now be in four column (NOT three column) format!!!!
 	outf=open(saveNR,"w")
-	mn.make_NR_file(MESA_file,masscut,N,mp, stepsize,outf)#,check_MESA=check_MESA)
+	mn.make_NR_file(MESA_file,masscut,N,mp, stepsize,outf)
 	outf.close()
-
-
 
 
 ##############################################################
@@ -286,12 +282,6 @@ if make_NR_file:
 # Convert placement radii into HEALPix shells and send to IC
 #
 #############################################################
-fit_region_R=mn.MESA_r(MESA_file, masscut)
-fit_region_rho=mn.MESA_rho(MESA_file, masscut)
-rmax=fit_region_R.max()
-print "rmax: ", rmax
-
-
 if make_IC_file:
 	mn.get_IC(saveNR,outname,mp,format_type=format_type)
 
@@ -305,8 +295,13 @@ if make_IC_file:
 if try_reload:
 	r_temp, rho_temp=mn.reload_IC(outname,format_type)
 
+    nbin=70.
+    r_reloaded,rho_reloaded=mn.binned_r_rho(r_temp, nbin,p_mass)
 
-	plt.plot(r_temp, rho_temp,'r.', markersize=6, label='GADGET data')
+    fit_region_R=mn.MESA_r(MESA_file, masscut)
+    fit_region_rho=mn.MESA_rho(MESA_file, masscut)
+
+	plt.plot(r_reloaded, rho_reloaded,'r.', markersize=6, label='GADGET data')
 	plt.plot(fit_region_R, fit_region_rho, "b.", markersize=4, label='MESA data') #cf.to_log()
 	plt.xlabel("R")
 	plt.ylabel("test density")
@@ -317,9 +312,8 @@ if try_reload:
 		plt.savefig('lin_'+outname+'_bin.png')
 	plt.close()
 
-
 	plt.plot(fit_region_R, cf.to_log(fit_region_rho), "b.", markersize=4, label='MESA data') #cf.to_log()
-	plt.plot(r_temp, cf.to_log(rho_temp),'r.', markersize=6, label='GADGET data')
+	plt.plot(r_reloaded, cf.to_log(rho_reloaded),'r.', markersize=6, label='GADGET data')
 	#plt.ylim(-2.5,0.3)
 	plt.xlabel("R")
 	plt.ylabel("log(test density)")
@@ -329,6 +323,7 @@ if try_reload:
 	else:
 		plt.savefig('log_'+outname+'_bin.png')
 	plt.close()
+
 
 
 print "total execution length: "

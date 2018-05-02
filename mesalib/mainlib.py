@@ -9,8 +9,14 @@ import sys
 import converge_funcs as cf
 import io_lib as rw
 import hdf5lib as hdf5lib
-
 import time
+########################################################
+#
+# this module contains the main subroutines for alg.py 
+# and subordinate minor subroutines
+#
+#########################################################
+
 
 print "\n\nusing git version\n\n"
 
@@ -71,7 +77,6 @@ def make_NR_file(MESA_file,masscut,N,mp, RKstep,NR_file, *args, **kwargs):
     start_time=time.time()
     fit_region_R=MESA_r(MESA_file, masscut)
     fit_region_rho=MESA_rho(MESA_file, masscut)
-    #fit_region_M=MESA_m(MESA_file, masscut)
 
     fit_region_E=MESA_internalE(MESA_file,masscut)
 
@@ -108,16 +113,12 @@ def make_NR_file(MESA_file,masscut,N,mp, RKstep,NR_file, *args, **kwargs):
 ###########################################################
 def get_IC(NR_file_name,output_filename,mp, *args, **kwargs): #temp remove rmax
     filetype=str(kwargs.get('format_type','binary'))
-    
-    print 'WARNING!! sending physical radius!!!!\nmp IS multipled by Msolar'
-
+    #print 'WARNING!! sending physical radius!!!!\nmp IS multipled by Msolar'
     #print "\n\nWARNING! mp not multiplied by M_solar!! \n\n"
     mp=mp*M_to_solar 
 
-
     hdf5file=str(output_filename)+ '.hdf5'
     binaryfile=str(output_filename)+ '.bin'
-
 
     N,rmid,E=np.loadtxt(NR_file_name, usecols=(0,1,3), unpack=True) 
 
@@ -166,6 +167,7 @@ def get_IC(NR_file_name,output_filename,mp, *args, **kwargs): #temp remove rmax
     return
 
 
+
 def estimate_stepsize(MESA_file, masscut, Nshells):
     fit_region_R=MESA_r(MESA_file, masscut)
     fit_region_rho=MESA_rho(MESA_file, masscut)
@@ -176,8 +178,8 @@ def estimate_stepsize(MESA_file, masscut, Nshells):
 
 
 
+
 def reload_IC( IC_file, format_type): #rmax #NR_file
-    #
     filetype=str(format_type)
 
     print "\n\n\n<----testing reload---->"
@@ -202,24 +204,25 @@ def reload_IC( IC_file, format_type): #rmax #NR_file
         z=positions[:,2]
 
     r_recovered= np.sqrt(x**2.0 + y**2.0 + z**2.0)#*float(rmax)
-    # p_mass=masses[5]
-
-    # r1=r_recovered.min() 
-    # r_temp=[]
-    # rho_temp=[]
-    # for i in range(len(r_set)-1):
-    #     r1=r_set[i]
-    #     r2=r_set[i+1]
-    #     region=np.where( (r1<=r_recovered) &(r2>r_recovered))
-
-    #     if len(r_recovered[region])==0:
-    #         break
-    #     #print "length of r_recovered*mp", len(r_recovered[region])*p_mass
-    #     #print "volume of shell r2-r1: ", cf.volume(r2)-cf.volume(r1)
-    #     #print "r_rec[ r1 to r2 ]*mp / vol(r2-r1): ", len(r_recovered[region])*p_mass/(cf.volume(r2)-cf.volume(r1))
-    #     r_temp.append(r2)
-    #     rho_temp.append( len(r_recovered[region])*p_mass/(cf.volume(r2)-cf.volume(r1))  )
-
-
     return r_recovered, masses
-    #cf.to_array(r_temp), cf.to_array(rho_temp)
+
+
+
+
+def binned_r_rho(r_array,nbin,mp):
+    rmin=r_array.min()
+    rmax=r_array.max()
+    binsize=(rmax-rmin)/nbin
+    r_set=np.arange(rmin,rmax,binsize)
+    r_b=[]
+    rho_b=[]
+    for i in range(len(r_set)-1):
+        r1=r_set[i]
+        r2=r_set[i+1]
+        region=np.where( (r1<=r_array) &(r2>r_array))  #size of this should be ~12N^2
+        if len(r_array[region])==0:
+            break
+        r_b.append(r2)
+        rho_b.append( len(r_array[region])*mp/(cf.volume(r2)-cf.volume(r1))  )
+
+    return cf.to_array(r_b), cf.to_array(rho_b)

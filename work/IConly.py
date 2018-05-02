@@ -65,27 +65,9 @@ print "masses_b/masses_h", (masses_b/masses_h)
 p_mass=masses_h[5]
 
 
-def binned_r_rho(r_array,nbin,mp):
-    rmin=r_array.min()
-    rmax=r_array.max()
-    binsize=(rmax-rmin)/nbin
-    r_set=np.arange(rmin,rmax,binsize)
-    r_b=[]
-    rho_b=[]
-    for i in range(len(r_set)-1):
-        r1=r_set[i]
-        r2=r_set[i+1]
-        region=np.where( (r1<=r_array) &(r2>r_array))  #size of this should be ~12N^2
-        if len(r_temp_b[region])==0:
-            break
-        r_b.append(r2)
-        rho_b.append( len(r_temp_b[region])*p_mass/(cf.volume(r2)-cf.volume(r1))  )
-
-    return cf.to_array(r_b), cf.to_array(rho_b)
-
 nbin=70.
-r_b,rho_b=binned_r_rho(r_temp_b, nbin,p_mass)
-r_h,rho_h=binned_r_rho(r_temp_h, nbin,p_mass)
+r_b,rho_b=mn.binned_r_rho(r_temp_b, nbin,p_mass)
+r_h,rho_h=mn.binned_r_rho(r_temp_h, nbin,p_mass)
 
 print "number of points num_recovered", len(r_b), len(rho_b)
 

@@ -16,12 +16,6 @@ import random as rand
 #
 ################################################################
 
-#except:
-#    print 'Missing module!\nThe following are required: '
-#    print 'healpy\n'
-#   exit(0)
-
-
 def plotter(xmaj, xmin, ymaj, ymin,**kwargs):
     xf = kwargs.get('xf', '%1.1f')
     yf = kwargs.get('yf', '%1.1f')
@@ -46,37 +40,6 @@ def plotter(xmaj, xmin, ymaj, ymin,**kwargs):
 
     return fig,ax
 
-###
-# ideally need dictionary or some hash table containing map of i for p[i] to physical quantity name 
-### even better than this: read in all the column titles from the MESA output in one shot, shove them in a list,
-# iterate over that list using enumerate or whatever, then BUILD a dictionary out of names AS LOADED FROM THE THING and assign an index to that 
-# simply by iteration
-
-
-# def submit_MESA_job(mesa_work_path,qsub_script):
-#     mesa_work_path=str(mesa_work_path)
-#     os.chdir(mesa_work_path)
-#     #	subprocess.call('cd '+mesa_work_path, shell=True)
-#     print "entered"
-#     subprocess.call('pwd', shell=True)
-#     compile_MESA()
-#     run_MESA()
-#     return 
-
-# def compile_MESA():
-# 	try:
-# 		subprocess.call('./mk', shell=True)
-# 	except:
-# 		print 'MESA star compilation failed'
-# 	return
-
-# def execute_MESA():
-# 	subprocess.call('cd '+mesa_work_path, shell=True)
-# 	try:
-# 		subprocess.call('./rn', shell=True)
-# 	except:
-# 		print 'MESA star execution failed'	
-# 	return
 
 
 def update_MESA_inlist_value(MESA_inlist, field, value):
@@ -121,10 +84,6 @@ def grab_fields(MESA_inlist):
 #########################################################################
 def strip_MESA_header(in_filename, out_filename, *args, **kwargs):
 
-    ### add hook to prevent double removes
-
-	#[0]-- returns the file object
-	#[1]-- returns the string/name of the reformatted text file
 	n = int(kwargs.get('n', 5))
 	num_delete=int(n) #the number of line to be read and deleted
 	outfn=out_filename
@@ -132,7 +91,6 @@ def strip_MESA_header(in_filename, out_filename, *args, **kwargs):
 	with open(in_filename) as f:
 	    mylist = f.read().splitlines()
 	newlist = mylist[:]
-	#os.remove("bigFile.txt")
 
 	thefile = open(outfn, 'w')
 	del mylist[:num_delete]
@@ -140,39 +98,25 @@ def strip_MESA_header(in_filename, out_filename, *args, **kwargs):
 		thefile.write("%s\n" % item)
 	return  thefile, outfn
 
+
+
 def get_MESA_output_fields(filename):
     inf=open(filename,'r')
     for line in inf:
-        #print "for line in inf"
-        # not robust but whatever for now
-        #try:
-            #print "in try catch"
-        #print line
         if "zone" in line and "num_zones" not in line:
-            #try:
-            #print line
             p=line.split()
-            #except:
-            #    strip_MESA_header(filename,filename)
-            #    p=line.split()
-        #except:
         else:
-            #print "history"
             if 'luminosity' in line:                    
-                #try:
                 p=line.split()
-                #except:
-                #    strip_MESA_header(filename,filename)
-                #    p=line.split()
     phys_dict={}
     try:		 	
         for i,v in enumerate(p):
-            phys_dict[str(v)]=i#-1 	#wow fucking damn if this was the problem 
-            #yes, it was.
+            phys_dict[str(v)]=i# careful
     except UnboundLocalError:
         print "problem with "+str(filename)+" format"
         sys.exit(0)  
     return phys_dict
+
 
 
 def get_columns(filename,keyname_list):
@@ -187,21 +131,22 @@ def get_columns(filename,keyname_list):
     return column_dict
 
 
+
 def get_key(filename,keyname):
     inf=open(filename,'r')
     phys_dict=get_MESA_output_fields(filename)
     indx=phys_dict.get(str(keyname))
     param=[]
     for line in inf:
-      #avoid 'zone' instead of '#'
       if line and 'zone' not in line:
-               #print line
           try: 
               p=line.split()
               param.append(p[indx])
           except:
               pass
     return param, type(param)
+
+
 
 def get_quantity(readfile,keyname):
     keyname=str(keyname)
@@ -212,14 +157,14 @@ def get_quantity(readfile,keyname):
     return np.array(quantity).astype(float)
 
 
+
+
 def show_allowed_MESA_keywords(readfile):
     fstr=""
     for i in get_MESA_output_fields(readfile).keys():
         fstr=fstr+str(i) +'\n'
     print fstr
     return fstr#get_MESA_output_fields(readfile).keys()
-
-
 
 
 def transfer_inlist(template_inlist, target_inlist):
@@ -231,7 +176,6 @@ def transfer_inlist(template_inlist, target_inlist):
     outf.close()
 
     return
-
 
 
 def generate_basic_inlist(mass, age, metallicity, m2g_path, mesa_dir, inlist_path,output_model_name):

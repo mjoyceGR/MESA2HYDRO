@@ -244,15 +244,14 @@ def make_IC_binary(fname, mp, x, y, z, E, **kwargs):
     P_desired = 1.0 
     gamma_eos = 5./3.
   #  U=P_desired/((gamma_eos-1.)*rho_desired) # internal energy 
+  #U + 0.*x#internal_energy ### <--------- load this from MESA directly
   
     ## trying to load this from MESA!
-    my_body.u[:]=E 
+    my_body.u[:]=E   ##this is in ergs maybe??? unclear??
 
-    #U + 0.*x#internal_energy ### <--------- load this from MESA directly
 
     pygadgetic.dump_ic(my_header,my_body,fname)
     return fname
-
 
 
 
