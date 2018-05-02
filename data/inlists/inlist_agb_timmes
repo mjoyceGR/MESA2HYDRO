@@ -1,0 +1,341 @@
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+! inlist_agb_timmes
+!
+! This inlist runs an AGB star with initial mass 2.0 Msolar and Z=0.01, terminating....
+! 
+! You must change the directory strings to point to
+!     - your MESA2GADGET data directory
+!     - your MESA directory
+!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+! model for KIC-XXXXX
+
+&star_job
+
+      mesa_dir = '/home/meridith/MESA/mesa-r10398'
+      history_columns_file='/home/meridith/UCT_SAAO/detached_shells/MESA2GADGET/data/history_columns_testsuite.list'
+      profile_columns_file='/home/meridith/UCT_SAAO/detached_shells/MESA2GADGET/data/profile_columns_testsuite.list'
+
+      write_profile_when_terminate = .true.
+      filename_for_profile_when_terminate = 'profile_agb_timmes.data'
+
+! create pre-main sequence or interpolate a pre-made zams model
+      create_pre_main_sequence_model = .false. 
+      pre_ms_relax_num_steps = 50
+
+! load a saved model
+      load_saved_model = .false.
+      saved_model_name = 'undefined'  !  '2p55M_zams_to_hot_wd_with_diffusion.mod'
+
+! use density and temperature
+      change_lnPgas_flag = .false.
+      new_lnPgas_flag = .false.
+
+! 49 isotope network
+      change_net              = .true.   
+      new_net_name            = 'mesa_49.net'
+      show_net_reactions_info = .false.
+      list_net_reactions      = .false.
+      show_net_species_info   = .false.
+
+! opacity
+      kappa_file_prefix = 'a09'    ! 'gs98' 'a09'  'OP_a09' 'OP_gs98'
+      kappa_CO_prefix   = 'a09_co' ! 'gs98_co' 'a09_co'
+
+
+! turn on hydro
+      change_initial_v_flag = .true.
+      change_v_flag = .false.
+      new_v_flag = .true.
+
+
+! set initial ages and model numbers
+      set_initial_age          = .true.
+      initial_age              = 0 ! in years
+      set_initial_model_number = .true.
+      initial_model_number     = 0
+
+
+! turn on rotation near zams     
+      change_rotation_flag = .false.      ! rotation off until near zams
+      new_rotation_flag    = .true.
+
+      near_zams_relax_omega_div_omega_crit = .true.  ! true to turn on rotation at zams
+      num_steps_to_relax_rotation = 50              ! use this many steps to change value    
+      relax_omega_max_yrs_dt = 1.0d0                ! keep timesteps small to prevent significant evolution
+      new_omega_div_omega_crit = 1.9d-4
+
+
+
+! starlib rates and cache directories
+      rate_tables_dir = './rate_tables'
+      rates_cache_dir = './rates_cache'
+
+! pgstar
+      pgstar_flag = .false.
+
+/ ! end of star_job namelist
+
+
+&controls
+
+! mass and metallicity
+       initial_mass = 2.55d0  ! in Msun units
+       initial_z = 0.020     ! 0.020   0.0020  ! Solar Metallicity 
+
+
+! stopping condition
+! first stop at the envelope limit, then the luminosity limit for cooling
+!       envelope_mass_limit = 1d-2
+!       log_L_lower_limit = -0.863d0    !  L/lsun = 0.137
+!       max_model_number = 400000
+
+stop_at_TP = .true
+
+
+! output frequencies
+       photo_interval         = 1000
+       profile_interval       = 1000
+       max_num_profile_models = 400
+       history_interval       = 1
+       terminal_interval      = 10
+       write_header_frequency = 100
+!       extra_terminal_output_file = 'log.txt'
+
+
+! opacities
+      use_Type2_opacities = .true.
+      Zbase = 0.02
+
+
+! atmosphere
+!       which_atm_option = 'grey_and_kap'
+
+! winds
+      cool_wind_full_on_T    = 9.99d9
+      hot_wind_full_on_T     = 1d10
+      cool_wind_RGB_scheme   = 'Reimers'
+      cool_wind_AGB_scheme   = 'Blocker'
+      RGB_to_AGB_wind_switch = 1d-4
+      Reimers_scaling_factor = 0.1   ! 0.1   
+      Blocker_scaling_factor = 0.5   ! 0.5  crank up to 1.0 if the mass loss stops and/or timestep crashes.   
+
+
+
+! convergence
+      varcontrol_target           = 1d-4   !   1d-4   use 1d-4 to envelope mass, 1d-3 for cooling
+      min_timestep_factor         = 0.8d0
+      max_timestep_factor         = 1.05d0
+      timestep_factor_for_retries = 0.75
+      timestep_factor_for_backups = 0.75
+
+
+      newton_iterations_limit      = 25
+      newton_iterations_hard_limit = -1
+
+      max_resid_jump_limit = 1d99 ! 1d12
+      max_corr_jump_limit  = 1d99 ! 1d12
+
+
+
+! mass resolution
+       max_dq = 0.0005     ! 0.0005   use 0.0005 to envelope mass, 0.005 for cooling
+       mesh_delta_coeff = 1.0
+       max_allowed_nz = 400000
+
+
+! resolve the outer layers
+!     log_tau_function_weight = 100
+!     log_kap_function_weight = 100
+
+
+! resolve the thin burning shell
+      mesh_logX_species(1)         = 'h1' 
+      mesh_logX_min_for_extra(1)   = -1 
+      mesh_dlogX_dlogP_extra(1)    = 0.5
+      mesh_dlogX_dlogP_full_on(1)  = 0
+      mesh_dlogX_dlogP_full_off(1) = -1
+
+      mesh_logX_species(2)         = 'he4' 
+      mesh_logX_min_for_extra(2)   = -1 
+      mesh_dlogX_dlogP_extra(2)    = 0.5
+      mesh_dlogX_dlogP_full_on(2)  = 0
+      mesh_dlogX_dlogP_full_off(2) = -1
+
+      mesh_dlog_pp_dlogP_extra = 0.5
+
+      xa_function_species(1) = 'he4'
+      xa_mesh_delta_coeff(1)   = 0.5
+
+! time step resolution on fuel depletion
+
+      delta_lg_XH_cntr_limit = 0.01d0
+      delta_lg_XH_cntr_max   = 0.0d0
+      delta_lg_XH_cntr_min   = -6.0d0
+      delta_lg_XH_cntr_hard_limit = 0.02d0
+
+      delta_lg_XHe_cntr_limit = 0.01d0
+      delta_lg_XHe_cntr_max   = 0.0d0
+      delta_lg_XHe_cntr_min   = -6.0d0
+      delta_lg_XHe_cntr_hard_limit = 0.02d0
+
+      delta_lg_XC_cntr_limit = 0.01d0
+      delta_lg_XC_cntr_max   = 0.0d0
+      delta_lg_XC_cntr_min   = -6.0d0
+      delta_lg_XC_cntr_hard_limit = 0.02d0
+
+      delta_lg_XNe_cntr_limit = 0.01d0
+      delta_lg_XNe_cntr_max   = 0.0d0
+      delta_lg_XNe_cntr_min   = -6.0d0
+      delta_lg_XNe_cntr_hard_limit = 0.02d0
+
+      delta_lg_XO_cntr_limit = 0.01d0
+      delta_lg_XO_cntr_max   = 0.0d0
+      delta_lg_XO_cntr_min   = -6.0d0
+      delta_lg_XO_cntr_hard_limit = 0.02d0
+
+      delta_lg_XSi_cntr_limit = 0.01d0
+      delta_lg_XSi_cntr_max   = 0.0d0
+      delta_lg_XSi_cntr_min   = -6.0d0
+      delta_lg_XSi_cntr_hard_limit = 0.02d0
+
+
+! this is mainly to resolve properly when the star goes off the main sequence
+!      delta_HR_limit = 0.0025d0
+      delta_lgL_He_limit = 0.1
+
+
+
+! mixing
+
+! convection 
+   mixing_length_alpha = 1.5d0
+   MLT_option = 'Henyey'
+
+    use_ledoux_criterion = .true.
+
+    num_cells_for_smooth_gradL_composition_term = 10
+    threshold_for_smooth_gradL_composition_term = 0.02
+
+    num_cells_for_smooth_brunt_B = 10
+    threshold_for_smooth_brunt_B = 0.1
+
+
+
+    predictive_mix(1)            = .true.
+    predictive_zone_type(1)      = 'any'
+    predictive_zone_loc(1)       = 'core'
+    predictive_bdy_loc(1)        = 'any'
+    predictive_superad_thresh(1) = 0.005  ! 0.005
+
+    predictive_mix(2)            = .true.
+    predictive_zone_type(2)      = 'any'
+    predictive_zone_loc(2)       = 'surf'
+    predictive_bdy_loc(2)        = 'any'
+    predictive_superad_thresh(2) = 0.005  ! 0.005
+
+
+
+! overshoot
+            ! For nonburning regions.
+
+         overshoot_f_above_nonburn_core   = 0.011 ! 0.022  
+         overshoot_f0_above_nonburn_core  = 0.006
+         overshoot_f_above_nonburn_shell  = 0.011 ! 0.022  
+         overshoot_f0_above_nonburn_shell = 0.006
+         overshoot_f_below_nonburn_shell  = 0.011 ! 0.022  
+         overshoot_f0_below_nonburn_shell = 0.006
+         overshoot_below_noburn_shell_factor = 1.0d0
+
+            ! For hydrogen burning regions.
+
+         overshoot_f_above_burn_h_core   = 0.011 ! 0.022  
+         overshoot_f0_above_burn_h_core  = 0.006
+         overshoot_f_above_burn_h_shell  = 0.011 ! 0.022  
+         overshoot_f0_above_burn_h_shell = 0.006
+         overshoot_f_below_burn_h_shell  = 0.011 ! 0.022  
+         overshoot_f0_below_burn_h_shell = 0.006
+
+            ! For helium burning regions.
+
+         overshoot_f_above_burn_he_core   = 0.011 ! 0.022 
+         overshoot_f0_above_burn_he_core  = 0.006
+         overshoot_f_above_burn_he_shell  = 0.011 ! 0.022  
+         overshoot_f0_above_burn_he_shell = 0.006
+         overshoot_f_below_burn_he_shell  = 0.011 ! 0.022  
+         overshoot_f0_below_burn_he_shell = 0.006
+
+
+            ! For metals burning regions.
+
+         overshoot_f_above_burn_z_core   = 0.011 ! 0.022  
+         overshoot_f0_above_burn_z_core  = 0.006
+         overshoot_f_above_burn_z_shell  = 0.011 ! 0.022  
+         overshoot_f0_above_burn_z_shell = 0.006
+         overshoot_f_below_burn_z_shell  = 0.011 ! 0.022  
+         overshoot_f0_below_burn_z_shell = 0.006
+
+         D_mix_ov_limit = 1d2
+
+! semiconvection
+      alpha_semiconvection = 1.0d-2  !   1d-2   1.0d-4 1.0
+      semiconvection_option = 'Langer_85 mixing; gradT = gradr'
+
+
+! thermohaline
+      thermohaline_coeff = 1.0d0    !   1.0d0  0.1 100
+      thermohaline_option = 'Kippenhahn'  !  'Kippenhahn'  'Traxler_Garaud_Stellmach_11'    'Brown_Garaud_Stellmach_13'
+
+
+! rotation induced 
+      am_nu_visc_factor = 1.0  !   1  
+      am_D_mix_factor = 0.03      ! 0.0333333333333
+      D_DSI_factor = 1.0d0
+      D_SH_factor  = 1.0d0
+      D_SSI_factor = 1.0d0
+      D_ES_factor  = 1.0d0
+      D_GSF_factor = 1.0d0
+      D_ST_factor  = 0.0d0
+
+
+! element diffusion
+! causes a lot of retries and hydro fails especially during core & shell he burns
+! as the gradients are sharp. if diffusion is turned on, uncomment the timestep
+! limiters below. more timesteps of course, but overall more efficient and 
+! presumably trustworthy
+
+! time resolution
+! limit the abundance changes in a timestep
+!     dX_nuc_drop_limit = 5.0d-2        ! 1.0d-4 default 5.0d-2
+!     dX_nuc_drop_limit_at_high_T = -1  ! 5.0d-3 default -1 
+!     dX_nuc_drop_min_X_limit = 1.0d-3  ! 1.0d-4 default 1.0d-4
+!     dX_nuc_drop_max_A_limit = 52   
+
+      do_element_diffusion = .false.
+      diffusion_use_full_net = .false.
+      diffusion_num_classes = 11
+      diffusion_class_representative(1) = 'h1'
+      diffusion_class_representative(2) = 'he3'
+      diffusion_class_representative(3) = 'he4'
+      diffusion_class_representative(4) = 'c12'
+      diffusion_class_representative(5) = 'n14'
+      diffusion_class_representative(6) = 'o16'
+      diffusion_class_representative(7) = 'ne20'
+      diffusion_class_representative(8) = 'ne22'
+      diffusion_class_representative(9) = 'mg24'
+      diffusion_class_representative(10) = 'si28'
+      diffusion_class_representative(11) = 'fe56'
+      diffusion_class_A_max(1)  = 2
+      diffusion_class_A_max(2)  = 3
+      diffusion_class_A_max(3)  = 4
+      diffusion_class_A_max(4)  = 12
+      diffusion_class_A_max(5)  = 14
+      diffusion_class_A_max(6)  = 16
+      diffusion_class_A_max(7)  = 20
+      diffusion_class_A_max(8)  = 22
+      diffusion_class_A_max(9)  = 24
+      diffusion_class_A_max(10) = 28
+      diffusion_class_A_max(11) = 10000
+
+
+/ ! end of controls namelist

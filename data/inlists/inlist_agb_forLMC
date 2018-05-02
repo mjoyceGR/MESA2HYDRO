@@ -1,0 +1,153 @@
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+! inlist_agb
+!
+! This inlist runs an AGB star with initial mass 1.8 Msolar and solar metallicity, terminating during a thermal pulse
+! It DOES NOT require a pre-generated MESA model
+! You must change the directory strings to point to
+!     - your MESA2GADGET data directory
+!     - your MESA directory
+!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+&star_job
+      mesa_dir = '/home/mjoyce/MESA/mesa-r10398'
+      history_columns_file='/home/mjoyce/MESA2GADGET/data/history_columns_testsuite.list'
+      profile_columns_file='/home/mjoyce/MESA2GADGET/data/profile_columns_testsuite.list'
+
+      filename_for_profile_when_terminate = 'profile_AGB.data'
+
+      create_pre_main_sequence_model = .true.
+
+      !kappa_lowT_prefix = 'lowT_ma09_gn93' !<---- Mjoyce: this kappa data does not exist in this version of MESA
+      !soooooooo...just turn it off? OK!!
+
+      kappa_blend_logT_upper_bdy = 4.0d0 ! <= 0 means use default
+         ! actual upper boundary will be min of this and max logT for lowT tables
+      kappa_blend_logT_lower_bdy = 3.8d0 ! <= 0 means use default
+         ! actual lower boundary will be max of this and min logT for highT tables
+      ! kappa_type2_logT_lower_bdy = 3.8d0
+
+      !change_net = .true. ! switch nuclear reaction network
+      !new_net_name = 'cno_extras_o18_to_mg26.net'
+
+     ! eos_file_prefix = 'mesa'
+     ! kappa_file_prefix = 'gn93'
+      
+      pgstar_flag = .false.
+
+/ !end of star_job
+
+&controls
+    
+    star_history_name = 'history_AGB.data'
+
+    report_why_dt_limits = .true.
+    tol_residual_norm1 = 1d-5
+    tol_max_residual1 = 1d-4
+
+      initial_mass = 1.8 ! in Msun units
+      initial_z = 0.01 !1.0d-7 
+      Zbase = 0.01 !1.0d-7 
+      initial_Y = 0.259
+   
+
+   ! output to files and terminal
+   !   photostep = 100
+      profile_interval = 100
+      history_interval = 10
+      terminal_interval = 10
+      write_header_frequency = 10
+
+  ! mass gain or loss
+  !    RGB_wind_scheme = 'Schroder' ! Mjoyce: also these don't exist, apparently
+  !    AGB_wind_scheme = 'Schroder'
+  !    RGB_to_AGB_wind_switch = 1d-4
+  !    Reimers_wind_eta = 1.0d0
+
+  ! opacity controls !Mjoyce: had to turn these all off...
+    !  use_Type2_opacities = .true. ! false.
+    !  kap_Type2_full_off_X = 0.81d0 ! Type2 full off for X >= this (< 0 means use kap default)
+    !  kap_Type2_full_on_X = 0.80d0 ! Type2 full on for X <= this (< 0 means use kap default)
+
+      mesh_dlog_pp_dlogP_extra = 0.25
+      mesh_dlog_cno_dlogP_extra = 0.25
+      
+      mesh_dlog_3alf_dlogP_extra = 0.225
+      mesh_dlog_burn_c_dlogP_extra = 0.225
+      mesh_dlog_burn_n_dlogP_extra = 0.225
+      mesh_dlog_burn_o_dlogP_extra = 0.225
+      
+      
+      mesh_logX_species(1) = 'h1'
+      mesh_logX_min_for_extra(1) = -6
+      mesh_dlogX_dlogP_extra(1) = 0.25
+      
+      mesh_logX_species(1) = 'he4'
+      mesh_logX_min_for_extra(1) = -6
+      mesh_dlogX_dlogP_extra(1) = 0.25
+
+      xtra_coef_os_above_nonburn = 0.5
+      xtra_coef_os_below_nonburn = 0.25
+   
+      xtra_coef_os_above_burn_h = 0.25
+      xtra_coef_os_below_burn_h = 0.15
+   
+      xtra_coef_os_above_burn_he = 0.25
+      xtra_coef_os_below_burn_he = 0.25
+   
+      xtra_coef_os_above_burn_z = 0.25
+      xtra_coef_os_below_burn_z = 0.25
+
+      xtra_dist_os_above_nonburn = 0.1
+      xtra_dist_os_below_nonburn = 0.2
+   
+      xtra_dist_os_above_burn_h = 0.2
+      xtra_dist_os_below_burn_h = 0.2
+   
+      xtra_dist_os_above_burn_he = 0.2
+      xtra_dist_os_below_burn_he = 0.2
+   
+      xtra_dist_os_above_burn_z = 0.2
+      xtra_dist_os_below_burn_z = 0.2
+
+
+      overshoot_f_above_nonburn_core = 0.014
+      overshoot_f_above_nonburn_shell = 0.014
+      overshoot_f_below_nonburn_shell = 0.014
+      overshoot_f_above_burn_h_core = 0.014
+      overshoot_f_above_burn_h_shell = 0.014
+      overshoot_f_below_burn_h_shell = 0.014
+      overshoot_f_above_burn_he_core = 0.014
+      overshoot_f_above_burn_he_shell = 0.014
+      overshoot_f_below_burn_he_shell = 0.014
+      overshoot_f_above_burn_z_core = 0.014
+      overshoot_f_above_burn_z_shell = 0.014
+      overshoot_f_below_burn_z_shell = 0.014
+
+      overshoot_f0_above_nonburn_core = 0.004
+      overshoot_f0_above_nonburn_shell = 0.004
+      overshoot_f0_below_nonburn_shell = 0.004
+      overshoot_f0_above_burn_h_core = 0.004
+      overshoot_f0_above_burn_h_shell = 0.004
+      overshoot_f0_below_burn_h_shell = 0.004
+      overshoot_f0_above_burn_he_core = 0.004
+      overshoot_f0_above_burn_he_shell = 0.004
+      overshoot_f0_below_burn_he_shell = 0.004
+      overshoot_f0_above_burn_z_core = 0.004
+      overshoot_f0_above_burn_z_shell = 0.004
+      overshoot_f0_below_burn_z_shell = 0.004
+      
+      overshoot_below_noburn_shell_factor = 10
+      
+      use_Type2_opacities = .true.
+      Zbase = 0.01d0
+      
+      T_mix_limit = 1d4
+
+      photo_interval = 50
+      profile_interval = 50
+      history_interval = 1
+      terminal_interval = 10
+      write_header_frequency = 10
+
+/ ! end of controls namelist

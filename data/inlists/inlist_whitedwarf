@@ -1,0 +1,82 @@
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+! inlist_whitedwarf
+!
+! This inlist runs a white dwarf without a model
+! You must change the directory strings to point to
+!     - your MESA2GADGET data directory
+!     - your MESA directory
+!     - the location of wd.mod, set by default to $MESA2GADGET_ROOT/data/whitedwarf/wd.mod
+!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+&star_job
+      show_log_description_at_start = .false.
+
+      mesa_dir = '/home/meridith/MESA/mesa-r10398'
+      history_columns_file='/home/meridith/UCT_SAAO/detached_shells/MESA2GADGET/data/history_columns_testsuite.list'
+      profile_columns_file='/home/meridith/UCT_SAAO/detached_shells/MESA2GADGET/data/profile_columns_testsuite.list'
+      load_saved_model = .false.
+
+      write_profile_when_terminate = .true.
+      filename_for_profile_when_terminate = 'profile_whitedwarf.data'
+
+      save_model_when_terminate = .false.
+
+
+      create_pre_main_sequence_model = .false.
+      show_log_description_at_start = .false.
+      pgstar_flag = .false.
+      save_pgstar_files_when_terminate = .false.
+
+      save_model_when_terminate = .true.
+      save_model_filename = 'final.mod'
+
+/ ! end of star_job namelist
+
+&controls
+      star_history_name = 'history_whitedwarf.data'
+
+      use_gold_tolerances = .true.
+
+      ! check for retries and backups as part of test_suite
+      ! you can/should delete this for use outside of test_suite
+      max_number_backups = 2
+      max_number_retries = 30
+
+      max_model_number = 1000
+
+      initial_mass =  0.45
+      initial_z = 0.02d0
+      
+      use_Type2_opacities = .true.
+      Zbase = 0.02d0
+      
+      varcontrol_target = 1d-3
+      
+      log_L_upper_limit = 4.3
+
+      logQ_limit = 1d6
+      gamma_center_limit = 1d6
+
+      photo_interval = 50
+      profile_interval = 50
+      history_interval = 10
+      terminal_interval = 10
+      write_header_frequency = 10
+      
+      which_atm_option = 'grey_and_kap'
+
+      T_mix_limit = 1d4
+
+      accrete_same_as_surface = .false. 
+      accretion_h1 = 0.749D+00
+      accretion_h2 = 0
+      accretion_he3 = 0.292910D-04
+      accretion_he4 = 0.237D+00
+      accretion_zfracs = 4 ! Lodders 03
+   	
+      mass_change = 5d-9 ! rate of accretion (Msun/year)
+
+      delta_lgL_H_limit = 0.04 ! limit for magnitude of change in lgL_H
+
+/ ! end of controls namelist
