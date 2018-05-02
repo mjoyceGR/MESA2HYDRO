@@ -252,7 +252,13 @@ else:
 # prepend the package path
 if not os.path.exists(saveNR):
     saveNR = path_from_package(saveNR)
-        
+  
+############################################################
+###################################################
+M_to_solar=1.988*10.0**33.0 ## g/Msolar
+R_to_solar=6.957*10.0**10.0 ## cm/Rsolar
+###################################################
+mp=mp*M_to_solar
     
 
 ##############################################################
@@ -271,10 +277,9 @@ if check_MESA:
 #############################################################
 ### need to include internal energy here
 if make_NR_file:
-    ## saveNR must now be in four column (NOT three column) format!!!!
-	outf=open(saveNR,"w")
-	mn.make_NR_file(MESA_file,masscut,N,mp, stepsize,outf)
-	outf.close()
+    outf=open(saveNR,"w")
+    mn.make_NR_file(MESA_file,masscut,N,mp, stepsize,outf)
+    outf.close()
 
 
 ##############################################################
@@ -293,36 +298,36 @@ if make_IC_file:
 #
 ###############################################
 if try_reload:
-	r_temp, rho_temp=mn.reload_IC(outname,format_type)
+    r_temp, rho_temp=mn.reload_IC(outname,format_type)
 
     nbin=70.
-    r_reloaded,rho_reloaded=mn.binned_r_rho(r_temp, nbin,p_mass)
+    r_reloaded,rho_reloaded=mn.binned_r_rho(r_temp, nbin, mp)
 
     fit_region_R=mn.MESA_r(MESA_file, masscut)
     fit_region_rho=mn.MESA_rho(MESA_file, masscut)
 
-	plt.plot(r_reloaded, rho_reloaded,'r.', markersize=6, label='GADGET data')
-	plt.plot(fit_region_R, fit_region_rho, "b.", markersize=4, label='MESA data') #cf.to_log()
-	plt.xlabel("R")
-	plt.ylabel("test density")
-	plt.legend(loc=1)
-	if format_type=='hdf5':
-		plt.savefig('lin_'+outname+'_hdf5.png')
-	else:
-		plt.savefig('lin_'+outname+'_bin.png')
-	plt.close()
+    plt.plot(r_reloaded, rho_reloaded,'r.', markersize=6, label='GADGET data')
+    plt.plot(fit_region_R, fit_region_rho, "b.", markersize=4, label='MESA data') #cf.to_log()
+    plt.xlabel("R")
+    plt.ylabel("test density")
+    plt.legend(loc=1)
+    if format_type=='hdf5':
+    	plt.savefig('lin_'+outname+'_hdf5.png')
+    else:
+    	plt.savefig('lin_'+outname+'_bin.png')
+    plt.close()
 
-	plt.plot(fit_region_R, cf.to_log(fit_region_rho), "b.", markersize=4, label='MESA data') #cf.to_log()
-	plt.plot(r_reloaded, cf.to_log(rho_reloaded),'r.', markersize=6, label='GADGET data')
-	#plt.ylim(-2.5,0.3)
-	plt.xlabel("R")
-	plt.ylabel("log(test density)")
-	plt.legend(loc=1)
-	if format_type=='hdf5':
-		plt.savefig('log_'+outname+'_hdf5.png')
-	else:
-		plt.savefig('log_'+outname+'_bin.png')
-	plt.close()
+    plt.plot(fit_region_R, cf.to_log(fit_region_rho), "b.", markersize=4, label='MESA data') #cf.to_log()
+    plt.plot(r_reloaded, cf.to_log(rho_reloaded),'r.', markersize=6, label='GADGET data')
+    #plt.ylim(-2.5,0.3)
+    plt.xlabel("R")
+    plt.ylabel("log(test density)")
+    plt.legend(loc=1)
+    if format_type=='hdf5':
+    	plt.savefig('log_'+outname+'_hdf5.png')
+    else:
+    	plt.savefig('log_'+outname+'_bin.png')
+        plt.close()
 
 
 

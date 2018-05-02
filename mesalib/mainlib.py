@@ -80,7 +80,7 @@ def make_NR_file(MESA_file,masscut,N,mp, RKstep,NR_file, *args, **kwargs):
 
     fit_region_E=MESA_internalE(MESA_file,masscut)
 
-    mp=mp*M_to_solar
+    #mp=mp*M_to_solar
     rl=fit_region_R.min()
     rmax=fit_region_R.max()
 
@@ -115,7 +115,7 @@ def get_IC(NR_file_name,output_filename,mp, *args, **kwargs): #temp remove rmax
     filetype=str(kwargs.get('format_type','binary'))
     #print 'WARNING!! sending physical radius!!!!\nmp IS multipled by Msolar'
     #print "\n\nWARNING! mp not multiplied by M_solar!! \n\n"
-    mp=mp*M_to_solar 
+    #mp=mp*M_to_solar 
 
     hdf5file=str(output_filename)+ '.hdf5'
     binaryfile=str(output_filename)+ '.bin'
