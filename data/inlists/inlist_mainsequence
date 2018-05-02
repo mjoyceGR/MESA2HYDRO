@@ -1,0 +1,49 @@
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+! inlist_mainsequence
+!
+! This inlist runs a solar-mass, solar-metallicity star to an age of 3.0 Gyr, terminating on the main sequence
+! It DOES NOT require a pre-generated MESA model
+! You must change the directory strings to point to
+!     - your MESA2GADGET data directory
+!     - your MESA directory
+!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+&star_job
+
+  mesa_dir = '/home/meridith/MESA/mesa-r10398'
+  history_columns_file='/home/meridith/UCT_SAAO/detached_shells/MESA2GADGET/data/history_columns_testsuite.list'
+  profile_columns_file='/home/meridith/UCT_SAAO/detached_shells/MESA2GADGET/data/profile_columns_testsuite.list'
+
+  filename_for_profile_when_terminate = 'profile_mainsequence.data'
+
+  load_saved_model = .false.
+  !create_pre_main_sequence_model = .false. 
+
+  save_model_when_terminate = .false.
+  write_profile_when_terminate = .true.
+
+  pgstar_flag = .false.
+  save_pgstar_files_when_terminate = .false.
+
+ / !end of star_job namelist
+
+&controls
+
+  star_history_name = 'history_mainsequence.data'
+
+  !max_number_backups = 0
+  max_number_retries = 5
+  !max_model_number = 500
+
+  initial_mass =1.0d0
+  !initial_y = 0.27d0 !solar
+  initial_z = 0.02d0 !solar
+
+  terminal_show_age_in_years = .true.
+  max_age = 3.0d9 ! age of Sun in Gyr
+
+  history_interval = 1
+
+/ ! end of controls namelist

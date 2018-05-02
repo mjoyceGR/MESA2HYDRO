@@ -1,7 +1,0 @@
-
-in .mod file, had to change
-	net_name   '18_to_mg24.net'
-	to  
-	net_name   'basic.net'
-
-	because the one originally included does not exist in the MESA data for mesa-r10398
