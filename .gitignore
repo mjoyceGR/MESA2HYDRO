@@ -1,0 +1,6 @@
+# ignore all these files
+
+**/*.pyc
+**/*.png
+**/*.bin
+**/*.hdf5
