@@ -14,9 +14,9 @@ R_to_solar=6.957*10.0**10.0 ## cm/Rsolar
 ###################################################
 
 
-
-ftag=str(raw_input('enter MESA profile identifier (ex: "redgiant"): '))
-MESA_file='../out/sample_MESA_output/profile_'+ftag+'.data'
+subprocess.call('ls ../data/sample_MESA_output/profile*', shell=True)
+ftag=str(raw_input('enter MESA identifier "profile_..." (ex: "redgiant"): '))
+MESA_file='../data/sample_MESA_output/profile_'+ftag+'.data'
 logdata=str(raw_input('log? (y for yes): '))
 try:
 	mc=float(raw_input('depth of penetration from surface? (default 5%): '))

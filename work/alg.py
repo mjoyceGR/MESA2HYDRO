@@ -57,7 +57,8 @@ VALID_CONFIGS = {
     'stepsize': 2.45e6,
 
     'try_reload': False,
-    'png_tag': 'latest'}
+    'png_tag': 'latest',
+    'reload_bin_size': 70.0}
     
 ##############################################################
 #
@@ -232,18 +233,19 @@ elif args.config_file:
 
     #startype = get_str_option('startype', VALID_CONFIGS['startype'])
     png_tag = get_str_option('png_tag',VALID_CONFIGS['png_tag'])
+    reload_bin_size = get_float_option('reload_bin_size',VALID_CONFIGS['reload_bin_size'])
     
 
 
     if make_NR_file:
         new_NR_filename = get_path_option('new_NR_filename',VALID_CONFIGS['new_NR_filename'])
     else:
-        new_NR_filename = get_path_option('loaded_NR_filename', VALID_CONFIGS['loaded_NR_filename'])
+        loaded_NR_filename = get_path_option('loaded_NR_filename', VALID_CONFIGS['loaded_NR_filename'])
 
     if make_IC_file:
         new_IC_filename = get_path_option('new_IC_filename',VALID_CONFIGS['new_IC_filename'])
     else:
-        new_IC_filename = get_path_option('loaded_IC_filename', VALID_CONFIGS['loaded_IC_filename'])
+        loaded_IC_filename = get_path_option('loaded_IC_filename', VALID_CONFIGS['loaded_IC_filename'])
 
 else:
     check_MESA_profile = args.check_MESA_profile
@@ -262,6 +264,7 @@ else:
     startype = args.star_type
     stepsize = args.step_size
     png_tag = args.png_tag
+    reload_bin_size = args.reload_bin_size
 
 
     ## this is probably wrong
@@ -271,8 +274,6 @@ else:
         nrfile = args.loaded_NR_filename#"work/NR_files/saveNR_ms_logE.dat"
 
 
-
-# 
 #
 ### Meridith screwing things up
 if make_NR_file:
@@ -285,8 +286,7 @@ if make_IC_file:
 else:        
     icfile=loaded_IC_filename
 #
-#
-#
+
 
 
 # If the given path exists use that otherwise prepend the package path
@@ -310,8 +310,9 @@ mp=mp*M_to_solar
 mp_cgs=mp_cgs    
 
 if mp != mp_cgs:
-    print '\n\nInconsistent values of mp specified!'
-    sys.exit()
+    print '\n\nWARNING! Inconsistent values of mp and mp_cgs!'
+    print 'using mp'
+    #sys.exit()
 
 ##############################################################
 #
@@ -363,7 +364,7 @@ if make_IC_file:
 if try_reload:
     r_temp, rho_temp=mn.reload_IC(icfile,IC_format_type)
 
-    nbin=70.
+    nbin=reload_bin_size#70.
     r_reloaded,rho_reloaded=mn.binned_r_rho(r_temp, nbin, mp)
 
     fit_region_R=mn.MESA_r(MESA_file, masscut)
