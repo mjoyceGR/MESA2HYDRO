@@ -25,19 +25,20 @@ R_to_solar=6.957*10.0**10.0 ## cm/Rsolar
 
 def RK1(r, m, fx, h,MESA_file,masscut, *args, **kwargs):
 	#need to pass the value of rho roughly at r but don't update it, just need it for calculation
-	use_unlog=bool(kwargs.get('load_unlogged',False))
+	#use_unlog=bool(kwargs.get('load_unlogged',False))
+	h=float(h)
 
 	rho_k0=rho_r(r,MESA_file,masscut)#,load_unlogged=use_unlog)
 	rho_k12=rho_r(r+0.5*h,MESA_file,masscut)#,load_unlogged=use_unlog)
 	rho_k3=rho_r(r+h,MESA_file,masscut)#,load_unlogged=use_unlog)
 
-	k0=fx(r, rho_k0 )*h
-	k1=fx(r + 0.5*h, rho_k12 )*h  #+ 0.5*k0
-	k2=fx(r + 0.5*h, rho_k12 )*h  #+ 0.5*k1
-	k3=fx(r + h, rho_k3 )*h  #+ k2
+	k0=float(fx(r, rho_k0 )*h)
+	k1=float(fx(r + 0.5*h, rho_k12 )*h)  #+ 0.5*k0
+	k2=float(fx(r + 0.5*h, rho_k12 )*h)  #+ 0.5*k1
+	k3=float(fx(r + h, rho_k3 )*h)  #+ k2
 	r     = r     + h
 	m = m + (k0 + 2.0*k1 + 2.0*k2 + k3)/6.0
-	return r, m
+	return float(r), float(m)
 
 def density_integral_numeric(r, rho_r): 
 	# will need to write an interpolation function to go between points in order to have
