@@ -62,6 +62,8 @@ VALID_CONFIGS = {
 parser = argparse.ArgumentParser(description='Program for converting MESA output to Gadget simulation files')
 parser.add_argument('--config-file',
                     help='Path to configuration file')
+parser.add_argument('--defaults', action='store_true',
+                    help='Lists the scripts default parameters and exits')
 config_args = parser.add_argument_group("Configuration")
 
 # Boolean option flags set opposite of file default
@@ -105,7 +107,13 @@ config_args.add_argument('--saveNR', default=None,
                          help='Set the saveNR file')
 
 args = parser.parse_args()
-if args.config_file:
+if args.defaults:
+    for config, value in VALID_CONFIGS.items():
+        print("{} = {}".format(config, value))
+
+    exit(0)
+
+elif args.config_file:
     if not os.path.exists(args.config_file):
         args.config_file = path_from_package(args.config_file)
 
