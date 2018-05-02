@@ -361,5 +361,7 @@ def min_index(array):
 def volume(r):
 	r=float(r)
 	vol=(4.0/3.0)*np.pi*r**3.0
+	#vol=vol*(np.pi/2.0)
+	#vol=(4.0/3.0)*r**3.0
 	#vol=4.0*np.pi*r**2.0 ## this is actually the surface area but fuck it
 	return float(vol)
