@@ -41,8 +41,8 @@ def RK1(r, m, fx, h,MESA_file,masscut, *args, **kwargs):
 
 def density_integral_numeric(r, rho_r): 
 	# will need to write an interpolation function to go between points in order to have
-	dmdr=4.0*np.pi*r**2.0*rho_r
-	return dmdr
+	dmdr=4.0*np.pi*(r**2.0)*float(rho_r)
+	return float(dmdr)
 
 
 def Mshell_from_RK(rl, rmax, step, MESA_file,masscut, *args,**kwargs):
@@ -84,7 +84,7 @@ def rho_r(r,MESA_file,masscut, *args, **kwargs):
 
 	rrho_r= (  (r1-r)*rho0 + (r-r0)*rho1 ) /(r1-r0)
 	if (r0 <= r <= r1):
-		return rrho_r
+		return float(rrho_r)
 	else:
 		print "no."
 		return 
