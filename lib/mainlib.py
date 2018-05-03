@@ -216,8 +216,7 @@ def reload_IC( IC_file, format_type, which_dtype='f'): #rmax #NR_file
 
 
 
-
-def binned_r_rho(r_array,nbin,mp):
+def binned_r_rho(r_array,mp,nbin):
     rmin=r_array.min()
     rmax=r_array.max()
     binsize=(rmax-rmin)/nbin
@@ -234,3 +233,20 @@ def binned_r_rho(r_array,nbin,mp):
         rho_b.append( len(r_array[region])*mp/(cf.volume(r2)-cf.volume(r1))  )
 
     return cf.to_array(r_b), cf.to_array(rho_b)
+
+
+
+
+def bins_from_NR(NR_file_name, r_array, mp):
+    r_set=np.loadtxt(NR_file_name,usecols=(1),unpack=True)
+    r=[]
+    rho=[]
+    for i in range(len(r_set)-1):
+        r1=r_set[i]
+        r2=r_set[i+1]
+        region=np.where( (r1<=r_array) &(r2>r_array))  #size of this should be ~12N^2
+        if len(r_array[region])==0:
+            break
+        r.append(r2)
+        rho.append( len(r_array[region])*mp/(cf.volume(r2)-cf.volume(r1))  )
+    return cf.to_array(r), cf.to_array(rho)

@@ -345,7 +345,7 @@ if make_NR_file:
 # Convert placement radii into HEALPix shells and send to IC
 #
 #############################################################
-which_dtype='ds'
+which_dtype='d'
 if make_IC_file:
 
     t2=time.time()
@@ -364,10 +364,15 @@ if make_IC_file:
 #
 ###############################################
 if try_reload:
-    r_temp, rho_temp=mn.reload_IC(icfile,IC_format_type, which_dtype=which_dtype)
+    r_recovered, masses_recovered=mn.reload_IC(icfile,IC_format_type, which_dtype=which_dtype)
 
     nbin=reload_bin_size#70.
-    r_reloaded,rho_reloaded=mn.binned_r_rho(r_temp, nbin, mp)
+    r_reloaded,rho_reloaded=mn.binned_r_rho(r_recovered, masses_recovered[0], reload_bin_size)
+
+    r_reloaded,rho_reloaded=mn.bins_from_NR(nrfile,r_recovered,masses_recovered[0])
+    print "length of reloaded r", len(r_reloaded)
+
+
 
     fit_region_R=mn.MESA_r(MESA_file, masscut)
     fit_region_rho=mn.MESA_rho(MESA_file, masscut)
