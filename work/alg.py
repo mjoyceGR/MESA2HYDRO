@@ -346,11 +346,12 @@ if make_NR_file:
 #
 #############################################################
 if make_IC_file:
+    which_dtype='f'
     t2=time.time()
     print '\n\nGenerating IC file...'
     in_file=nrfile
     out_file=icfile
-    mn.get_IC(in_file,out_file,mp,format_type=IC_format_type)
+    mn.get_IC(in_file,out_file,mp,format_type=IC_format_type,which_dtype=which_dtype)
     print 'IC file generation complete!'
     print("--- %s seconds ---" % (time.time() - t2))
 

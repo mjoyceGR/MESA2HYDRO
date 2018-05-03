@@ -68,7 +68,9 @@ def load_gadget_binary_header(f):
 
 
 
-def load_gadget_binary_particledat(f, header, ptype, skip_bh=0):
+def load_gadget_binary_particledat(f, header, ptype, skip_bh=0,which_dtype='f'):
+    ## which_dtype can b 'f' or which_dtype and has to match what's in pyIC.py
+
     ## load old format=1 style gadget binary snapshot files (unformatted fortran binary)
     ### COULD THIS BE THE PROBLEM?? FORMAT 1 versus format 2???
     ###########################
@@ -91,13 +93,13 @@ def load_gadget_binary_particledat(f, header, ptype, skip_bh=0):
     n1 = NpartCum[ptype]
     
     ### particles positions. 3*Npart*float.
-    pos = array.array('d')
+    pos = array.array(which_dtype)
     pos.fromfile(f, 3*NpartTot)
     pos = np.reshape(pos, (NpartTot,3))
     f.read(4+4) # Read block size fields.
 
     ### particles velocities. 3*Npart*float.
-    vel = array.array('d')
+    vel = array.array(which_dtype)
     vel.fromfile(f, 3*NpartTot)
     vel = np.reshape(vel, (NpartTot,3))
     f.read(4+4) # Read block size fields.
@@ -111,9 +113,9 @@ def load_gadget_binary_particledat(f, header, ptype, skip_bh=0):
     ### Variable particle masses. 
     Npart_MassCode = np.copy(np.array(Npart))
     Npart=np.array(Npart)
-    Npart_MassCode[(Npart <= 0) | (np.array(Massarr,dtype='d') > 0.0)] = 0
+    Npart_MassCode[(Npart <= 0) | (np.array(Massarr,dtype=which_dtype) > 0.0)] = 0
     NwithMass = np.sum(Npart_MassCode)
-    mass = array.array('d')
+    mass = array.array(which_dtype)
 
     #print "\n\nmass loaded in binary reader: ", mass
 
@@ -130,9 +132,9 @@ def load_gadget_binary_particledat(f, header, ptype, skip_bh=0):
             f.read(4+4) # Read block size fields.
             ### Density for the gas paraticles (units?).
 
-            gas_u = array.array('d')
-            gas_rho = array.array('d')
-            gas_hsml = array.array('d')
+            gas_u = array.array(which_dtype)
+            gas_rho = array.array(which_dtype)
+            gas_hsml = array.array(which_dtype)
 
 
             ############## EDITING HERE NOW #######################
@@ -155,11 +157,11 @@ def load_gadget_binary_particledat(f, header, ptype, skip_bh=0):
 
             if (header['Flag_Cooling'] > 0):
                 ### Electron number density for gas particles (fraction of n_H; can be >1).
-                gas_ne = array.array('d')
+                gas_ne = array.array(which_dtype)
                 gas_ne.fromfile(f, Npart[0])
                 f.read(4+4) # Read block size fields.
                 ### Neutral hydrogen number density for gas particles (fraction of n_H).
-                gas_nhi = array.array('d')
+                gas_nhi = array.array(which_dtype)
                 gas_nhi.fromfile(f, Npart[0])
                 f.read(4+4) # Read block size fields.
 
@@ -167,7 +169,7 @@ def load_gadget_binary_particledat(f, header, ptype, skip_bh=0):
 
             if (header['Flag_Sfr'] > 0):
                 ### Star formation rate (Msun/yr). ###
-                gas_SFR = array.array('d')
+                gas_SFR = array.array(which_dtype)
                 gas_SFR.fromfile(f, Npart[0])
                 f.read(4+4) # Read block size fields.
 
@@ -175,7 +177,7 @@ def load_gadget_binary_particledat(f, header, ptype, skip_bh=0):
             if (header['Flag_Sfr'] > 0):
                 if (header['Flag_StellarAge'] > 0):
                     ### Star formation time (in code units) or scale factor ###
-                    star_age = array.array('d')
+                    star_age = array.array(which_dtype)
                     star_age.fromfile(f, Npart[4])
                     f.read(4+4) # Read block size fields.
         
@@ -183,10 +185,10 @@ def load_gadget_binary_particledat(f, header, ptype, skip_bh=0):
             if (header['Flag_Metals'] > 0):
                 ## Metallicity block (species tracked = Flag_Metals)
                 if (Npart[0]>0):
-                    gas_z = array.array('d')
+                    gas_z = array.array(which_dtype)
                     gas_z.fromfile(f, header['Flag_Metals']*Npart[0])
                 if (Npart[4]>0):
-                    star_z = array.array('d')
+                    star_z = array.array(which_dtype)
                     star_z.fromfile(f, header['Flag_Metals']*Npart[4])
                 f.read(4+4) # Read block size fields.
                 if (ptype==0): zmet=np.reshape(gas_z,(-1,header['Flag_Metals']))
@@ -195,11 +197,11 @@ def load_gadget_binary_particledat(f, header, ptype, skip_bh=0):
         if (Npart[5]>0):
             if (skip_bh > 0):
                 ## BH mass (same as code units, but this is the separately-tracked BH mass from particle mass)
-                bh_mass = array.array('d')
+                bh_mass = array.array(which_dtype)
                 bh_mass.fromfile(f, Npart[5])
                 f.read(4+4) # Read block size fields.
                 ## BH accretion rate in snapshot
-                bh_mdot = array.array('d')
+                bh_mdot = array.array(which_dtype)
                 bh_mdot.fromfile(f, Npart[5])
                 f.read(4+4) # Read block size fields.
     
@@ -214,7 +216,7 @@ def load_gadget_binary_particledat(f, header, ptype, skip_bh=0):
 # binary writing routine
 #
 ###############################################################
-def make_IC_binary(fname, mp, x, y, z, E, **kwargs):
+def make_IC_binary(fname, mp, x, y, z, E, which_dtype='f',**kwargs):
     central_mass=float(kwargs.get('central_mass', 10e6)) #<-----WARNING!! not properly handled!!!
     print "mp in make_IC_binary is", mp
  
@@ -250,7 +252,7 @@ def make_IC_binary(fname, mp, x, y, z, E, **kwargs):
     my_body.u[:]=E   ##this is in ergs maybe??? unclear??
 
 
-    pygadgetic.dump_ic(my_header,my_body,fname)
+    pygadgetic.dump_ic(my_header,my_body,fname, which_dtype=which_dtype)
     return fname
 
 

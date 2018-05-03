@@ -119,7 +119,7 @@ def make_NR_file(MESA_file,masscut,N,mp, RKstep,NR_file, *args, **kwargs):
 # Make the initial conditions file from an NR file
 #
 ###########################################################
-def get_IC(NR_file_name,output_filename,mp, *args, **kwargs): #temp remove rmax
+def get_IC(NR_file_name,output_filename,mp,which_dtype='f', *args, **kwargs): #temp remove rmax
     filetype=str(kwargs.get('format_type','binary'))
     #print 'WARNING!! sending physical radius!!!!\nmp IS multipled by Msolar'
     #print "\n\nWARNING! mp not multiplied by M_solar!! \n\n"
@@ -170,7 +170,7 @@ def get_IC(NR_file_name,output_filename,mp, *args, **kwargs): #temp remove rmax
     if filetype=='hdf5':
         var=rw.make_IC_hdf5(hdf5file, mp, super_x, super_y, super_z,super_E) #, userho=False
     else:
-        var=rw.make_IC_binary(binaryfile, mp, super_x, super_y, super_z, super_E)#central mass not handled 
+        var=rw.make_IC_binary(binaryfile, mp, super_x, super_y, super_z, super_E, which_dtype=which_dtype)#central mass not handled 
     print var, type(var)
     return
 
@@ -187,7 +187,7 @@ def estimate_stepsize(MESA_file, masscut, Nshells):
 
 
 
-def reload_IC( IC_file, format_type): #rmax #NR_file
+def reload_IC( IC_file, format_type, which_dtype='f'): #rmax #NR_file
     filetype=str(format_type)
 
     print "\n\n\n<----testing reload---->"
@@ -203,7 +203,7 @@ def reload_IC( IC_file, format_type): #rmax #NR_file
         f=open(IC_file+'.bin','r')
         ptype=0
         header=rw.load_gadget_binary_header(f)
-        attribute_dictionary=rw.load_gadget_binary_particledat(f, header, ptype, skip_bh=0)
+        attribute_dictionary=rw.load_gadget_binary_particledat(f, header, ptype, skip_bh=0, which_dtype=which_dtype)
 
         positions=attribute_dictionary['Coordinates']
         masses=attribute_dictionary['Masses'] ##all of these are the same value, mp

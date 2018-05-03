@@ -75,15 +75,14 @@ class Body:
 
 
 
-def dump_ic(header, body, destination_file="ic.dat", format_output=format_number):#, format_output=1):
+def dump_ic(header, body, destination_file="ic.dat", format_output=format_number, which_dtype='f'):#, format_output=1):
     ic_file=open(destination_file,'w')
     write_header(header,ic_file,format_output)
-    write_body(body,ic_file,format_output)
+    write_body(body,ic_file,format_output, which_dtype=which_dtype)
     print "=== SUMMARY ==="
     print_summary(header,body)
     ic_file.close()        
     return None
-
 
 
 
@@ -146,8 +145,7 @@ def write_header(header, ic_file, format_output=format_number): ## 1
 
 
 
-
-def write_body(body, ic_file, format_output):
+def write_body(body, ic_file, format_output, which_dtype='f'):
     print "Writing body (little endian)"
 
 
@@ -160,35 +158,23 @@ def write_body(body, ic_file, format_output):
     total_number_of_particles = np.size(body.pos[:,0])
     gas_particles = np.size(body.u)
 
-    ######## TRY TAKING OUT ALL OF THESE 4'S FOR THE PROFILE DISCREPANCY ISSUE
-    ######## doesn't do anything but I'm keeping at at 1 anyway
+
     ndim=4
-    #write in binary format
-    write_block(body.pos.astype('d'), 3*ndim*total_number_of_particles, ic_file)
 
-    #print "\n\nvalues in body.pos: ", body.pos
-    write_block(body.vel.astype('d'), 3*ndim*total_number_of_particles, ic_file)
+    write_block(body.pos.astype(which_dtype), 3*ndim*total_number_of_particles, ic_file)
+
+    write_block(body.vel.astype(which_dtype), 3*ndim*total_number_of_particles, ic_file)
     write_block(body.id.astype('I'), ndim*total_number_of_particles, ic_file)
-    print "\n\nvalues in body.mass: ", body.mass.astype('d')
+    print "\n\nvalues in body.mass: ", body.mass.astype(which_dtype)
 
-    write_block(body.mass.astype('d'), ndim*total_number_of_particles, ic_file)
-    write_block(body.u.astype('d'), ndim*gas_particles, ic_file)
-
-
-    # ##need to set conditions to write these blocks. Maybe it's better to do a loop over each block, but it need some more work.
-    # write_block(body.rho.astype('f'), 4*gas_particles, ic_file)
-    # write_block(body.ne.astype('f'), 4*gas_particles, ic_file)
-    # write_block(body.nh.astype('f'), 4*gas_particles, ic_file)
+    write_block(body.mass.astype(which_dtype), ndim*total_number_of_particles, ic_file)
+    write_block(body.u.astype(which_dtype), ndim*gas_particles, ic_file)
 
 
-    ## do not know what I'm doing here
-    #print "\n\nvalues in body.rho: ", body.rho
-
-    #### adding this eliminated the loading errors for hsml, u, and rho
-    write_block(body.hsml.astype('d'), ndim*total_number_of_particles, ic_file)
-    print "\n\nvalues in body.hsml: ", body.hsml.astype('f')    
-    write_block(body.u.astype('d'),ndim*total_number_of_particles, ic_file )
-    write_block(body.rho.astype('d'),ndim*total_number_of_particles, ic_file )
+    write_block(body.hsml.astype(which_dtype), ndim*total_number_of_particles, ic_file)
+    print "\n\nvalues in body.hsml: ", body.hsml.astype(which_dtype)    
+    write_block(body.u.astype(which_dtype),ndim*total_number_of_particles, ic_file )
+    write_block(body.rho.astype(which_dtype),ndim*total_number_of_particles, ic_file )
     
     return None
 
