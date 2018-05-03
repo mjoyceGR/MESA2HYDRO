@@ -158,12 +158,16 @@ def write_body(body, ic_file, format_output, which_dtype='f'):
     total_number_of_particles = np.size(body.pos[:,0])
     gas_particles = np.size(body.u)
 
+    if which_dtype=='f':
+        ndim=4
+    else:
+        ndim=8
 
-    ndim=4
+    print "\nndim = ", ndim, "\n"
 
     write_block(body.pos.astype(which_dtype), 3*ndim*total_number_of_particles, ic_file)
-
     write_block(body.vel.astype(which_dtype), 3*ndim*total_number_of_particles, ic_file)
+
     write_block(body.id.astype('I'), ndim*total_number_of_particles, ic_file)
     print "\n\nvalues in body.mass: ", body.mass.astype(which_dtype)
 

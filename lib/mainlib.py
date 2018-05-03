@@ -169,6 +169,9 @@ def get_IC(NR_file_name,output_filename,mp,which_dtype='f', *args, **kwargs): #t
 
     if filetype=='hdf5':
         var=rw.make_IC_hdf5(hdf5file, mp, super_x, super_y, super_z,super_E) #, userho=False
+
+        #svar=rw.make_IC_hdf5_old_way(hdf5file, mp, super_x, super_y, super_z,super_E)
+
     else:
         var=rw.make_IC_binary(binaryfile, mp, super_x, super_y, super_z, super_E, which_dtype=which_dtype)#central mass not handled 
     print var, type(var)
@@ -235,18 +238,54 @@ def binned_r_rho(r_array,mp,nbin):
     return cf.to_array(r_b), cf.to_array(rho_b)
 
 
-
-
 def bins_from_NR(NR_file_name, r_array, mp):
-    r_set=np.loadtxt(NR_file_name,usecols=(1),unpack=True)
+    N,r_set=np.loadtxt(NR_file_name,usecols=(0,1),unpack=True)
     r=[]
     rho=[]
     for i in range(len(r_set)-1):
         r1=r_set[i]
         r2=r_set[i+1]
-        region=np.where( (r1<=r_array) &(r2>r_array))  #size of this should be ~12N^2
+
+        try:
+            region=np.where( (r1<=r_array) &(r2>r_array))  #size of this should be ~12N^2
+        except RuntimeWarning:
+            print "Data types in generated vs recovered IC files do not match"
+            print "Update 'which_dtype' value in config file"
+            sys.exit()
+
+
         if len(r_array[region])==0:
             break
         r.append(r2)
         rho.append( len(r_array[region])*mp/(cf.volume(r2)-cf.volume(r1))  )
     return cf.to_array(r), cf.to_array(rho)
+
+
+
+
+def quick_plot(MESA_file, masscut, r_reloaded,rho_reloaded,IC_format_type,png_tag='latest'):
+    import matplotlib.pyplot as plt
+    fit_region_R=MESA_r(MESA_file, masscut)
+    fit_region_rho=MESA_rho(MESA_file, masscut)
+
+    plt.plot(r_reloaded, rho_reloaded,'r.', markersize=6, label='GADGET data')
+    plt.plot(fit_region_R, fit_region_rho, "b.", markersize=4, label='MESA data') #cf.to_log()
+    plt.xlabel("R")
+    plt.ylabel("test density")
+    plt.legend(loc=1)
+    if IC_format_type=='hdf5':
+        plt.savefig('lin_'+png_tag+'_hdf5.png')
+    else:
+        plt.savefig('lin_'+png_tag+'_bin.png')
+    plt.close()
+
+    plt.plot(fit_region_R, cf.to_log(fit_region_rho), "b.", markersize=4, label='MESA data') #cf.to_log()
+    plt.plot(r_reloaded, cf.to_log(rho_reloaded),'r.', markersize=6, label='GADGET data')
+    plt.xlabel("R")
+    plt.ylabel("log(test density)")
+    plt.legend(loc=1)
+    if IC_format_type=='hdf5':
+        plt.savefig('log_'+png_tag+'_hdf5.png')
+    else:
+        plt.savefig('log_'+png_tag+'_bin.png')
+        plt.close()
