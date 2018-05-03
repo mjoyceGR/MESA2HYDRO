@@ -345,8 +345,9 @@ if make_NR_file:
 # Convert placement radii into HEALPix shells and send to IC
 #
 #############################################################
+which_dtype='ds'
 if make_IC_file:
-    which_dtype='f'
+
     t2=time.time()
     print '\n\nGenerating IC file...'
     in_file=nrfile
@@ -363,7 +364,7 @@ if make_IC_file:
 #
 ###############################################
 if try_reload:
-    r_temp, rho_temp=mn.reload_IC(icfile,IC_format_type)
+    r_temp, rho_temp=mn.reload_IC(icfile,IC_format_type, which_dtype=which_dtype)
 
     nbin=reload_bin_size#70.
     r_reloaded,rho_reloaded=mn.binned_r_rho(r_temp, nbin, mp)

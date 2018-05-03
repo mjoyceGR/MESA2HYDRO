@@ -147,7 +147,7 @@ def write_header(header, ic_file, format_output=format_number): ## 1
 
 def write_body(body, ic_file, format_output, which_dtype='f'):
     print "Writing body (little endian)"
-
+    #print 'which_dtype default is f, but I tried to pass d: ', which_dtype, '\n\n'
 
     def write_block(block, nbytes, ic_file):
         ic_file.write(struct.pack('<I',nbytes)) #dimensions*number of particles
