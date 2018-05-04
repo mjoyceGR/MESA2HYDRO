@@ -219,6 +219,9 @@ if make_IC_file:
 ###############################################
 if try_reload:
     r_recovered, masses_recovered=mn.reload_IC(icfile,IC_format_type, which_dtype=which_dtype)
+
+    print "min and max radius from r recovered data: ", r_recovered.min(), r_recovered.max()
+
     #print "\n\ndatatype found before loading binned data:   which_dtype=" , which_dtype, '\n\n'
 
 
