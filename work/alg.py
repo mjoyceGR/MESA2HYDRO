@@ -229,13 +229,55 @@ if try_reload:
         print 'using radial binning from NR file'
         r_reloaded,rho_reloaded=mn.bins_from_NR(nrfile,r_recovered,masses_recovered[0])
 
+        r_norm=r_reloaded/r_reloaded.min()
+        rho_norm=rho_reloaded/rho_reloaded.min()
+
+
+        A_guess=35.0#50
+        B_guess=4.0##44
+        C_guess=8#0
+        D_guess=4.8#45
+
+        try:
+            A,B,C,D=cf.get_curve(r_norm,rho_norm,A_guess,B_guess,C_guess,D_guess, cf.one_over_r)
+        except RuntimeError:
+            # A=1.0
+            # B=1.0
+            # C=1.0
+            # D=1.0
+            A=A_guess
+            B=B_guess
+            C=C_guess
+            D=D_guess
+
+        print "found A,B,C,D:", A,B,C,D
+        rho_fit_found=cf.one_over_r(r_norm,A,B,C,D)
+
+        A=A_guess
+        B=B_guess
+        C=C_guess
+        D=D_guess
+        #D=8.2e8
+        rho_fit_forced=cf.one_over_r(r_norm,A,B,C,D)#,D)
+        # #print rho_fit
+
+        plt.plot(r_norm,rho_norm,'yo', color='orange', label='loaded data')
+        plt.plot(r_norm,rho_fit_found, 'r-', linewidth=3, label=r'fit to rho w/ optimize')#r_reloaded
+        plt.plot(r_norm,rho_fit_forced, 'g-', linewidth=3, label=r'fit to rho by hand')#r_reloaded
+        plt.ylim(-1,55)
+        plt.legend(loc=1)
+        plt.savefig('fit.png')
+        #plt.show()
+        plt.close()
+
+
     else:
         nbin=reload_bin_size
         print "plotting data using binsize=", reload_bin_size
         r_reloaded,rho_reloaded=mn.binned_r_rho(r_recovered, masses_recovered[0], reload_bin_size)
 
 
-    mn.quick_plot(MESA_file,masscut, r_reloaded,rho_reloaded,IC_format_type,png_tag=png_tag)   
+    #mn.quick_plot(MESA_file,masscut, r_reloaded,rho_reloaded,IC_format_type,png_tag=png_tag)   
 
 
 
