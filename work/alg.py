@@ -5,23 +5,22 @@ import matplotlib.pyplot as plt
 import sys
 import os
 import re
-m2g_path=os.environ['MESA2GADGET_ROOT']
-sys.path.append(m2g_path+'/lib/')
-try:
-    import MESA2GADGET.lib.MESAlibjoyce as MJ
-    import MESA2GADGET.lib.converge_funcs as cf
-    import MESA2GADGET.lib.io_lib as rw
-    import MESA2GADGET.lib.mainlib as mn
-    from MESA2GADGET.lib.cfg_parser import *
+sys.path.append('..')
+import MESAlibjoyce as MJ
+import converge_funcs as cf
+import MESA2GADGET.lib.io_lib as rw
+import MESA2GADGET.lib.mainlib as mn
+from MESA2GADGET.lib.cfg_parser import *
 
-    from MESA2GADGET import MESA_PKG_DIR
-except ImportError as err:
-    print("Err: {}".format(err))
-    print("Problem with MESA2GADGET installation")
-    print("To use this package please run sudo python setup.py install")
-    print("or set your PYTHONPATH environment variable to the directory")
-    print("MESA2GADGET is in (pointing it directly to MESA2GADGET still causes problems)")
-    exit(1)
+MESA_PKG_DIR = os.path.abspath(os.path.dirname(__file__))
+
+m2g_save_path=os.environ.get('MESA2GADGET_ROOT')
+
+if m2g_save_path is None:
+    print("Environmental variable 'MESA2GADGET_ROOT' isn't set")
+    print("Storing output data in default directory root {}"
+          .format(MESA_PKG_DIR))
+    m2g_save_path = MESA_PKG_DIR
 
 import time
 start_time = time.time()

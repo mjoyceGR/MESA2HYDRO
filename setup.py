@@ -7,47 +7,7 @@ import shutil
 import subprocess
 from setuptools import setup
 
-BUILD_CMDS = [
-    'local', # my command
-    'build',
-    'build_py',
-    'build_ext',
-    'build_clib',
-    'build_scripts',
-    'install',
-    'install_lib',
-    'install_headers',
-    'install_scripts',
-    'install_data',
-    'sdist',
-    'register',
-    'bdist',
-    'bdist_dump',
-    'bdist_rmp',
-    'upload',
-    'check',
-    'develop',
-    'bdist_egg',
-    'easy_install',
-    'egg_info',
-    'bdist_wheel']
-CLEAN_CMDS = BUILD_CMDS+['clean']
 PKG_DIR = os.path.abspath(os.path.dirname(__file__))
-
-required_pkgs = [
-    'numpy',
-    'h5py',
-    'scipy',
-    'healpy',
-    'matplotlib']
-
-if len(sys.argv) < 2:
-    print("For local setup\nusage: setup.py local\n\nFor normal setup")
-    has_cmd = False
-elif len(sys.argv) > 2:
-    has_cmd = "help" not in sys.argv[2]
-else:
-    has_cmd = True
 
 if len(sys.argv) > 1 and sys.argv[1] == 'local':
     if len(sys.argv) > 2 and sys.argv[2] == "--help":
@@ -56,25 +16,11 @@ if len(sys.argv) > 1 and sys.argv[1] == 'local':
         print("Sets up PYTHONPATH variable")
         exit(0)
 
-    install_failed = False
-    for pkg in required_pkgs:
-        try:
-            pip.main(['install', pkg])
-        except:
-            isntall_failed = True
-            print("Couldn't install {}. Please run again with sudo to install it."
-                  .format(pkg))
+    try:
+        subprocess.check_call(["{}/install.sh".format(PKG_DIR)], shell=True)
+    except:
+        print("Failed to install all necessary packages")
 
-    if not install_failed:
-        print("All required packages are installed")
-    
-    with open(os.path.expanduser("~/.bashrc"), "ra+") as f:
-        file_text = f.read()
-        if "ADDED BY MESA2GADGET" not in file_text:
-            f.write("\n\n# ADDED BY MESA2GADGET\n")
-            f.write("export PYTHONPATH=$PYTHONPATH:{}\n\n".format(os.path.dirname(PKG_DIR)))
-            print("Updated python path")
-            print("Please restart (or source ~/.bashrc) your terminal")
     exit(0)
 
 setup(name='MESA2GADGET',
