@@ -1,0 +1,138 @@
+
+! inlist_wd_cool_0.6M
+
+
+
+&star_job
+      mesa_dir = '/home/mjoyce/MESA/mesa-r10398'
+      history_columns_file='/home/mjoyce/MESA2GADGET/data/MESA_controls/history_columns_testsuite.list'
+      profile_columns_file='/home/mjoyce/MESA2GADGET/data/MESA_controls/profile_columns_testsuite.list'
+
+      write_profile_when_terminate = .true.
+      filename_for_profile_when_terminate = 'profile_wd_0.54test.data'
+
+      show_log_description_at_start = .false.
+
+      load_saved_model = .true.
+      saved_model_name = 'wd_0.6.mod'
+
+      save_model_when_terminate = .true.
+      save_model_filename = 'final.mod'
+
+      kappa_file_prefix = 'gs98' 
+         ! modify this to select a different set of preprocessed opacity tables
+         
+      eos_file_prefix = 'mesa'
+
+      set_initial_dt = .true.
+      years_for_initial_dt = 1d2 ! in years
+
+      !pgstar_flag = .true.
+
+/ ! end of star_job namelist
+
+
+
+&controls
+
+   use_gold_tolerances = .true.
+   use_eosELM = .false.
+   use_eosDT2 = .false.
+
+      ! check for retries and backups as part of test_suite
+      ! you can/should delete this for use outside of test_suite
+         max_number_backups = 3
+         max_number_retries = 20
+         max_model_number = 1000
+
+      prune_bad_cz_min_Hp_height = 0 ! lower limit on radial extent of cz
+      remove_mixing_glitches = .true. ! if true, then okay to remove gaps and singletons
+      
+               ! the following controls are for different kinds of "glitches" that can be removed
+            
+               clip_D_limit = 0 ! zero mixing diffusion coeffs that are smaller than this         
+
+               okay_to_remove_mixing_singleton = .true.
+         
+               min_convective_gap = -1 ! 0.1 
+                  ! close gap between convective regions if smaller than this (< 0 means skip this)
+                  ! gap measured radially in units of pressure scale height
+         
+               min_thermohaline_gap = 0
+                  ! close gap between thermohaline mixing regions if smaller than this (< 0 means skip this)
+                  ! gap measured radially in units of pressure scale height
+               
+               min_thermohaline_dropout = 0
+               max_dropout_gradL_sub_grada = 1d-3
+                  ! if find radiative region embedded in thermohaline,
+                  ! and max(gradL - grada) in region is everywhere < max_dropout_gradL_sub_grada
+                  ! and region height is < min_thermohaline_dropout
+                  ! then convert the region to thermohaline
+         
+               min_semiconvection_gap = 0 
+                  ! close gap between semiconvective mixing regions if smaller than this (< 0 means skip this)
+                  ! gap measured radially in units of pressure scale height
+         
+               remove_embedded_semiconvection = .false.
+                  ! if have a semiconvection region bounded on each side by convection,
+                  ! convert it to be convective too.
+         
+ 
+      !Teff_lower_limit = 3000
+      log_center_temp_lower_limit = 5.75d0
+ 
+
+      initial_mass =  0.54!! 0.60 !changing this to Salaris's mass to see if profiles match
+      initial_z = 0.01d0
+      
+      use_Type2_opacities = .true.
+      Zbase = 0.01d0
+
+      mesh_delta_coeff = 0.75
+
+      which_atm_option = 'WD_tau_25_tables' ! use this for evolution
+      
+      
+      when_to_stop_rtol = 1d-3
+      when_to_stop_atol = 1d-3
+      
+      use_Ledoux_criterion = .true.
+      thermohaline_coeff = 1000  
+
+      MLT_option = 'ML2'
+      
+      smooth_convective_bdy = .false.
+
+
+      mixing_length_alpha = 1.8
+
+      photo_interval = 50
+      profile_interval = 50
+      history_interval = 10
+      terminal_interval = 10
+      write_header_frequency = 10
+
+
+      !photo_interval = 1
+      !profile_interval = 1
+      !history_interval = 1
+      !terminal_interval = 1
+
+
+/ ! end of controls namelist
+
+
+&pgstar
+         
+         
+         TRho_Profile_win_flag = .true.
+         show_TRho_Profile_kap_regions = .false.
+         show_TRho_Profile_eos_regions = .false.
+         show_TRho_Profile_degeneracy_line = .true.
+         show_TRho_Profile_Pgas_Prad_line = .true.
+         show_TRho_Profile_burn_lines = .true.
+         show_TRho_Profile_burn_labels = .true.
+         show_TRho_Profile_logQ_limit = .true.
+
+
+/ ! end of pgstar namelist
