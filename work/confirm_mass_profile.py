@@ -1,21 +1,22 @@
 #!/usr/bin/env python
 import numpy as np
 import matplotlib.pyplot as plt
+import subprocess
 import sys
 import os
 m2g_path=os.environ['MESA2GADGET_ROOT']
-sys.path.append(m2g_path+'/src/')
-import MESA2GADGET.mesalib.MESAlibjoyce as MJ
-import MESA2GADGET.mesalib.converge_funcs as cf
+sys.path.append(m2g_path+'/lib/')
+import MESA2GADGET.lib.MESAlibjoyce as MJ
+import MESA2GADGET.lib.converge_funcs as cf
 ###################################################
 M_to_solar=1.988*10.0**33.0 ## g/Msolar
 R_to_solar=6.957*10.0**10.0 ## cm/Rsolar
 ###################################################
 
 savefig=False
-
+subprocess.call('ls ../data/sample_MESA_output/profile*', shell=True)
 ftag=str(raw_input('enter MESA profile identifier (ex: "redgiant"): '))
-MESA_file='../out/sample_MESA_output/profile_'+ftag+'.data'
+MESA_file='../data/sample_MESA_output/profile_'+ftag+'.data'
 logdata=str(raw_input('log? (y for yes): '))
 try:
 	mc=float(raw_input('depth of penetration from surface? (default 5%): '))

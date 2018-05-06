@@ -5,7 +5,7 @@ import subprocess
 import sys
 import os
 m2g_path=os.environ['MESA2GADGET_ROOT']
-sys.path.append(m2g_path+'/src/')
+sys.path.append(m2g_path+'/lib/')
 import MESA2GADGET.lib.MESAlibjoyce as MJ
 import MESA2GADGET.lib.converge_funcs as cf
 ###################################################
