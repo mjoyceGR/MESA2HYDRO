@@ -320,3 +320,48 @@ def volume(r):
 	r=float(r)
 	vol=(4.0/3.0)*np.pi*r**3.0
 	return float(vol)
+
+
+###########################################################################
+#
+# Recovery
+#
+###########################################################################
+import scipy.optimize 
+
+def one_over_r(xdata,A,B,C,D):
+	#print "xdata: ", xdata
+	return A*( 1.0/( (D*xdata)-B) ) + C
+
+
+#------------------------------ analytic ----------------------------------------
+
+def get_curve(r_array,rho_array,guess_a,guess_b,guess_c,guess_d,functional_form):
+
+	p=[guess_a,guess_b,guess_c, guess_d]
+	params, cov = curve_fit(functional_form, r_array, rho_array, p0=p)
+	a, b, c,d = params
+
+	return a,b,c,d#,d#,y 
+
+
+#def 
+
+
+# #------------------------------------------------------------------------------------
+# def density_integral(rl,ru, A,B,C):
+# 	rdiff=(ru - rl)
+# 	f1=0.5*A*rdiff**2.0  + A*B*rdiff  + A*B**2.0 * np.log10( abs(rdiff - B) ) + (1.0/3.0)*C*rdiff**3.0
+# 	return f1
+
+# ### is it necessary to do this density integral or should I just fit the mass profile and pass that?
+
+# def Mshell_from_integral(rl, ru, A,B,C):
+# 	Mshell=4.0*np.pi*density_integral(rl, ru, A, B, C)
+# 	return Mshell
+
+
+# def approximate_mp(rl, ru, n_p, A, B, C):
+# 	Mshell=4.0*np.pi*density_integral(ru,rl,A,B,C)
+# 	mp=Mshell/n_p
+# 	return mp
