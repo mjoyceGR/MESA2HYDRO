@@ -66,6 +66,7 @@ SCRIPT_CONFIGS = {
 # Auto generates command line arguments and configuration file reading from SCRIPT_CONFIG definition
 options = OptionInputs(SCRIPT_CONFIGS, description='Program for converting MESA output to Gadget simulation files')
 
+# Only arguments in SCRIPT_CONFIGS can be found in user_configs
 user_configs = options.get_configs()
 
 
