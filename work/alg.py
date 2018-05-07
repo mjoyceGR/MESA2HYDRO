@@ -5,14 +5,15 @@ import matplotlib.pyplot as plt
 import sys
 import os
 import re
-sys.path.append(os.path.abspath('../lib'))
+MESA_PKG_DIR = os.path.abspath(
+    os.path.join(os.path.abspath(os.path.dirname(__file__)), '..'))
+sys.path.append(os.path.join(MESA_PKG_DIR, 'lib'))
 import MESAlibjoyce as MJ
 import converge_funcs as cf
 import io_lib as rw
 import mainlib as mn
 from cfg_parser import *
 
-MESA_PKG_DIR = os.path.abspath(os.path.dirname(__file__))
 
 m2g_save_path=os.path.abspath(os.environ.get('MESA2GADGET_ROOT'))
 
