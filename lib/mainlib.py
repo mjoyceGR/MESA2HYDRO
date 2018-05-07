@@ -245,7 +245,6 @@ def bins_from_NR(NR_file_name, r_array, mp):
     for i in range(len(r_set)-1):
         r1=r_set[i]
         r2=r_set[i+1]
-
         try:
             region=np.where( (r1<=r_array) &(r2>r_array))  #size of this should be ~12N^2
         except RuntimeWarning:
@@ -253,12 +252,34 @@ def bins_from_NR(NR_file_name, r_array, mp):
             print "Update 'which_dtype' value in config file"
             sys.exit()
 
-
         if len(r_array[region])==0:
             break
         r.append(r2)
         rho.append( len(r_array[region])*mp/(cf.volume(r2)-cf.volume(r1))  )
     return cf.to_array(r), cf.to_array(rho)
+
+
+###############
+#
+# this will never work, please drop this idea
+#
+################
+# def no_bins(r_array,mp):
+#     rmin=r_array.min()
+#     rmax=r_array.max()
+#     r=[]
+#     rho=[]
+#     for i in range(len(r_array)-1):
+#         r1=r_array[i]
+#         r2=r_array[i+1]
+#         region=np.where( (r1<=r_array) &(r2>r_array))  #size of this should be ~12N^2
+#         if len(r_array[region])==0:
+#             rho.append(0.0)
+#         else:
+#             rho.append( len(r_array[region])*mp/(cf.volume(r2)-cf.volume(r1))  )
+#         r.append(r2)
+        
+#     return cf.to_array(r), cf.to_array(rho)
 
 
 

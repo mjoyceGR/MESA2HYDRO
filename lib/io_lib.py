@@ -18,7 +18,74 @@ from yanked import *
 # hdf5 writing routine
 #
 ###############################################################
-# def make_IC_hdf5(out_fname, mp, x, y, z,E, **kwargs):
+def make_IC_hdf5(out_fname, mp, x, y, z,E, **kwargs):
+
+    print "\n\n\nusing modified hdf5 writer 5/3/18\n"
+
+    file = h5py.File(out_fname,'w') 
+    Ngas = len(x)
+    npart = np.array([len(x),0,0,0,0,0]) # we have gas and particles we will set for type 3 here, zero for all others
+
+    h = file.create_group("Header");
+    h.attrs['NumPart_ThisFile'] = npart; 
+    h.attrs['NumPart_Total'] = npart; # npart set as above
+    h.attrs['NumPart_Total_HighWord'] = 0*npart; # this will be set automatically in-code (for GIZMO, at least)
+    h.attrs['MassTable'] = np.array([mp,0,0,0,0,0]) #np.zeros(6); 
+    h.attrs['Time'] = 0.0;  # initial time
+    h.attrs['Redshift'] = 0.0; # initial redshift
+    h.attrs['BoxSize'] = 1.0; # box size
+    h.attrs['NumFilesPerSnapshot'] = 1; # number of files for multi-part snapshots
+    h.attrs['Omega0'] = 1.0; # z=0 Omega_matter
+    h.attrs['OmegaLambda'] = 0.0; # z=0 Omega_Lambda
+    h.attrs['HubbleParam'] = 1.0; # z=0 hubble parameter (small 'h'=H/100 km/s/Mpc)
+    h.attrs['Flag_Sfr'] = 0; # flag indicating whether star formation is on or off
+    h.attrs['Flag_Cooling'] = 0; # flag indicating whether cooling is on or off
+    h.attrs['Flag_StellarAge'] = 0; # flag indicating whether stellar ages are to be saved
+    h.attrs['Flag_Metals'] = 0; # flag indicating whether metallicity are to be saved
+    h.attrs['Flag_Feedback'] = 0; # flag indicating whether some parts of springel-hernquist model are active
+    h.attrs['Flag_DoublePrecision'] = 0; # flag indicating whether ICs are in single/double precision
+    h.attrs['Flag_IC_Info'] = 0; # flag indicating extra options for ICs
+
+    particles = file.create_group("PartType0")
+
+    rho_desired = 1.0           # box average initial gas density
+    P_desired = 1.0             # initial gas pressure
+    gamma_eos = 5./3.           # polytropic index of ideal equation of state the run will assume
+
+    IDs=np.arange(1,Ngas+1)
+    masses=mp + 0.*x 
+    hsml=0.*x + (-1)
+    #U=P_desired/((gamma_eos-1.)*rho_desired) 
+    #internalE = U + 0.*x
+    internalE=E
+    dens=0.*x 
+
+    pos=np.zeros((Ngas,3))
+    pos[:,0]=x
+    pos[:,1]=y
+    pos[:,2]=z
+
+    vel=np.zeros((Ngas,3))
+    vel[:,0]=0.*x
+    vel[:,1]=0.*x
+    vel[:,2]=0.*x
+
+    print "masses being used in hdf5: ", masses
+    print 'positions being used in hdf5: ', pos
+   #internal energy 
+    #particle IDs
+
+    particles.create_dataset("ParticleIDs",data=IDs)
+    particles.create_dataset("Masses",data=masses)#,dtype=np.dtype('d'))
+    particles.create_dataset("Coordinates",data=pos)#,dtype=np.dtype('d'))
+    particles.create_dataset("Velocities",data=vel)#,dtype=np.dtype('d'))
+    particles.create_dataset("InternalEnergy",data=internalE)#,dtype=np.dtype('d'))
+    particles.create_dataset("HSML", data=hsml)#,dtype=np.dtype('d'))
+    particles.create_dataset("Density",data=dens)#,dtype=np.dtype('d'))
+
+    file.close()
+    return file
+
 
 def make_IC_hdf5_old_way(out_fname, mp, x, y, z,E, **kwargs):    #rho out
     print "\n\n\n\nusing sketchy version of hdf5 writer\n\n\n\n"
@@ -121,75 +188,6 @@ def make_IC_hdf5_old_way(out_fname, mp, x, y, z,E, **kwargs):    #rho out
     file.close()
     return file
 
-
-
-def make_IC_hdf5(out_fname, mp, x, y, z,E, **kwargs):
-
-    print "\n\n\nusing modified hdf5 writer 5/3/18\n"
-
-    file = h5py.File(out_fname,'w') 
-    Ngas = len(x)
-    npart = np.array([len(x),0,0,0,0,0]) # we have gas and particles we will set for type 3 here, zero for all others
-
-    h = file.create_group("Header");
-    h.attrs['NumPart_ThisFile'] = npart; 
-    h.attrs['NumPart_Total'] = npart; # npart set as above
-    h.attrs['NumPart_Total_HighWord'] = 0*npart; # this will be set automatically in-code (for GIZMO, at least)
-    h.attrs['MassTable'] = np.array([mp,0,0,0,0,0]) #np.zeros(6); 
-    h.attrs['Time'] = 0.0;  # initial time
-    h.attrs['Redshift'] = 0.0; # initial redshift
-    h.attrs['BoxSize'] = 1.0; # box size
-    h.attrs['NumFilesPerSnapshot'] = 1; # number of files for multi-part snapshots
-    h.attrs['Omega0'] = 1.0; # z=0 Omega_matter
-    h.attrs['OmegaLambda'] = 0.0; # z=0 Omega_Lambda
-    h.attrs['HubbleParam'] = 1.0; # z=0 hubble parameter (small 'h'=H/100 km/s/Mpc)
-    h.attrs['Flag_Sfr'] = 0; # flag indicating whether star formation is on or off
-    h.attrs['Flag_Cooling'] = 0; # flag indicating whether cooling is on or off
-    h.attrs['Flag_StellarAge'] = 0; # flag indicating whether stellar ages are to be saved
-    h.attrs['Flag_Metals'] = 0; # flag indicating whether metallicity are to be saved
-    h.attrs['Flag_Feedback'] = 0; # flag indicating whether some parts of springel-hernquist model are active
-    h.attrs['Flag_DoublePrecision'] = 0; # flag indicating whether ICs are in single/double precision
-    h.attrs['Flag_IC_Info'] = 0; # flag indicating extra options for ICs
-
-    particles = file.create_group("PartType0")
-
-    rho_desired = 1.0           # box average initial gas density
-    P_desired = 1.0             # initial gas pressure
-    gamma_eos = 5./3.           # polytropic index of ideal equation of state the run will assume
-
-    IDs=np.arange(1,Ngas+1)
-    masses=mp + 0.*x 
-    hsml=0.*x + (-1)
-    #U=P_desired/((gamma_eos-1.)*rho_desired) 
-    #internalE = U + 0.*x
-    internalE=E
-    dens=0.*x 
-
-    pos=np.zeros((Ngas,3))
-    pos[:,0]=x
-    pos[:,1]=y
-    pos[:,2]=z
-
-    vel=np.zeros((Ngas,3))
-    vel[:,0]=0.*x
-    vel[:,1]=0.*x
-    vel[:,2]=0.*x
-
-    print "masses being used in hdf5: ", masses
-    print 'positions being used in hdf5: ', pos
-   #internal energy 
-    #particle IDs
-
-    particles.create_dataset("ParticleIDs",data=IDs)
-    particles.create_dataset("Masses",data=masses)#,dtype=np.dtype('d'))
-    particles.create_dataset("Coordinates",data=pos)#,dtype=np.dtype('d'))
-    particles.create_dataset("Velocities",data=vel)#,dtype=np.dtype('d'))
-    particles.create_dataset("InternalEnergy",data=internalE)#,dtype=np.dtype('d'))
-    particles.create_dataset("HSML", data=hsml)#,dtype=np.dtype('d'))
-    particles.create_dataset("Density",data=dens)#,dtype=np.dtype('d'))
-
-    file.close()
-    return file
 
 
 

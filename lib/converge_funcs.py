@@ -345,8 +345,24 @@ def get_curve(r_array,rho_array,guess_a,guess_b,guess_c,guess_d,functional_form)
 	return a,b,c,d#,d#,y 
 
 
-#def 
 
+
+def poly_curve(xdata,ydata,degree):
+	p=np.polyfit(xdata,ydata,degree)
+	d=degree
+	if d==2:
+		y=p[0]*(xdata**d) + p[1]*(xdata**(d-1)) +  p[d] 
+	elif d==3:
+		y=p[0]*(xdata**d) + p[1]*(xdata**(d-1))+ p[2]*(xdata**(d-2)) +  p[d]
+	elif d==4:
+		y=p[0]*(xdata**d) + p[1]*(xdata**(d-1))+ p[2]*(xdata**(d-2))+ p[3]*(xdata**(d-3)) +  p[d]
+	elif d==5:
+		y=p[0]*(xdata**d) + p[1]*(xdata**(d-1))+ p[2]*(xdata**(d-2))\
+		+ p[3]*(xdata**(d-3))+ p[4]*(xdata**(d-4)) +  p[d]
+	else:
+		print 'fits with degree > 5 not supported'
+		sys.exit()
+	return y
 
 # #------------------------------------------------------------------------------------
 # def density_integral(rl,ru, A,B,C):
