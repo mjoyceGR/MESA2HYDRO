@@ -1,5 +1,7 @@
 #!/usr/bin/env python
-import MESA2GADGET.mesalib.converge_funcs as cf
+import sys
+sys.path.append(os.path.abspath('../lib'))
+import converge_funcs as cf
 
 M_to_solar=1.988*10.0**33.0 ## g/Msolar
 R_to_solar=6.957*10.0**10.0 ## cm/Rsolar

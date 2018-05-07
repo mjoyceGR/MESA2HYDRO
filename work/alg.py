@@ -5,22 +5,26 @@ import matplotlib.pyplot as plt
 import sys
 import os
 import re
-sys.path.append('..')
+sys.path.append(os.path.abspath('../lib'))
 import MESAlibjoyce as MJ
 import converge_funcs as cf
-import MESA2GADGET.lib.io_lib as rw
-import MESA2GADGET.lib.mainlib as mn
-from MESA2GADGET.lib.cfg_parser import *
+import io_lib as rw
+import mainlib as mn
+from cfg_parser import *
 
 MESA_PKG_DIR = os.path.abspath(os.path.dirname(__file__))
 
-m2g_save_path=os.environ.get('MESA2GADGET_ROOT')
+m2g_save_path=os.path.abspath(os.environ.get('MESA2GADGET_ROOT'))
 
 if m2g_save_path is None:
     print("Environmental variable 'MESA2GADGET_ROOT' isn't set")
     print("Storing output data in default directory root {}"
           .format(MESA_PKG_DIR))
     m2g_save_path = MESA_PKG_DIR
+else:
+    print("Files will be saved in {}\n\n".format(m2g_save_path))
+    if not os.path.exists(m2g_save_path):
+        os.makedirs(m2g_save_path)
 
 import time
 start_time = time.time()
@@ -31,9 +35,11 @@ start_time = time.time()
 # LOAD PARAMETER VALUES
 #
 ########################################################
-VALID_CONFIGS = {
+
+## To add new parameters add name and default value
+SCRIPT_CONFIGS = {
     'check_MESA_profile': True,
-    'MESA_file': path_from_package('out/sample_MESA_output/profile_mainsequence_logE.data'),
+    'MESA_file': os.path.join(MESA_PKG_DIR, 'out/sample_MESA_output/profile_mainsequence_logE.data'),
     'make_NR_file': False,
     'loaded_NR_filename': 'work/NR_files/saveNR_ms.dat',
     'new_NR_filename': 'latest_NR.dat',
@@ -55,101 +61,59 @@ VALID_CONFIGS = {
     'reload_bin_size': 70.0,
     'use_bins_from_NR_file': False,
     'which_dtype':'f'}
-    
+ 
 
-parser=command_line_parser()
-args = parser.parse_args()
-if args.defaults:
-    for config, value in VALID_CONFIGS.items():
-        print("{} = {}".format(config, value))
-    exit(0)
+# Auto generates command line arguments and configuration file reading from SCRIPT_CONFIG definition
+options = OptionInputs(SCRIPT_CONFIGS, description='Program for converting MESA output to Gadget simulation files')
+
+user_configs = options.get_configs()
 
 
-###################### THIS IS THE MAIN THING I WANT TO DEAL WITH #######################
-elif args.config_file:
-    if not os.path.exists(args.config_file):
-        args.config_file = path_from_package(args.config_file)
+check_MESA_profile = user_configs['check_MESA_profile']
+make_NR_file = user_configs['make_NR_file']
+make_IC_file = user_configs['make_IC_file']
+try_reload = user_configs['try_reload']
+IC_format_type = user_configs['IC_format_type']
+MESA_file = user_configs['MESA_file']
+masscut = user_configs['masscut']
+N = user_configs['N']
+mp = user_configs['mp']
+mp_cgs = user_configs['mp_cgs']
+# doesn't seem to be used anymore
+#startype = user_configs['startype']
+stepsize = user_configs['stepsize']
+png_tag = user_configs['png_tag']
+loaded_NR_filename = user_configs['loaded_NR_filename']
+new_IC_filename = user_configs['new_IC_filename']
+loaded_IC_filename = user_configs['loaded_IC_filename']
 
-    if not os.path.exists(args.config_file):
-        print("Config file does not exist")
-
-    with open(args.config_file, 'r') as f:
-        config_file = f.read()
-
-    lines = config_file.splitlines()
-    lines = [line for line in lines
-             if not re.match('\s*#', line) and '=' in line]
-    config_file = "\n".join(lines)
-
-    check_MESA_profile = get_bool_option(config_file,'check_MESA_profile', VALID_CONFIGS['check_MESA_profile'])
-    make_NR_file = get_bool_option(config_file,'make_NR_file', VALID_CONFIGS['make_NR_file'])
-    make_IC_file = get_bool_option(config_file,'make_IC_file', VALID_CONFIGS['make_IC_file'])
-    try_reload = get_bool_option(config_file,'try_reload', VALID_CONFIGS['try_reload'])
-    IC_format_type = get_str_option(config_file,'IC_format_type', VALID_CONFIGS['IC_format_type'])
-    MESA_file = get_path_option(config_file,'MESA_file', VALID_CONFIGS['MESA_file'])
-    masscut = get_float_option(config_file,'masscut', VALID_CONFIGS['masscut'])
-    N = get_int_option(config_file,'N', VALID_CONFIGS['N'])
-    mp = get_float_option(config_file,'mp', VALID_CONFIGS['mp']) ##IN UNITES OF Msolar!!!
-    mp_cgs = get_float_option(config_file,'mp_cgs', VALID_CONFIGS['mp_cgs'])
-    stepsize = get_float_option(config_file,'stepsize', VALID_CONFIGS['stepsize']) ##IN UNITES OF cm
-    png_tag = get_str_option(config_file,'png_tag',VALID_CONFIGS['png_tag'])
-
-    if make_NR_file:
-        new_NR_filename = get_path_option(config_file,'new_NR_filename',VALID_CONFIGS['new_NR_filename'])
-    else:
-        loaded_NR_filename = get_path_option(config_file,'loaded_NR_filename', VALID_CONFIGS['loaded_NR_filename'])
-    if make_IC_file:
-        new_IC_filename = get_path_option(config_file,'new_IC_filename',VALID_CONFIGS['new_IC_filename'])
-    else:
-        loaded_IC_filename = get_path_option(config_file,'loaded_IC_filename', VALID_CONFIGS['loaded_IC_filename'])
-
-    ## Meridith adding more parameters
-    reload_bin_size = get_float_option(config_file,'reload_bin_size',VALID_CONFIGS['reload_bin_size'])
-    use_bins_from_NR_file= get_bool_option(config_file,'use_bins_from_NR_file', VALID_CONFIGS['use_bins_from_NR_file'])
-    which_dtype= get_str_option(config_file,'which_dtype', VALID_CONFIGS['which_dtype'])
-
-
-else:
-    check_MESA_profile = args.check_MESA_profile
-    make_NR_file = args.make_NR_file
-    make_IC_file = args.make_IC_file
-    try_reload = args.try_reload
-    IC_format_type = args.IC_format_type
-    MESA_file = args.MESA_file
-    masscut = args.masscut
-    N = args.N
-    mp = args.mp
-    mp_cgs = args.mp_cgs
-    startype = args.star_type
-    stepsize = args.step_size
-    png_tag = args.png_tag
-    if args.make_NR_file:
-        nrfile = args.new_NR_filename
-    else: 
-        nrfile = args.loaded_NR_filename
-
-    ## meridith additional parameters
-    reload_bin_size = args.reload_bin_size
-    use_bins_from_NR_file=args.use_bins_from_NR_file
-    which_dtype=args.which_dtype
+## meridith additional parameters
+reload_bin_size = user_configs['reload_bin_size']
+use_bins_from_NR_file=user_configs['use_bins_from_NR_file']
+which_dtype=user_configs['which_dtype']
 
 
 
 if make_NR_file:
-    nrfile=new_NR_filename#loaded_NR_filename
+    nrfile=new_NR_filename #loaded_NR_filename
 else:
     nrfile=loaded_NR_filename
 if make_IC_file:
     icfile=new_IC_filename
 else:        
     icfile=loaded_IC_filename
+
 # If the given path exists use that otherwise prepend the package path
 if not os.path.exists(nrfile):
-    nrfile = path_from_package(nrfile)
+    if make_NR_file:
+        nrfile = os.path.join(m2g_save_path, nrfile)
+    else:
+        nrfile = path_from_package(nrfile)
 if not os.path.exists(icfile):
-    icfile = path_from_package(icfile)
-  
-
+    if make_IC_file:
+        icfile = os.path.join(m2g_save_path, icfile)
+    else:
+        icfile = path_from_package(icfile)
 
 
 

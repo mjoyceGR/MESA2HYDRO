@@ -3,144 +3,229 @@ import sys
 import os
 import re
 import argparse
-from MESA2GADGET import MESA_PKG_DIR
+import tempfile
+
+MESA_PKG_DIR = os.path.abspath(os.path.dirname(os.path.dirname(__file__)))
+
+DEBUG = False
+
+if DEBUG:
+    print("PACKAGE PATH: {}".format(MESA_PKG_DIR))
+
 ######################################################
 #
 # module CONFIG PARSER
 #
 #####################################################
 
-
-def command_line_parser():
-##############################################################
-#
-# Command line argument input--- MUST ALSO EDIT HERE IF ADDING NEW PARAMETER
-#
-##############################################################
+class OptionTypeUnknown:
+    pass
 
 
-    VALID_CONFIGS = {
-        'check_MESA_profile': True,
-        'MESA_file': path_from_package('out/sample_MESA_output/profile_mainsequence_logE.data'),
-        'make_NR_file': False,
-        'loaded_NR_filename': 'work/NR_files/saveNR_ms.dat',
-        'new_NR_filename': 'latest_NR.dat',
+class Types:
+    STR = "str"
+    BOOL = "bool"
+    FLOAT = "float"
+    INT = "int"
 
-        'make_IC_file': False,
-        'loaded_IC_filename': 'ms_logE',
-        'new_IC_filename': 'latest_IC',
-        'IC_format_type': 'binary',
+class OptionInputs:
 
-        'masscut': 0.95,
-        'N': 8,
-        'mp': 1e-7,
-        'mp_cgs': 1.988e26,
-        'stepsize': 2.45e6,
+    def __init__(self, options, description=None,
+                 cmd_line=True, config_file=True, verbose=True):
+        self.verbose = verbose
+        self.options = options
+        self.config_file = config_file
+        self.cmd_line = cmd_line
+        self.parser = argparse.ArgumentParser(description=description)
+        self.parser.add_argument('--defaults', action='store_true',
+                                 help='List file\'s default configuration')
+        if self.config_file:
+            self.parser.add_argument('config_file', default=None, nargs='?',
+                                     help='Path to configuration file. '
+                                          'Overrides file defaults. '
+                                          'File defaults can be discovered with '
+                                          '\'--defaults\'')
 
-        'try_reload': False,
-        'png_tag': 'latest',
+        if self.cmd_line:
+            self.make_cmd_args()
+        self.args = None
+        self.file_out = None
+        self.out = {}
+        for name, default in options.items():
+            self.out[name] = default
 
-        'reload_bin_size': 70.0,
-        'use_bins_from_NR_file': False,
-        'which_dtype':'f'}
+    def show(self, msg):
+        if self.verbose:
+            print(msg)
 
+    def init_args(self):
+        if self.args:
+            return self.args
+        self.args = self.parser.parse_args()
+        if self.args.defaults:
+            print("Default file configuration: \n")
+            for config, value in self.options.items():
+                print("{} = {}".format(config, value))
+            sys.exit(0)
+        return self.args
 
+    def init_config(self):
+        self.init_args()
+        if self.args.config_file is None:
+            return {}
 
-    parser = argparse.ArgumentParser(description='Program for converting MESA output to Gadget simulation files')
-    parser.add_argument('--config-file',
-                        help='Path to configuration file')
-    parser.add_argument('--defaults', action='store_true',
-                        help='Lists the scripts default parameters and exits')
-    config_args = parser.add_argument_group("Configuration")
+        if not os.path.exists(self.args.config_file):
+            config_file = path_from_package(self.args.config_file)
+        else:
+            config_file = self.args.config_file
 
+        if not os.path.exists(config_file):
+            print("{} doesn't exist".format(self.args.config_file))
+            sys.exit(1)
 
-    # Boolean option flags set opposite of file default
-    config_args.add_argument('--check-MESA',
-                             action='store_true' if VALID_CONFIGS['check_MESA_profile'] else 'store_false',
-                             help='Sets check-MESA value to {}'
-                                  .format(not VALID_CONFIGS['check_MESA_profile']))
-    config_args.add_argument('--make-NR-file',
-                             action='store_true' if VALID_CONFIGS['make_NR_file'] else 'store_false',
-                             help='Sets make-NR-file to {}'
-                                  .format(not VALID_CONFIGS['make_NR_file']))
-    config_args.add_argument('--make-IC-file',
-                             action='store_true' if VALID_CONFIGS['make_IC_file'] else 'store_false',
-                             help='Sets make-IC-file value to {}'
-                                  .format(not VALID_CONFIGS['make_IC_file']))
-    config_args.add_argument('--try-reload',
-                             action='store_true' if VALID_CONFIGS['try_reload'] else 'store_false',
-                             help='Sets try-reload to {}'
-                                  .format(not VALID_CONFIGS['try_reload']))
-    config_args.add_argument('--format-type', default=VALID_CONFIGS['IC_format_type'],
-                             help='Type of the format (binary...)')
-    config_args.add_argument('--MESA-file',
-                             default=VALID_CONFIGS['MESA_file'],
+        with open(config_file, 'r') as cf:
+            self.file_out = cf.read()
 
-                             help='Path to input MESA output')
-    config_args.add_argument('--masscut', default=VALID_CONFIGS['masscut'],
-                             type=float,
-                             help='Sets masscut')
-    config_args.add_argument('--N', default=VALID_CONFIGS['N'],
-                             type=int,
-                             help='Sets N')
-    config_args.add_argument('--mp', default=VALID_CONFIGS['mp'],
-                             type=float,
-                             help='Set the mp value in Msolar units')
-    config_args.add_argument('--mp_cgs', default=VALID_CONFIGS['mp_cgs'],
-                             type=float,
-                             help='Set the mp value in cgs units')
-    config_args.add_argument('--step-size', default=VALID_CONFIGS['stepsize'],
-                             type=float,
-                             help='Sets the step size to the given value. Units in cm')
-    # config_args.add_argument('--star-type', default=VALID_CONFIGS['startype'],
-    #                          help='Set start type')
-    config_args.add_argument('--loaded_NR_filename', default=None,
-                             help='Set the NR file')
-    config_args.add_argument('--loaded_IC_filename', default=None,
-                             help='Set the IC file')
-    config_args.add_argument('--usNRbins',default=VALID_CONFIGS['use_bins_from_NR_file'],
-                             help='Use bins from NR file')
-    return parser
- 
+        lines = self.file_out.splitlines()
+        lines = [line for line in lines
+                 if not re.match('\s*#', line) and '=' in line]
+        self.file_out = "\n".join(lines)
+        return self.file_out
 
+    def get_config_file(self):
+        if self.file_out is None:
+            self.init_config()
+            
+        return self.file_out
 
+    @staticmethod
+    def get_type(option, value):
+        if isinstance(value, str):
+            return Types.STR
+        elif isinstance(value, bool):
+            return Types.BOOL
+        elif isinstance(value, int):
+            return Types.INT
+        elif isinstance(value, float):
+            return Types.FLOAT
+        else:
+            raise OptionTypeUnknown("Option {} has default value {}. "
+                                    "Unable to determine option's type from default value. "
+                                    "Supported add-able option types are str, bool, float, and int."
+                                    .format(option, value))
+
+    def make_cmd_args(self):
+        config_group = self.parser.add_argument_group(title="Config Options",
+                                                      description="Will overwrite config file values.")
+        for name, default in self.options.items():
+            opt_t = self.get_type(name, default)
+            if opt_t == Types.BOOL:
+                config_group.add_argument('--{}'.format(name),
+                                          action='store_{}'.format('false' if default else 'true'),
+                                          help="Sets {} to {}".format(name, not default))
+
+            elif opt_t == Types.STR:
+                config_group.add_argument('--{}'.format(name),
+                                          help="Sets {} to value supplied".format(name))
+
+            elif opt_t == Types.INT:
+                config_group.add_argument('--{}'.format(name),
+                                          type=int,
+                                          help="Sets {} to value supplied".format(name))
+            elif opt_t == Types.FLOAT:
+                config_group.add_argument('--{}'.format(name),
+                                          type=float,
+                                          help="Sets {} to value supplied".format(name))
+                                  
+
+    def read_config_file(self):
+        self.init_config()
+        for name, default in self.options.items():
+            if has_option(self.file_out, name):
+                opt_t = self.get_type(name, default)
+                if opt_t == Types.STR:
+                    self.out[name] = get_path_option(self.file_out, name)
+                elif opt_t == Types.BOOL:
+                    self.out[name] = get_bool_option(self.file_out, name)
+                elif opt_t == Types.INT:
+                    self.out[name] = get_int_option(self.file_out, name)
+                elif opt_t == Types.FLOAT:
+                    self.out[name] = get_float_option(self.file_out, name)
+
+        return self.out
+
+    def read_cmd_args(self):
+        self.init_args()
+        arguments = vars(self.args)
+        for name, value in arguments.items():
+            if value is not None:
+                self.out[name] = value
+
+        return self.out
+
+    def get_configs(self):
+        self.init_args()
+                    
+        if self.config_file and self.args.config_file:
+            self.show("Using config values from {}".format(self.args.config_file))
+            self.read_config_file()
+
+        if self.cmd_line:
+            self.read_cmd_args()
+
+        self.show("Script configurations are:")
+        for name, value in self.out.items():
+            self.show("\t{} = {}".format(name, value))
+
+        return self.out
 
 
 def path_from_package(path):
     return os.path.join(MESA_PKG_DIR, path)
 
-def get_path_option(config_file, name, default):
+
+def has_option(config_file, name):
+    return bool(re.search('^\s*{}\s*=\s*(?P<value>[\w\./]+)'.format(name),
+                          config_file, re.MULTILINE))
+
+
+def get_path_option(config_file, name, default=None):
     m = re.search('^\s*{}\s*=\s*(?P<value>[\w\./]+)'.format(name),
                   config_file, re.MULTILINE)
     if m:
         value = m.group('value')
-        print("Using config file value for {} of {}".format(name, value))
+        if DEBUG:
+            print("Using config file value for {} of {}".format(name, value))
         return value
     else:
         if re.search(name, config_file):
             print("{} was malformed in config file".format(name))
         return default
 
-def get_str_option(config_file,name, default):
+
+def get_str_option(config_file,name, default=None):
     m = re.search('^\s*{}\s*=\s*(?P<value>\w+)'.format(name),
                   config_file, re.MULTILINE)
     if m:
         value = m.group('value')
-        print("Using config file value for {} of {}".format(name, value))
+        if DEBUG:
+            print("Using config file value for {} of {}".format(name, value))
         return value
     else:
         if re.search(name, config_file):
             print("{} was malformed in config file".format(name))
         return default
 
-def get_float_option(config_file,name, default):
+
+def get_float_option(config_file,name, default=None):
     m = re.search('^\s*{}\s*=\s*(?P<value>[\w\.-]+)'.format(name),
                   config_file, re.MULTILINE)
     if m:
         try:
             value = m.group('value')
             value = float(value)
-            print("Using config file value for {} of {}".format(name, value))
+            if DEBUG:
+                print("Using config file value for {} of {}".format(name, value))
             return value
         except ValueError:
             print("{} has a misformed value. {} is not a recognized float"
@@ -150,14 +235,16 @@ def get_float_option(config_file,name, default):
             print("{} was malformed in config file".format(name))
         return default
 
-def get_int_option(config_file,name, default):
+
+def get_int_option(config_file,name, default=None):
     m = re.search('^\s*{}\s*=\s*(?P<value>\w+)'.format(name),
                   config_file, re.MULTILINE)
     if m:
         try:
             value = m.group('value')
             value = int(value)
-            print("Using config file value for {} of {}".format(name, value))
+            if DEBUG:
+                print("Using config file value for {} of {}".format(name, value))
             return value
         except ValueError:
             print("{} has a misformed value. {} is not a recognized float"
@@ -167,18 +254,21 @@ def get_int_option(config_file,name, default):
             print("{} was malformed in config file".format(name))
         return default
 
-def get_bool_option(config_file,name, default):
+
+def get_bool_option(config_file,name, default=None):
     m = re.search('^\s*{}\s*=\s*(?P<value>\w+)'.format(name),
                   config_file, re.MULTILINE)
     if m:
         # case insensitive true
         value = m.group('value')
         if value.upper() == "TRUE":
-            print("Using config file value for {} of {}".format(name, True))
+            if DEBUG:
+                print("Using config file value for {} of {}".format(name, True))
             return True
         else:
             if value.upper() == "FALSE":
-                print("Using config file value for {} of {}".format(name, False))
+                if DEBUG:
+                    print("Using config file value for {} of {}".format(name, False))
                 return False
         print("{} needs to have true or false and is {}".format(name, value))
         return default

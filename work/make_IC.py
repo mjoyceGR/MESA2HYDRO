@@ -3,11 +3,11 @@ import numpy as np
 import matplotlib.pyplot as plt
 import sys
 import os
-m2g_path=os.environ['MESA2GADGET_ROOT']
-sys.path.append(m2g_path+'/src/')
-import MESA2GADGET.lib.MESAlibjoyce as MJ
-import MESA2GADGET.lib.converge_funcs as cf
-import MESA2GADGET.lib.io_lib as rw
+#m2g_path=os.environ['MESA2GADGET_ROOT']
+sys.path.append(os.path.abspath('../lib'))
+import MESAlibjoyce as MJ
+import converge_funcs as cf
+import io_lib as rw
 import time
 start_time = time.time()
 

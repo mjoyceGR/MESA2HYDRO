@@ -4,10 +4,10 @@ import matplotlib.pyplot as plt
 import subprocess
 import sys
 import os
-m2g_path=os.environ['MESA2GADGET_ROOT']
-sys.path.append(m2g_path+'/lib/')
-import MESA2GADGET.lib.MESAlibjoyce as MJ
-import MESA2GADGET.lib.converge_funcs as cf
+#m2g_path=os.environ['MESA2GADGET_ROOT']
+sys.path.append(os.path.abspath('../lib'))
+import MESAlibjoyce as MJ
+import converge_funcs as cf
 ###################################################
 M_to_solar=1.988*10.0**33.0 ## g/Msolar
 R_to_solar=6.957*10.0**10.0 ## cm/Rsolar
