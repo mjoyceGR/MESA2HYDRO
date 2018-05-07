@@ -5,7 +5,7 @@ import re
 import argparse
 import tempfile
 
-MESA_PKG_DIR = os.path.abspath(os.path.dirname(os.path.dirname(__file__)))
+MESA_PKG_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 
 DEBUG = False
 
