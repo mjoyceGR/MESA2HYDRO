@@ -14,19 +14,6 @@ import io_lib as rw
 import mainlib as mn
 from cfg_parser import *
 
-
-m2g_save_path=os.path.abspath(os.environ.get('MESA2GADGET_ROOT'))
-
-if m2g_save_path is None:
-    print("Environmental variable 'MESA2GADGET_ROOT' isn't set")
-    print("Storing output data in default directory root {}"
-          .format(MESA_PKG_DIR))
-    m2g_save_path = MESA_PKG_DIR
-else:
-    print("Files will be saved in {}\n\n".format(m2g_save_path))
-    if not os.path.exists(m2g_save_path):
-        os.makedirs(m2g_save_path)
-
 import time
 start_time = time.time()
 
@@ -40,7 +27,7 @@ start_time = time.time()
 ## To add new parameters add name and default value
 SCRIPT_CONFIGS = {
     'check_MESA_profile': True,
-    'MESA_file': os.path.join(MESA_PKG_DIR, 'data/sample_MESA_output/profile_mainsequence_logE.data'),
+    'MESA_file': 'data/sample_MESA_output/profile_mainsequence_logE.data',
     'make_NR_file': False,
     'loaded_NR_filename': 'work/NR_files/saveNR_ms.dat',
     'new_NR_filename': 'latest_NR.dat',
@@ -76,7 +63,7 @@ make_NR_file = user_configs['make_NR_file']
 make_IC_file = user_configs['make_IC_file']
 try_reload = user_configs['try_reload']
 IC_format_type = user_configs['IC_format_type']
-MESA_file = user_configs['MESA_file']
+MESA_file = relative_to_root(user_configs['MESA_file'])
 masscut = user_configs['masscut']
 N = user_configs['N']
 mp = user_configs['mp']
@@ -105,18 +92,9 @@ if make_IC_file:
 else:        
     icfile=loaded_IC_filename
 
-### Do path stuff later
-# If the given path exists use that otherwise prepend the package path
-#if not os.path.exists(nrfile):
-#    if make_NR_file:
-#        nrfile = os.path.join(m2g_save_path, nrfile)
-#    else:
-#        nrfile = path_from_package(nrfile)
-#if not os.path.exists(icfile):
-#    if make_IC_file:
-#        icfile = os.path.join(m2g_save_path, icfile)
-#    else:
-#        icfile = path_from_package(icfile)
+# makes the path relative to MESA2GADGET_ROOT directory
+nrfile = relative_to_root(nrfile)
+icfile = relative_to_root(icfile)
 
 ############################################################
 ###################################################
