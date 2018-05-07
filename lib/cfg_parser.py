@@ -120,7 +120,7 @@ class OptionInputs:
         for name, default in self.options.items():
             opt_t = self.get_type(name, default)
             if opt_t == Types.BOOL:
-                config_group.add_argument('--{}'.format(name),
+                config_group.add_argument('--{}'.format(name), default=None,
                                           action='store_{}'.format('false' if default else 'true'),
                                           help="Sets {} to {}".format(name, not default))
 
@@ -158,6 +158,8 @@ class OptionInputs:
         self.init_args()
         arguments = vars(self.args)
         for name, value in arguments.items():
+            if name not in self.options:
+                continue
             if value is not None:
                 self.out[name] = value
 
@@ -174,7 +176,7 @@ class OptionInputs:
             self.read_cmd_args()
 
         self.show("Script configurations are:")
-        for name, value in self.out.items():
+        for name, value in sorted(self.out.items()):
             self.show("\t{} = {}".format(name, value))
 
         return self.out

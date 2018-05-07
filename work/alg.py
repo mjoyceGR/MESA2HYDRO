@@ -40,7 +40,7 @@ start_time = time.time()
 ## To add new parameters add name and default value
 SCRIPT_CONFIGS = {
     'check_MESA_profile': True,
-    'MESA_file': os.path.join(MESA_PKG_DIR, 'out/sample_MESA_output/profile_mainsequence_logE.data'),
+    'MESA_file': os.path.join(MESA_PKG_DIR, 'data/sample_MESA_output/profile_mainsequence_logE.data'),
     'make_NR_file': False,
     'loaded_NR_filename': 'work/NR_files/saveNR_ms.dat',
     'new_NR_filename': 'latest_NR.dat',
@@ -105,17 +105,18 @@ if make_IC_file:
 else:        
     icfile=loaded_IC_filename
 
+### Do path stuff later
 # If the given path exists use that otherwise prepend the package path
-if not os.path.exists(nrfile):
-    if make_NR_file:
-        nrfile = os.path.join(m2g_save_path, nrfile)
-    else:
-        nrfile = path_from_package(nrfile)
-if not os.path.exists(icfile):
-    if make_IC_file:
-        icfile = os.path.join(m2g_save_path, icfile)
-    else:
-        icfile = path_from_package(icfile)
+#if not os.path.exists(nrfile):
+#    if make_NR_file:
+#        nrfile = os.path.join(m2g_save_path, nrfile)
+#    else:
+#        nrfile = path_from_package(nrfile)
+#if not os.path.exists(icfile):
+#    if make_IC_file:
+#        icfile = os.path.join(m2g_save_path, icfile)
+#    else:
+#        icfile = path_from_package(icfile)
 
 ############################################################
 ###################################################
