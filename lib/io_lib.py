@@ -159,7 +159,7 @@ def make_IC_hdf5_old_way(out_fname, mp, x, y, z,E, **kwargs):    #rho out
     h.attrs['Flag_StellarAge'] = 0; # flag indicating whether stellar ages are to be saved
     h.attrs['Flag_Metals'] = 0; # flag indicating whether metallicity are to be saved
     h.attrs['Flag_Feedback'] = 0; # flag indicating whether some parts of springel-hernquist model are active
-    h.attrs['Flag_DoublePrecision'] = 0; # flag indicating whether ICs are in single/double precision
+    h.attrs['Flag_DoublePrecision'] = 1; # flag indicating whether ICs are in single/double precision
     h.attrs['Flag_IC_Info'] = 0; # flag indicating extra options for ICs
 
     p = file.create_group("PartType0")

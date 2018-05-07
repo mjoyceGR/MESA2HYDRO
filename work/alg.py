@@ -46,7 +46,7 @@ SCRIPT_CONFIGS = {
     'try_reload': False,
     'png_tag': 'latest',
 
-    'reload_bin_size': 70.0,
+    'reload_bin_number': 70.0,
     'use_bins_from_NR_file': False,
     'which_dtype':'f'}
  
@@ -72,12 +72,13 @@ mp_cgs = user_configs['mp_cgs']
 #startype = user_configs['startype']
 stepsize = user_configs['stepsize']
 png_tag = user_configs['png_tag']
+new_NR_filename=user_configs['new_NR_filename']
 loaded_NR_filename = user_configs['loaded_NR_filename']
 new_IC_filename = user_configs['new_IC_filename']
 loaded_IC_filename = user_configs['loaded_IC_filename']
 
 ## meridith additional parameters
-reload_bin_size = user_configs['reload_bin_size']
+reload_bin_number = user_configs['reload_bin_number']
 use_bins_from_NR_file=user_configs['use_bins_from_NR_file']
 which_dtype=user_configs['which_dtype']
 
@@ -238,12 +239,12 @@ if try_reload:
 
 
     else:
-        nbin=reload_bin_size
-        print "plotting data using binsize=", reload_bin_size
-        r_reloaded,rho_reloaded=mn.binned_r_rho(r_recovered, masses_recovered[0], reload_bin_size)
+        nbin=reload_bin_number
+        print "plotting data using binsize=", reload_bin_number
+        r_reloaded,rho_reloaded=mn.binned_r_rho(r_recovered, masses_recovered[0], reload_bin_number)
 
 
-    #mn.quick_plot(MESA_file,masscut, r_reloaded,rho_reloaded,IC_format_type,png_tag=png_tag)   
+    mn.quick_plot(MESA_file,masscut, r_reloaded,rho_reloaded,IC_format_type,png_tag=png_tag)   
 
 
 
