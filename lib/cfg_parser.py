@@ -11,10 +11,10 @@ MESA_PKG_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 
 print("Package directory: {}".format(MESA_PKG_DIR))
 
-m2g_save_path=os.path.abspath(os.environ.get('MESA2GADGET_ROOT'))
+m2g_save_path=os.path.abspath(os.environ.get('MESA2SPH_ROOT'))
 
 if m2g_save_path is None:
-    print("Environmental variable 'MESA2GADGET_ROOT' isn't set")
+    print("Environmental variable 'MESA2SPH_ROOT' isn't set")
     print("Storing output data in default directory root {}"
           .format(MESA_PKG_DIR))
     m2g_save_path = MESA_PKG_DIR
@@ -26,7 +26,7 @@ else:
 
 def relative_to_root(path):
     """If the file doesn't exists as is make the path relative to 
-       MESA2GADGET_ROOT environment variable"""
+       MESA2SPH_ROOT environment variable"""
     if not os.path.exists(path):
         path = os.path.join(m2g_save_path, path)
     return path

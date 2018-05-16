@@ -5,7 +5,7 @@ from scipy.optimize import curve_fit
 #import pygadgetreader as pgr # works- credit this person
 import sys
 import os
-m2g_path=os.environ['MESA2GADGET_ROOT']
+m2g_path=os.environ['MESA2SPH_ROOT']
 sys.path.append(m2g_path+'/lib/')
 import MESA2GADGET.mesalib.MESAhandling as MJ
 import datetime as dt 
