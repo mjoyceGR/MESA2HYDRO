@@ -8,7 +8,7 @@ import re
 MESA_PKG_DIR = os.path.abspath(
     os.path.join(os.path.abspath(os.path.dirname(__file__)), '..'))
 sys.path.insert(0, os.path.join(MESA_PKG_DIR, 'lib'))
-import MESAlibjoyce as MJ
+import MESAhandling as MJ
 import converge_funcs as cf
 import io_lib as rw
 import mainlib as mn

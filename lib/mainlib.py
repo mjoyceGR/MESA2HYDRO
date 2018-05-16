@@ -12,7 +12,7 @@ import hdf5lib as hdf5lib
 import time
 ########################################################
 #
-# this module contains the main subroutines for alg.py 
+# this module contains the main subroutines for run.py 
 # and subordinate minor subroutines
 #
 #########################################################

@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 from scipy.optimize import curve_fit
 import sys
 #import pygadgetreader as pgr # works- credit this person
-import MESAlibjoyce as MJ
+import MESAhandling as MJ
 import mainlib as mn
 
 import datetime as dt 
