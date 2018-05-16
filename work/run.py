@@ -162,90 +162,18 @@ if make_IC_file:
 ###############################################
 if try_reload:
     r_recovered, masses_recovered=mn.reload_IC(icfile,IC_format_type, which_dtype=which_dtype)
-    print "min and max radius from r recovered data: ", r_recovered.min(), r_recovered.max()
+    print "min and max radius from recovered data: ", r_recovered.min(), r_recovered.max()
 
     if use_bins_from_NR_file:
-        #print 'using radial binning from NR file'
         r_reloaded,rho_reloaded=mn.bins_from_NR(nrfile,r_recovered,masses_recovered[0])
-        nbin=45
-        r_reloaded,rho_reloaded=mn.binned_r_rho(r_recovered, masses_recovered[0],nbin)
-        fit_region_R=mn.MESA_r(MESA_file, masscut)
-        fit_region_rho=mn.MESA_rho(MESA_file, masscut)
-
-        r_factor=r_reloaded.min()
-        rho_factor=r_reloaded.max()
-
-        r_norm=cf.to_log(r_reloaded/r_factor)
-        fit_region_R=cf.to_log(fit_region_R/r_factor)
-        rho_norm=cf.to_log(rho_reloaded/rho_factor)
-        fit_region_rho=cf.to_log(fit_region_rho/rho_factor)
-
-        # plt.plot(r_norm,rho_norm,'yo', color='orange', label='loaded data')
-        # plt.show()
-        # plt.close()
-
-        rho_fit_poly=cf.poly_curve(r_norm,rho_norm,5)
-        MESA_rho_fit_poly=cf.poly_curve(fit_region_R,fit_region_rho,5)
-
-        A_guess=100#35.0#50
-        C_guess=0#8#0
-        D_guess=0.875*A_guess#87.5#4.8#45
-        B_guess=D_guess-(A_guess/40.0)#85#4.0##44
-        rho_fit_forced=cf.one_over_r(r_norm,A_guess,B_guess,C_guess,D_guess)
-        try:
-            A,B,C,D=cf.get_curve(r_norm,rho_norm,A_guess,B_guess,C_guess,D_guess, cf.one_over_r)
-        except RuntimeError:
-            A=A_guess
-            B=B_guess
-            C=C_guess
-            D=D_guess
-
-        print "found A,B,C,D:", A,B,C,D
-        rho_fit_found=cf.one_over_r(r_norm,A,B,C,D)
-
-
-
-
-
-        A_guess=100
-        C_guess=0
-        D_guess=0.875*A_guess
-        B_guess=D_guess-(A_guess/40.0)
-        MESA_rho_fit_forced=cf.one_over_r(fit_region_R,A_guess,B_guess,C_guess,D_guess)
-        try:
-            A,B,C,D=cf.get_curve(fit_region_R,fit_region_rho,A_guess,B_guess,C_guess,D_guess, cf.one_over_r)
-        except RuntimeError:
-            A=A_guess
-            B=B_guess
-            C=C_guess
-            D=D_guess
-        MESA_rho_fit_found=cf.one_over_r(fit_region_R,A,B,C,D)
-
-
-
-        plt.plot(r_norm,rho_norm,'yo', color='orange', label='loaded data')
-        plt.plot(r_norm,rho_fit_found, 'r-', linewidth=2, label=r'fit to rho w/ optimize')#r_reloaded
-        plt.plot(r_norm,rho_fit_poly, 'm-',linewidth=2,label=r'Gadget fit w/ poly')
-        #plt.plot(r_norm,rho_fit_forced, 'g-', linewidth=2, label=r'fit to rho by hand')#r_reloaded
-        plt.ylim(-6,-3)
-        plt.plot(fit_region_R, fit_region_rho, "b.", markersize=4, label='MESA data') #cf.to_log()
-        #plt.plot(fit_region_R, MESA_rho_fit_poly,"c-", linewidth=2, label=r'MESA fit w/ poly')
-        #plt.plot(fit_region_R, MESA_rho_fit_found,"m-",color='maroon',linewidth=1, label=r'MESA fit w/ optimize')
-        plt.legend(loc=3)
-        plt.savefig('fit.png')
-        #plt.show()
-        plt.close()
-        r_reloaded,rho_reloaded=mn.bins_from_NR(nrfile,r_recovered,masses_recovered[0])
-
 
     else:
         nbin=reload_bin_number
-        print "plotting data using binsize=", reload_bin_number
+        print "plotting data using ", reload_bin_number, " bins"
         r_reloaded,rho_reloaded=mn.binned_r_rho(r_recovered, masses_recovered[0], reload_bin_number)
 
 
     mn.quick_plot(MESA_file,masscut, r_reloaded,rho_reloaded,IC_format_type,png_tag=png_tag)   
-
 
 
 print "total execution length: "
