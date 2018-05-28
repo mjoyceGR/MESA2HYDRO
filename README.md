@@ -1,7 +1,7 @@
 # MESA2SPH
 
 ## Introduction
-From discreet MESA stellar density profile data, this package creates an Initial Conditions (IC) file readable by smoothed-particle hydrodynamics (SPH) codes such as GADGET-2.  
+From discrete MESA stellar density profile data, this package creates an Initial Conditions (IC) file readable by smoothed-particle hydrodynamics (SPH) codes such as GADGET-2.  
 Generating MESA data requires basic operational understanding of MESA. Running GADGET-2, AREPO, or other SPH codes are the user's responsibility. 
 
 The primary purpose of this software is to generate "NR" files which characterize the mass distribution in the outer regions of an arbitrary model star.
