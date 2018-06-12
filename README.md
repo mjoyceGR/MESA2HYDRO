@@ -1,4 +1,4 @@
-# MESA2SPH
+# MESA2HYDRO
 
 ## Introduction
 From discrete MESA stellar density profile data, this package creates an Initial Conditions (IC) file readable by smoothed-particle hydrodynamics (SPH) codes such as GADGET-2.  
@@ -23,10 +23,10 @@ From the directory in which this is unpacked, run
 
 	./setup.py local
 
-Further information on installation is described in the 1D-MESA2SPH-3D user's guide.
+Further information on installation is described in the 1D-MESA2HYDRO-3D user's guide.
 
 ## Prerequisites
-This project was interfaced with mesa version 10398 with example inlists and input models (e.g. wd.mod) sourced from data provided within mesa-r10398. See 1D-MESA2SPH-3D user's guide.
+This project was interfaced with mesa version 10398 with example inlists and input models (e.g. wd.mod) sourced from data provided within mesa-r10398. See 1D-MESA2HYDRO-3D user's guide.
 
 
 ## System requirements:
@@ -36,7 +36,7 @@ This project was interfaced with mesa version 10398 with example inlists and inp
 	hdf5 libraries 
 
 
-	See 1D-MESA2SPH-3D user's guide for a list of Python dependencies
+	See 1D-MESA2HYDRO-3D user's guide for a list of Python dependencies
 
 
 ## Operation
@@ -44,4 +44,4 @@ Basic operation proceeds from the "work" subdirectory via
 
 	./run test.cfg
 
-See 1D-MESA2SPH-3D user's guide for more detailed information.
+See 1D-MESA2HYDRO-3D user's guide for more detailed information.
