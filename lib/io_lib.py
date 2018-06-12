@@ -233,3 +233,24 @@ def make_IC_binary(fname, mp, x, y, z, E, which_dtype='f',**kwargs):
 
     pygadgetic.dump_ic(my_header,my_body,fname, which_dtype=which_dtype)
     return fname
+
+
+###############################################################
+#
+# Safe Dumb Text, no fancy formatting
+#
+###############################################################
+def make_IC_text(fname, mp, x, y, z, E, which_dtype='f',**kwargs):
+    outf=open(fname, "w")
+
+    lines = [( ("%.0f"%mp[i])\
+          +' '+("%.32f"%x[i])\
+          +' '+("%.32f"%y[i])\
+          +' '+("%.32f"%z[i])\
+          +' '+("%.0f"%E[i]))\
+          for i in range(len(mp))]
+
+    print >> outf, "\n".join(lines)
+
+    outf.close()
+    return fname

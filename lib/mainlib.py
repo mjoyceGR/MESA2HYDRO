@@ -190,6 +190,34 @@ def estimate_stepsize(MESA_file, masscut, Nshells):
 
 
 
+# def reload_IC( IC_file, format_type, which_dtype='f'): #rmax #NR_file
+#     filetype=str(format_type)
+
+#     print "\n\n\n<----testing reload---->"
+#     # N,r_set,m_cont=np.loadtxt(NR_file, usecols=(0,1,2), unpack=True)
+#     if filetype=='hdf5':
+#         hdf5_file=IC_file+'.hdf5'
+#         PartType=0
+#         masses=rw.read_block_single_file(hdf5_file,'Masses',PartType)[0][:]
+#         x=rw.read_block_single_file(hdf5_file,"Coordinates",PartType)[0][:][:,0]
+#         y=rw.read_block_single_file(hdf5_file,"Coordinates",PartType)[0][:][:,1]
+#         z=rw.read_block_single_file(hdf5_file,"Coordinates",PartType)[0][:][:,2]
+#     else:   
+#         f=open(IC_file+'.bin','r')
+#         ptype=0
+#         header=rw.load_gadget_binary_header(f)
+#         attribute_dictionary=rw.load_gadget_binary_particledat(f, header, ptype, skip_bh=0, which_dtype=which_dtype)
+
+#         positions=attribute_dictionary['Coordinates']
+#         masses=attribute_dictionary['Masses'] ##all of these are the same value, mp
+#         x=positions[:,0]
+#         y=positions[:,1]
+#         z=positions[:,2]
+
+#     r_recovered= np.sqrt(x**2.0 + y**2.0 + z**2.0)#*float(rmax)
+#     return r_recovered, masses
+
+
 def reload_IC( IC_file, format_type, which_dtype='f'): #rmax #NR_file
     filetype=str(format_type)
 
@@ -202,7 +230,7 @@ def reload_IC( IC_file, format_type, which_dtype='f'): #rmax #NR_file
         x=rw.read_block_single_file(hdf5_file,"Coordinates",PartType)[0][:][:,0]
         y=rw.read_block_single_file(hdf5_file,"Coordinates",PartType)[0][:][:,1]
         z=rw.read_block_single_file(hdf5_file,"Coordinates",PartType)[0][:][:,2]
-    else:   
+    elif filetype=='gadget_binary':   
         f=open(IC_file+'.bin','r')
         ptype=0
         header=rw.load_gadget_binary_header(f)
@@ -214,9 +242,12 @@ def reload_IC( IC_file, format_type, which_dtype='f'): #rmax #NR_file
         y=positions[:,1]
         z=positions[:,2]
 
-    r_recovered= np.sqrt(x**2.0 + y**2.0 + z**2.0)#*float(rmax)
-    return r_recovered, masses
+    else:
+        masses,x,y,z,E=np.loadtxt(IC_file+'.txt',usecols=(0,1,2,3,4), unpack=True)
 
+    r_recovered= np.sqrt(x**2.0 + y**2.0 + z**2.0)#*float(rmax)
+
+    return r_recovered, masses
 
 
 def binned_r_rho(r_array,mp,nbin):
@@ -259,27 +290,6 @@ def bins_from_NR(NR_file_name, r_array, mp):
     return cf.to_array(r), cf.to_array(rho)
 
 
-###############
-#
-# this will never work, please drop this idea
-#
-################
-# def no_bins(r_array,mp):
-#     rmin=r_array.min()
-#     rmax=r_array.max()
-#     r=[]
-#     rho=[]
-#     for i in range(len(r_array)-1):
-#         r1=r_array[i]
-#         r2=r_array[i+1]
-#         region=np.where( (r1<=r_array) &(r2>r_array))  #size of this should be ~12N^2
-#         if len(r_array[region])==0:
-#             rho.append(0.0)
-#         else:
-#             rho.append( len(r_array[region])*mp/(cf.volume(r2)-cf.volume(r1))  )
-#         r.append(r2)
-        
-#     return cf.to_array(r), cf.to_array(rho)
 
 
 
