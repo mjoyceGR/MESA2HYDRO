@@ -4,22 +4,20 @@
 ! This inlist runs an AGB star with initial mass 1.8 Msolar and solar metallicity, terminating during a thermal pulse
 ! It DOES NOT require a pre-generated MESA model
 ! You must change the directory strings to point to
-!     - your MESA2GADGET data directory
+!     - your MESA2HYDRO data directory
 !     - your MESA directory
 !
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 &star_job
       mesa_dir = '/home/mjoyce/MESA/mesa-r10398'
-      history_columns_file='/home/mjoyce/MESA2GADGET/data/history_columns_testsuite.list'
-      profile_columns_file='/home/mjoyce/MESA2GADGET/data/profile_columns_testsuite.list'
+      history_columns_file='/home/mjoyce/MESA2HYDRO/data/MESA_controls/history_columns_testsuite.list'
+      profile_columns_file='/home/mjoyce/MESA2HYDRO/data/MESA_controls/profile_columns_testsuite.list'
 
       filename_for_profile_when_terminate = 'profile_AGB.data'
 
       create_pre_main_sequence_model = .true.
 
-      !kappa_lowT_prefix = 'lowT_ma09_gn93' !<---- Mjoyce: this kappa data does not exist in this version of MESA
-      !soooooooo...just turn it off? OK!!
 
       kappa_blend_logT_upper_bdy = 4.0d0 ! <= 0 means use default
          ! actual upper boundary will be min of this and max logT for lowT tables

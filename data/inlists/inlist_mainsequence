@@ -4,7 +4,7 @@
 ! This inlist runs a solar-mass, solar-metallicity star to an age of 3.0 Gyr, terminating on the main sequence
 ! It DOES NOT require a pre-generated MESA model
 ! You must change the directory strings to point to
-!     - your MESA2GADGET data directory
+!     - your MESA2HYDRO data directory
 !     - your MESA directory
 !
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -13,8 +13,8 @@
 &star_job
 
   mesa_dir = '/home/meridith/MESA/mesa-r10398'
-  history_columns_file='/home/meridith/UCT_SAAO/detached_shells/MESA2GADGET/data/history_columns_testsuite.list'
-  profile_columns_file='/home/meridith/UCT_SAAO/detached_shells/MESA2GADGET/data/profile_columns_testsuite.list'
+  history_columns_file='/home/meridith/UCT_SAAO/research/MESA2HYDRO/data/MESA_controls/history_columns_testsuite.list'
+  profile_columns_file='/home/meridith/UCT_SAAO/research/MESA2HYDRO/data/MESA_controls/profile_columns_testsuite.list'
 
   filename_for_profile_when_terminate = 'profile_mainsequence.data'
 

@@ -5,8 +5,8 @@
 
 &star_job
       mesa_dir = '/home/mjoyce/MESA/mesa-r10398'
-      history_columns_file='/home/mjoyce/MESA2GADGET/data/MESA_controls/history_columns_testsuite.list'
-      profile_columns_file='/home/mjoyce/MESA2GADGET/data/MESA_controls/profile_columns_testsuite.list'
+      history_columns_file='/home/mjoyce/MESA2HYDRO/data/MESA_controls/MESA_controls/history_columns_testsuite.list'
+      profile_columns_file='/home/mjoyce/MESA2HYDRO/data/MESA_controls/MESA_controls/profile_columns_testsuite.list'
 
       write_profile_when_terminate = .true.
       filename_for_profile_when_terminate = 'profile_wd_0.54test.data'

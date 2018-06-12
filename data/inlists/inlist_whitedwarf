@@ -3,9 +3,9 @@
 !
 ! This inlist runs a white dwarf without a model
 ! You must change the directory strings to point to
-!     - your MESA2GADGET data directory
+!     - your MESA2HYDRO data directory
 !     - your MESA directory
-!     - the location of wd.mod, set by default to $MESA2GADGET_ROOT/data/whitedwarf/wd.mod
+!     - the location of wd.mod, set by default to $MESA2HYDRO_ROOT/data/whitedwarf/wd.mod
 !
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -13,8 +13,8 @@
       show_log_description_at_start = .false.
 
       mesa_dir = '/home/meridith/MESA/mesa-r10398'
-      history_columns_file='/home/meridith/UCT_SAAO/detached_shells/MESA2GADGET/data/history_columns_testsuite.list'
-      profile_columns_file='/home/meridith/UCT_SAAO/detached_shells/MESA2GADGET/data/profile_columns_testsuite.list'
+      history_columns_file='/home/meridith/UCT_SAAO/research/MESA2HYDRO/data/MESA_controls/history_columns_testsuite.list'
+      profile_columns_file='/home/meridith/UCT_SAAO/research/MESA2HYDRO/data/MESA_controls/profile_columns_testsuite.list'
       load_saved_model = .false.
 
       write_profile_when_terminate = .true.

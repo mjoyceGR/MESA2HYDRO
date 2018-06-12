@@ -4,16 +4,16 @@
 ! This inlist runs an AGB star with initial mass 2.0 Msolar and Z=0.01, terminating....
 ! This requires use of the input model agb2.mod, taken from the test suite of mesa-r10398 (where it is named 2m_z1m2_agb.modk) and included with this suite
 ! You must change the directory strings to point to
-!     - your MESA2GADGET data directory
+!     - your MESA2HYDRO data directory
 !     - your MESA directory
-!     - the location of agb.mod, set by default to $MESA2GADGET_ROOT/data/AGB/agb.mod
+!     - the location of agb.mod, set by default to $MESA2HYDRO_ROOT/data/AGB/agb.mod
 !
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 &star_job
       mesa_dir = '/home/mjoyce/MESA/mesa-r10398'
-      history_columns_file='/home/mjoyce/MESA2GADGET/data/history_columns_testsuite.list'
-      profile_columns_file='/home/mjoyce/MESA2GADGET/data/profile_columns_testsuite.list'
+      history_columns_file='/home/mjoyce/MESA2HYDRO/data/MESA_controls/history_columns_testsuite.list'
+      profile_columns_file='/home/mjoyce/MESA2HYDRO/data/MESA_controls/profile_columns_testsuite.list'
       load_saved_model = .true.
       saved_model_name = '/home/mjoyce/data/AGB/agb2.mod'
 
