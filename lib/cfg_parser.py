@@ -11,10 +11,14 @@ MESA_PKG_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 
 print("Package directory: {}".format(MESA_PKG_DIR))
 
-m2g_save_path=os.path.abspath(os.environ.get('MESA2SPH_ROOT'))
+try:
+    m2g_save_path=os.path.abspath(os.environ.get('MESA2HYDRO_ROOT'))
+except AttributeError:
+    print "Error: Use absolute paths in .cfg file or set MESA2HYDRO_ROOT in .bashrc"
+    sys.exit(0)
 
 if m2g_save_path is None:
-    print("Environmental variable 'MESA2SPH_ROOT' isn't set")
+    print("Environmental variable 'MESA2HYDRO_ROOT' isn't set")
     print("Storing output data in default directory root {}"
           .format(MESA_PKG_DIR))
     m2g_save_path = MESA_PKG_DIR
@@ -26,7 +30,7 @@ else:
 
 def relative_to_root(path):
     """If the file doesn't exists as is make the path relative to 
-       MESA2SPH_ROOT environment variable"""
+       MESA2HYDRO_ROOT environment variable"""
     if not os.path.exists(path):
         path = os.path.join(m2g_save_path, path)
     return path
