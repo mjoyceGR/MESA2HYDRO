@@ -125,9 +125,6 @@ def get_IC(NR_file_name,output_filename,mp,which_dtype='f', *args, **kwargs): #t
     #print "\n\nWARNING! mp not multiplied by M_solar!! \n\n"
     #mp=mp*M_to_solar 
 
-    hdf5file=str(output_filename)+ '.hdf5'
-    binaryfile=str(output_filename)+ '.bin'
-
     N,rmid,E=np.loadtxt(NR_file_name, usecols=(0,1,3), unpack=True) 
 
     super_x=[]
@@ -168,14 +165,19 @@ def get_IC(NR_file_name,output_filename,mp,which_dtype='f', *args, **kwargs): #t
     super_E=cf.to_array(super_E)
 
     if filetype=='hdf5':
-        var=rw.make_IC_hdf5(hdf5file, mp, super_x, super_y, super_z,super_E) #, userho=False
-
+        var=rw.make_IC_hdf5(str(output_filename)+ '.hdf5', mp, super_x, super_y, super_z,super_E) #, userho=False
         #svar=rw.make_IC_hdf5_old_way(hdf5file, mp, super_x, super_y, super_z,super_E)
-
+    elif filetype=='gadget_binary':
+        var=rw.make_IC_binary(str(output_filename)+ '.bin', mp, super_x, super_y, super_z, super_E, which_dtype=which_dtype)#central mass not handled 
+    
     else:
-        var=rw.make_IC_binary(binaryfile, mp, super_x, super_y, super_z, super_E, which_dtype=which_dtype)#central mass not handled 
+        var=rw.make_IC_text(str(output_filename)+ '.txt', (super_x*0. + mp), super_x, super_y, super_z, super_E, which_dtype=which_dtype)
+
     print var, type(var)
     return
+
+
+
 
 
 
@@ -189,33 +191,6 @@ def estimate_stepsize(MESA_file, masscut, Nshells):
 
 
 
-
-# def reload_IC( IC_file, format_type, which_dtype='f'): #rmax #NR_file
-#     filetype=str(format_type)
-
-#     print "\n\n\n<----testing reload---->"
-#     # N,r_set,m_cont=np.loadtxt(NR_file, usecols=(0,1,2), unpack=True)
-#     if filetype=='hdf5':
-#         hdf5_file=IC_file+'.hdf5'
-#         PartType=0
-#         masses=rw.read_block_single_file(hdf5_file,'Masses',PartType)[0][:]
-#         x=rw.read_block_single_file(hdf5_file,"Coordinates",PartType)[0][:][:,0]
-#         y=rw.read_block_single_file(hdf5_file,"Coordinates",PartType)[0][:][:,1]
-#         z=rw.read_block_single_file(hdf5_file,"Coordinates",PartType)[0][:][:,2]
-#     else:   
-#         f=open(IC_file+'.bin','r')
-#         ptype=0
-#         header=rw.load_gadget_binary_header(f)
-#         attribute_dictionary=rw.load_gadget_binary_particledat(f, header, ptype, skip_bh=0, which_dtype=which_dtype)
-
-#         positions=attribute_dictionary['Coordinates']
-#         masses=attribute_dictionary['Masses'] ##all of these are the same value, mp
-#         x=positions[:,0]
-#         y=positions[:,1]
-#         z=positions[:,2]
-
-#     r_recovered= np.sqrt(x**2.0 + y**2.0 + z**2.0)#*float(rmax)
-#     return r_recovered, masses
 
 
 def reload_IC( IC_file, format_type, which_dtype='f'): #rmax #NR_file
@@ -299,24 +274,24 @@ def quick_plot(MESA_file, masscut, r_reloaded,rho_reloaded,IC_format_type,png_ta
     fit_region_R=MESA_r(MESA_file, masscut)
     fit_region_rho=MESA_rho(MESA_file, masscut)
 
-    plt.plot(r_reloaded, rho_reloaded,'r.', markersize=6, label='GADGET data')
-    plt.plot(fit_region_R, fit_region_rho, "b.", markersize=4, label='MESA data') #cf.to_log()
-    plt.xlabel("R")
-    plt.ylabel("test density")
-    plt.legend(loc=1)
-    if IC_format_type=='hdf5':
-        plt.savefig('lin_'+png_tag+'_hdf5.png')
-    else:
-        plt.savefig('lin_'+png_tag+'_bin.png')
-    plt.close()
+    # plt.plot(r_reloaded, rho_reloaded,'r.', markersize=6, label='GADGET data')
+    # plt.plot(fit_region_R, fit_region_rho, "b.", markersize=4, label='MESA data') #cf.to_log()
+    # plt.xlabel("R")
+    # plt.ylabel("test density")
+    # plt.legend(loc=1)
+    # #if IC_format_type=='hdf5':
+    # #    plt.savefig('lin_'+png_tag+'_hdf5.png')
+    # #else:
+    # plt.savefig('lin_'+png_tag+'.png')
+    # plt.close()
 
     plt.plot(fit_region_R, cf.to_log(fit_region_rho), "b.", markersize=4, label='MESA data') #cf.to_log()
     plt.plot(r_reloaded, cf.to_log(rho_reloaded),'r.', markersize=6, label='GADGET data')
     plt.xlabel("R")
     plt.ylabel("log(test density)")
     plt.legend(loc=1)
-    if IC_format_type=='hdf5':
-        plt.savefig('log_'+png_tag+'_hdf5.png')
-    else:
-        plt.savefig('log_'+png_tag+'_bin.png')
-        plt.close()
+    #if IC_format_type=='hdf5':
+    #    plt.savefig('log_'+png_tag+'_hdf5.png')
+    #else:
+    plt.savefig('log_'+png_tag+'.png')
+    plt.close()
