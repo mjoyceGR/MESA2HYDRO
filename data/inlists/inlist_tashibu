@@ -9,11 +9,11 @@
 
 
 &star_job
-      mesa_dir = '/home/meridith/MESA/mesa-r10398'
-      history_columns_file='/home/meridith/UCT_SAAO/research/MESA2HYDRO/data/MESA_controls/history_columns_testsuite.list'
-      profile_columns_file='/home/meridith/UCT_SAAO/research/MESA2HYDRO/data/MESA_controls/profile_columns_testsuite.list'
+      mesa_dir = '<MESA_DIR>'
+      history_columns_file='<MESA2HYDRO_ROOT>/data/MESA_controls/history_columns_testsuite.list'
+      profile_columns_file='<MESA2HYDRO_ROOT>/data/MESA_controls/profile_columns_testsuite.list'
 
-      filename_for_profile_when_terminate = 'profile_AGB_newrho.data'
+      filename_for_profile_when_terminate = '<MESA2HYDRO_ROOT>/data/profile_AGB_newrho.data'
       
       create_pre_main_sequence_model = .true.
       !  kappa_lowT_prefix = 'lowT_ma09_gn93'

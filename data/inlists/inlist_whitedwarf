@@ -12,13 +12,13 @@
 &star_job
       show_log_description_at_start = .false.
 
-      mesa_dir = '/home/meridith/MESA/mesa-r10398'
-      history_columns_file='/home/meridith/UCT_SAAO/research/MESA2HYDRO/data/MESA_controls/history_columns_testsuite.list'
-      profile_columns_file='/home/meridith/UCT_SAAO/research/MESA2HYDRO/data/MESA_controls/profile_columns_testsuite.list'
+      mesa_dir = '<MESA_DIR>'
+      history_columns_file='<MESA2HYDRO_ROOT>/data/MESA_controls/history_columns_testsuite.list'
+      profile_columns_file='<MESA2HYDRO_ROOT>/data/MESA_controls/profile_columns_testsuite.list'
       load_saved_model = .false.
 
       write_profile_when_terminate = .true.
-      filename_for_profile_when_terminate = 'profile_whitedwarf.data'
+      filename_for_profile_when_terminate = '<MESA2HYDRO_ROOT>/data/profile_whitedwarf.data'
 
       save_model_when_terminate = .false.
 
