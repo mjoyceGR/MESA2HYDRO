@@ -89,6 +89,33 @@ def rho_r(r,MESA_file,masscut, *args, **kwargs):
 	else:
 		print "no."
 		return 
+		
+def m_r(r,MESA_file,masscut, *args, **kwargs):
+	############################################################
+	#
+	# WARNING! FIXING cgs units!!!
+	#
+	############################################################
+	fit_region_R=mn.MESA_r(MESA_file,masscut)
+	fit_region_m=mn.MESA_m(MESA_file,masscut)
+	r0,idx=find_nearest(fit_region_R,r)
+	# WARNING! THIS RELIES ON LOADED DATA BEING SORTED! DO NOT TAMPER!
+	if r0 <= r:
+		m0=fit_region_m[idx]
+		r1=fit_region_R[idx-1]
+		m1=fit_region_m[idx-1]
+	else:
+		r0=fit_region_R[idx+1]
+		m0=fit_region_m[idx+1]
+		r1=fit_region_R[idx]
+		m1=fit_region_m[idx]
+
+	rm_r= (  (r1-r)*m0 + (r-r0)*m1 ) /(r1-r0)
+	if (r0 <= r <= r1):
+		return float(rm_r)
+	else:
+		print "no."
+		return 
 
 
 
