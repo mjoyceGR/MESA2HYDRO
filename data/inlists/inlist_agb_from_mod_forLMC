@@ -11,9 +11,9 @@
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 &star_job
-      mesa_dir = '/home/mjoyce/MESA/mesa-r10398'
-      history_columns_file='/home/mjoyce/MESA2HYDRO/data/MESA_controls/history_columns_testsuite.list'
-      profile_columns_file='/home/mjoyce/MESA2HYDRO/data/MESA_controls/profile_columns_testsuite.list'
+      mesa_dir = '<MESA_DIR>'
+      history_columns_file='<MESA2HYDRO_ROOT>/data/MESA_controls/history_columns_testsuite.list'
+      profile_columns_file='<MESA2HYDRO_ROOT>/data/MESA_controls/profile_columns_testsuite.list'
       load_saved_model = .true.
       saved_model_name = '/home/mjoyce/data/AGB/agb2.mod'
 
