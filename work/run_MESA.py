@@ -5,8 +5,7 @@ import os
 import shutil
 import subprocess
 import sys
-m2g_path = os.environ.get("MESA2HYDRO_ROOT")
-#m2g_path = os.path.abspath(os.path.dirname(os.path.dirname(__file__)))
+m2g_path = os.environ.get('MESA2HYDRO_ROOT')
 sys.path.append(os.path.join(m2g_path, 'lib'))
 from MESAhandling import transfer_inlist
 from cfg_parser import get_path_str_option
@@ -59,7 +58,7 @@ if profile_name is None:
                      "'file_name_for_profile_when_terminate' set\n")
     sys.exit(1)
 
-print("Inlist moved to {}\n".format(target_inlist))
+print("Inlist moved to {}".format(target_inlist))
 
 os.chdir(mesa_dir+'/star/work/')#+'/'+star_subdir)
 subprocess.call('./mk', shell=True)
