@@ -195,7 +195,6 @@ class OptionInputs:
 
     def get_configs(self):
         self.init_args()
-                    
         if self.config_file and self.args.config_file:
             self.show("Using config values from {}".format(self.args.config_file))
             self.read_config_file()
@@ -217,6 +216,20 @@ def path_from_package(path):
 def has_option(config_file, name):
     return bool(re.search('^\s*{}\s*=\s*(?P<value>[\w\./]+)'.format(name),
                           config_file, re.MULTILINE))
+
+
+def get_path_str_option(config_file, name, default=None):
+    m = re.search('^\s*{}\s*=\s*[\',"](?P<value>[\w\./]+)[\',"]'.format(name),
+                  config_file, re.MULTILINE)
+    if m:
+        value = m.group('value')
+        if DEBUG:
+            print("Using config file value for {} of {}".format(name, value))
+        return value
+    else:
+        if re.search(name, config_file):
+            print("{} was malformed in config file".format(name))
+        return default
 
 
 def get_path_option(config_file, name, default=None):
