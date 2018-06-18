@@ -167,15 +167,18 @@ def show_allowed_MESA_keywords(readfile):
     return fstr#get_MESA_output_fields(readfile).keys()
 
 
-def transfer_inlist(template_inlist, target_inlist):
+def transfer_inlist(template_inlist, target_inlist,
+                    mesa_dir, m2g_path):
     with open(template_inlist, 'r') as content_file:
         contents = content_file.read()
 
-    outf=open(target_inlist,"w")
-    print >> outf, contents
-    outf.close()
+    contents = re.sub("<MESA_DIR>", mesa_dir, contents)
+    contents = re.sub("<MESA2HYDRO_ROOT>", m2g_path, contents)
 
-    return
+    with open(target_inlist, "w") as outf:
+        outf.write(contents)
+
+    return contents
 
 
 def generate_basic_inlist(mass, age, metallicity, m2g_path, mesa_dir, inlist_path,output_model_name):

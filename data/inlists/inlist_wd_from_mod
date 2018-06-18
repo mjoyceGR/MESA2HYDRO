@@ -13,14 +13,14 @@
 &star_job
       show_log_description_at_start = .false.
 
-      mesa_dir = '/home/meridith/MESA/mesa-r10398'
-      history_columns_file='/home/meridith/UCT_SAAO/research/MESA2HYDRO/data/MESA_controls/history_columns_testsuite.list'
-      profile_columns_file='/home/meridith/UCT_SAAO/research/MESA2HYDRO/data/MESA_controls/profile_columns_testsuite.list'
+      mesa_dir = '<MESA_DIR>'
+      history_columns_file= '<MESA2HYDRO_ROOT>/data/MESA_controls/history_columns_testsuite.list'
+      profile_columns_file='<MESA2HYDRO_ROOT>/data/MESA_controls/profile_columns_testsuite.list'
       load_saved_model = .true.
-      saved_model_name = '/home/meridith/UCT_SAAO/research/MESA2HYDRO/data/MESA_controls/whitedwarf/wd.mod'
+      saved_model_name = '<MESA2HYDRO_ROOT>/data/inlists/wd3_1Msolar.mod'
 
       write_profile_when_terminate = .true.
-      filename_for_profile_when_terminate = 'profile_whitedwarf_from_mod.data'
+      filename_for_profile_when_terminate = '<MESA2HYDRO_ROOT>/data/profile_whitedwarf_from_mod.data'
 
       create_pre_main_sequence_model = .false.
       show_log_description_at_start = .false.

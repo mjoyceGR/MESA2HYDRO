@@ -10,11 +10,11 @@
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 &star_job
-      mesa_dir = '/home/mjoyce/MESA/mesa-r10398'
-      history_columns_file='/home/mjoyce/MESA2HYDRO/data/MESA_controls/history_columns_testsuite.list'
-      profile_columns_file='/home/mjoyce/MESA2HYDRO/data/MESA_controls/profile_columns_testsuite.list'
+      mesa_dir = '<MESA_DIR>'
+      history_columns_file='<MESA2HYDRO_ROOT>/data/MESA_controls/history_columns_testsuite.list'
+      profile_columns_file='<MESA2HYDRO_ROOT>/data/MESA_controls/profile_columns_testsuite.list'
 
-      filename_for_profile_when_terminate = 'profile_AGB.data'
+      filename_for_profile_when_terminate = '<MESA2HYDRO_ROOT>/data/profile_AGB.data'
 
       create_pre_main_sequence_model = .true.
 
