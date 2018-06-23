@@ -155,6 +155,7 @@ def get_placement_radii(rl, ru, RKstep, force_N, mp, MESA_file, masscut, *args, 
 	#use_unlog=bool(kwargs.get('load_unlogged',True))
 	SO=bool(kwargs.get('suppress_output',False))
 
+	rtot=(mn.MESA_r(MESA_file, masscut)).max()
 
 	Mshell_target=target_Mshell(force_N,mp)
 	Mshell=0
@@ -169,9 +170,12 @@ def get_placement_radii(rl, ru, RKstep, force_N, mp, MESA_file, masscut, *args, 
 	if SO:
 		pass
 	else:
-		print "target_Mshell",('%.3E'%Mshell_target)," convergence at Mshell:", ('%.3E'%Mshell),\
-		 '   ', ('%.3e'%(Mshell/Mshell_target)),r'x target',\
-		"  rl, ru:", ('%1.3e'%rl),('%1.3e'%ru), "  RKstep: ",  ('%1.3e'%RKstep)
+		print '',\
+		'target_Mshell/true_Mshell ', ('%.3f'%(100.0*Mshell_target/Mshell)),r'%',\
+		"   rl, ru:", ('%1.3e'%rl),('%1.3e'%ru),'   radius',\
+		('%1.3f'%(100.0*ru/rtot))+str('%'),'    RKstep:',  ('%1.3e'%RKstep) 
+
+		#" converged Mshell:", ('%.3E'%Mshell),\ "target Mshell",('%.3E'%Mshell_target)
 	r_place=(ru+rl)/2.0
 	return r_place,Mshell
 
