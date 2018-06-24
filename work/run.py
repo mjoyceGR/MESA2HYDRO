@@ -130,6 +130,9 @@ if check_MESA_profile:
 if make_NR_file:
     t1=time.time()
     print '\n\nGenerating NR file...'
+    if os.path.exists(nrfile):
+        print("NR file already exists. Cannot overwrite {}.".format(nrfile))
+        sys.exit(1)
     outf=open(nrfile,"w")
     mn.make_NR_file(MESA_file,masscut,N,mp, stepsize,outf)
     outf.close()
