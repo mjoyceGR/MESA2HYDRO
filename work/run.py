@@ -146,13 +146,21 @@ if make_NR_file:
 #
 #############################################################
 #which_dtype='d'
-if make_IC_file:
 
+
+# ########## TEMPORARY ###############
+# ftypes=['hdf5','gadget_binary','text']
+# for i in ftypes:
+#     IC_format_type=i
+# ########## TEMPORARY ###############
+
+
+if make_IC_file:
     t2=time.time()
     print '\n\nGenerating IC file...'
     in_file=nrfile
     out_file=icfile
-    mn.get_IC(in_file,out_file,mp,format_type=IC_format_type,which_dtype=which_dtype)
+    mn.get_IC(MESA_file, masscut, in_file, out_file, mp, format_type=IC_format_type,which_dtype=which_dtype)
     print 'IC file generation complete!'
     print("--- %s seconds ---" % (time.time() - t2))
 
@@ -163,6 +171,11 @@ if make_IC_file:
 # ---NOT a substitution for checking with an SPH viewer!
 #
 ###############################################
+
+# ########## TEMPORARY ###############
+# IC_format_type=
+# ########## TEMPORARY ###############
+
 if try_reload:
     r_recovered, masses_recovered=mn.reload_IC(icfile,IC_format_type, which_dtype=which_dtype)
     print "min and max radius from recovered data: ", r_recovered.min(), r_recovered.max()
