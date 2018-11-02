@@ -251,10 +251,14 @@ def get_coords(N):
 	x,y,z=healpixify(N)
 
 	theta=random_theta()
+	## update mjoyce 10/31/18
+	phi=random_theta()
+	psi=random_theta()
+
 	# these are already in unit by the time they get here
 	xd, yd, zd = rotate_shell(x,y,z,theta,"about_z")
-	xe, ye, ze = rotate_shell(xd,yd,zd,theta,"about_y")
-	xf, yf, zf = rotate_shell(xe,ye,ze,theta,"about_x")
+	xe, ye, ze = rotate_shell(xd,yd,zd,phi,"about_y")
+	xf, yf, zf = rotate_shell(xe,ye,ze,psi,"about_x")
 
 	xf = to_array(xf)
 	yf = to_array(yf)

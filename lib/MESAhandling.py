@@ -156,6 +156,14 @@ def get_quantity(readfile,keyname):
     #magic 3 to eliminate column numbers being interpreted as data in the profile file
     return np.array(quantity).astype(float)
 
+def get_quantity_history_file(readfile,keyname):
+    #### DANGER!!! DO NOT USE IN PLACE OF "get_quantity" IN PROFILE OPERATIONS
+    keyname=str(keyname)
+    keyname_list=get_MESA_output_fields(readfile).keys()
+    column_dict=get_columns(readfile,keyname_list)
+    quantity=np.array(column_dict.get(keyname))[5:]
+    #magic 3 to eliminate column numbers being interpreted as data in the profile file
+    return np.array(quantity).astype(float)
 
 
 
