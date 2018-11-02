@@ -186,6 +186,13 @@ def get_placement_radii(rl, ru, RKstep, force_N, mp, MESA_file, masscut, *args, 
 # load MESA data in correct format
 #
 ###########################################################################
+
+#############################l######################
+M_to_solar=1.988*10.0**33.0 ## g/Msolar
+R_to_solar=6.957*10.0**10.0 ## cm/Rsolar
+###################################################
+
+
 def get_MESA_profile_edge(MESA_file,**kwargs):#, strip):
 	#print MJ.show_allowed_MESA_keywords(MESA_file)
 	strip=bool(kwargs.get('strip',False))
@@ -202,17 +209,21 @@ def get_MESA_profile_edge(MESA_file,**kwargs):#, strip):
 		print MJ.show_allowed_MESA_keywords(MESA_file)
 		sys.exit()
 
-	masses = MJ.get_quantity(MESA_file,'mass').astype(np.float)
+	masses = MJ.get_quantity(MESA_file,'mass').astype(np.float)#*M_to_solar ## WARNING
 	Mtot=masses[0]
+
+	## this is OK-- non-solar units
+	#print "in get_MESA_profile_edge, Mtot=", Mtot
+
 	bound = masscut*Mtot
 	fit_region_indices=np.where( (masses>=bound) )[0]	
 	fit_region  = quantity[fit_region_indices]
 
-	#print "keyword: ",keyword
 	if keyword =='mass':
-		#xq_unlogged = [10.0**p for p in xq]
-		#mf = fit_region
 		fit_region = outer_mass(Mtot, fit_region)#[Mtot-p for p in mf]
+
+	## this is OK-- non-solar units
+	#print "in get_MESA_profile_edge, fit_region=", fit_region
 
 	return np.array(fit_region).astype(float)
 
@@ -221,7 +232,20 @@ def get_MESA_profile_edge(MESA_file,**kwargs):#, strip):
 def outer_mass(Mtot,fit_region):
 	mf=fit_region
 	fit_region = [Mtot-p for p in mf]
-	return np.array(fit_region).astype(float)
+	#print "fit_region in outer_mass: ", fit_region
+	fit_region=np.array(fit_region)
+
+	select=np.where( (fit_region>0.0) )[0]
+	nfit_region=fit_region[select]
+
+	return np.array(nfit_region).astype(float)
+
+
+# ######################## mjoyce 11/2/18 #############################
+# def inner_mass(Mtot, fit_region):
+# 	inner_mass=Mtot-sum(fit_region)
+# 	print "Mtot: ", Mtot, "\nfitted mass: ", sum(fit_region), "\ncentral mass: ", inner_mass
+# 	return inner_mass
 
 
 

@@ -7,6 +7,7 @@ import scipy.optimize as optimize
 import math
 import sys 
 import converge_funcs as cf
+import MESAhandling as MJ
 import io_lib as rw
 import hdf5lib as hdf5lib
 import time
@@ -48,6 +49,36 @@ def MESA_internalE(MESA_file,masscut):
     fit_region_E=cf.get_MESA_profile_edge(MESA_file, quantity='logE', masscut=masscut,strip=False)
     fit_region_E=cf.unlog(fit_region_E)
     return fit_region_E
+
+
+
+################################################### mjoyce 11/2/2018
+def central_mass(MESA_file, masscut):
+    #fit_region=MESA_m(MESA_file, masscut)
+    #whole=MESA_m(MESA_file, 0.0)
+    #masses = MJ.get_quantity(MESA_file,'mass').astype(np.float)
+    #Mtot=masses[0]*M_to_solar
+    #sum(whole)#[0]
+
+    # print fit_region 
+    # print "\n\n"
+    # print "minimum of fitted region: ", fit_region.min()
+
+    #central_M= fit_region.min() 
+    #cf.outer_mass(Mtot, fit_region) #sum(fit_region)
+    #central_M=float(Mtot)-float(atm_mass)
+
+    #print "Mtot: ", Mtot, "\nfitted mass: ", atm_mass , "\ncentral mass: ", central_M
+
+    masses = MJ.get_quantity(MESA_file,'mass').astype(np.float)*M_to_solar ## WARNING
+    Mtot=masses[0]
+    central_M = (1.0-masscut)*Mtot
+
+
+    return central_M#.astype(float)
+################################################### mjoyce 11/2/2018
+
+
 
 
 ##########################################################
@@ -107,6 +138,9 @@ def make_NR_file(MESA_file,masscut,N,mp, RKstep,NR_file, *args, **kwargs):
             print 'reached', ('%1.5f'% (ru*100.0/rmax)), r'% of outer radius' 
             break
 
+    # ################# mjoyce 11/2/18       
+    # print >> outf, 
+
     print 'runtime: ', time.time()-start_time
     print >> outf, '#\n#\n# runtime: ', time.time()-start_time, " seconds"
 
@@ -119,7 +153,7 @@ def make_NR_file(MESA_file,masscut,N,mp, RKstep,NR_file, *args, **kwargs):
 # Make the initial conditions file from an NR file
 #
 ###########################################################
-def get_IC(NR_file_name,output_filename,mp,which_dtype='f', *args, **kwargs): #temp remove rmax
+def get_IC(MESA_file, masscut, NR_file_name,output_filename,mp,which_dtype='f', *args, **kwargs): #temp remove rmax
     filetype=str(kwargs.get('format_type','binary'))
     #print 'WARNING!! sending physical radius!!!!\nmp IS multipled by Msolar'
     #print "\n\nWARNING! mp not multiplied by M_solar!! \n\n"
@@ -137,7 +171,6 @@ def get_IC(NR_file_name,output_filename,mp,which_dtype='f', *args, **kwargs): #t
         NSIDE= N[i]
         r_mid= rmid[i]
         E_val=E[i]
-
         # print 'WARNING!! sending physical radius!!!!\nmp IS multipled by Msolar'
         radius=float(rmid[i])
         #radius=float(rmid[i])/float(rmax) ##normalized coordinates
@@ -156,28 +189,54 @@ def get_IC(NR_file_name,output_filename,mp,which_dtype='f', *args, **kwargs): #t
         super_x=np.concatenate((super_x,x),axis=0)
         super_y=np.concatenate((super_y,y),axis=0)
         super_z=np.concatenate((super_z,z),axis=0)
-        r_super=np.sqrt(super_x**2.0+ super_y**2.0 + super_z**2.0)
+        #r_super=np.sqrt(super_x**2.0+ super_y**2.0 + super_z**2.0)
         super_E=np.concatenate((super_E,E_array),axis=0)
 
+    ############################################################    
+    #
+    ### add in the central mass point at coordiante 0,0,0
+    #
+    ############################################################
+    ##
+    ## maybe don't need to do this here, because we can do this in io_lib directly?
+
+    zero_space=np.array([0.0])
+
+    super_x=np.concatenate((super_x,zero_space),axis=0)
+    super_y=np.concatenate((super_y,zero_space),axis=0)
+    super_z=np.concatenate((super_z,zero_space),axis=0)
+    super_E=np.concatenate((super_E,zero_space),axis=0) ## don't know what to do about this
+
+    central_point_mass=central_mass(MESA_file, masscut)
+
+
+    ############################################################
     super_x=cf.to_array(super_x)
     super_y=cf.to_array(super_y)
     super_z=cf.to_array(super_z)
     super_E=cf.to_array(super_E)
 
+
+    # print "last entries of super arrays: ". super_x[-1], super_y[-1], super_z[-1]
+
     if filetype=='hdf5':
-        var=rw.make_IC_hdf5(str(output_filename)+ '.hdf5', mp, super_x, super_y, super_z,super_E) #, userho=False
+        var=rw.make_IC_hdf5(str(output_filename)+ '.hdf5',\
+        mp, central_point_mass,\
+        super_x, super_y, super_z,super_E) #, userho=False
         #svar=rw.make_IC_hdf5_old_way(hdf5file, mp, super_x, super_y, super_z,super_E)
+
     elif filetype=='gadget_binary':
-        var=rw.make_IC_binary(str(output_filename)+ '.bin', mp, super_x, super_y, super_z, super_E, which_dtype=which_dtype)#central mass not handled 
+        var=rw.make_IC_binary(str(output_filename)+ '.bin',\
+        mp, central_point_mass,\
+        super_x, super_y, super_z, super_E, which_dtype=which_dtype)#central mass not handled 
     
     else:
-        var=rw.make_IC_text(str(output_filename)+ '.txt', (super_x*0. + mp), super_x, super_y, super_z, super_E, which_dtype=which_dtype)
+        var=rw.make_IC_text(str(output_filename)+ '.txt',\
+        (super_x*0. + mp), central_point_mass,\
+        super_x, super_y, super_z, super_E, which_dtype=which_dtype)
 
     print var, type(var)
     return
-
-
-
 
 
 
@@ -188,8 +247,6 @@ def estimate_stepsize(MESA_file, masscut, Nshells):
     rmax=fit_region_R.max()
 
     return (float(rmax)-float(rl))/float(Nshells)
-
-
 
 
 
