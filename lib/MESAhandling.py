@@ -2,7 +2,7 @@
 #try:
 import numpy as np
 import codecs, re
-import subprocess, os
+import subprocess, os, sys
 #import h5py
 #import pygadgetreader as pyg
 import matplotlib.pyplot as plt
@@ -102,12 +102,11 @@ def strip_MESA_header(in_filename, out_filename, *args, **kwargs):
 
 def get_MESA_output_fields(filename):
     inf=open(filename,'r')
-    for line in inf:
-        if "zone" in line and "num_zones" not in line:
-            p=line.split()
-        else:
-            if 'luminosity' in line:                    
-                p=line.split()
+    lines = inf.readlines()[6:]
+    for line in lines:#inf:
+        p=line.split()
+
+
     phys_dict={}
     try:		 	
         for i,v in enumerate(p):
@@ -116,7 +115,6 @@ def get_MESA_output_fields(filename):
         print "problem with "+str(filename)+" format"
         sys.exit(0)  
     return phys_dict
-
 
 
 def get_columns(filename,keyname_list):
@@ -152,7 +150,7 @@ def get_quantity(readfile,keyname):
     keyname=str(keyname)
     keyname_list=get_MESA_output_fields(readfile).keys()
     column_dict=get_columns(readfile,keyname_list)
-    quantity=np.array(column_dict.get(keyname))[3:]# NO WRONG .astype(float)
+    quantity=np.array(column_dict.get(keyname))#[3:]# NO WRONG .astype(float)
     #magic 3 to eliminate column numbers being interpreted as data in the profile file
     return np.array(quantity).astype(float)
 
