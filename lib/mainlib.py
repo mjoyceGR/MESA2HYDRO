@@ -52,27 +52,44 @@ def MESA_internalE(MESA_file,masscut):
 
 
 
-################################################### mjoyce 11/2/2018
+################################################### 
+
 def central_mass(MESA_file, masscut):
-    #fit_region=MESA_m(MESA_file, masscut)
-    #whole=MESA_m(MESA_file, 0.0)
-    #masses = MJ.get_quantity(MESA_file,'mass').astype(np.float)
-    #Mtot=masses[0]*M_to_solar
-    #sum(whole)#[0]
-
-    # print fit_region 
-    # print "\n\n"
-    # print "minimum of fitted region: ", fit_region.min()
-
-    #central_M= fit_region.min() 
-    #cf.outer_mass(Mtot, fit_region) #sum(fit_region)
-    #central_M=float(Mtot)-float(atm_mass)
-
-    #print "Mtot: ", Mtot, "\nfitted mass: ", atm_mass , "\ncentral mass: ", central_M
+    ################################################################
+    #
+    # last edited 4/26/19 by Mjoyce
+    #
+    #################################################################
 
     masses = MJ.get_quantity(MESA_file,'mass').astype(np.float)*M_to_solar ## WARNING
-    Mtot=masses[0]
-    central_M = (1.0-masscut)*Mtot
+    radii = 10.0**(MJ.get_quantity(MESA_file, 'logR').astype(np.float))
+
+    #Mentry=masses.max()#masses[0]
+    Mtot=masses.max()#sum(masses)#masses[0]
+    #print "Mentry at (loc 1) = ", Mentry
+    print "Mtot at (loc 1) = ", Mtot
+
+    # import matplotlib.pyplot as plt
+    # plt.plot(radii, masses, "g-", label="mass vs radius")
+    # plt.xlabel("radius Rsolar")
+    # plt.ylabel("mass Msolar")
+    # plt.show()
+    # plt.close()
+    # sys.exit()
+
+    #print "masscut: ", masscut
+
+    central_M = masscut*Mtot
+    #print "central_M at (loc 2) = ", central_M
+
+    # rest = 1.0e-7*(221185)#(473088) 
+    # other_tot = rest + central_M
+    # print "rest of mass at (loc (3) = ", rest
+    # print "total mass at (loc 3) = ", other_tot
+
+    # print "actual mass percentage represented in atm vs prescribed rate:", (1.0-rest/Mtot), "   ", masscut
+
+    #sys.exit()
 
 
     return central_M#.astype(float)
@@ -172,7 +189,13 @@ def get_IC(MESA_file, masscut, NR_file_name,output_filename,mp,which_dtype='f', 
         r_mid= rmid[i]
         E_val=E[i]
         # print 'WARNING!! sending physical radius!!!!\nmp IS multipled by Msolar'
+
+
         radius=float(rmid[i])
+        #print "\n\nWARNING! NORMALIZED >>> radius <<< COORDINATES NECESSARY FOR BINARY FORMAT!"
+        radius=radius/R_to_solar
+        #print "normalized radius: ", radius
+
         #radius=float(rmid[i])/float(rmax) ##normalized coordinates
         ###############################################################
         #
@@ -208,7 +231,7 @@ def get_IC(MESA_file, masscut, NR_file_name,output_filename,mp,which_dtype='f', 
     super_E=np.concatenate((super_E,zero_space),axis=0) ## don't know what to do about this
 
     central_point_mass=central_mass(MESA_file, masscut)
-
+    #central_point_mass/M_to_solar
 
     ############################################################
     super_x=cf.to_array(super_x)
@@ -219,17 +242,39 @@ def get_IC(MESA_file, masscut, NR_file_name,output_filename,mp,which_dtype='f', 
 
     # print "last entries of super arrays: ". super_x[-1], super_y[-1], super_z[-1]
 
+    print "\n\nWARNING! NORMALIZED >>> mass <<< COORDINATES NECESSARY FOR BINARY FORMAT!"
+    #radius = radius/R_to_solar
+    mp = mp/M_to_solar
+    central_point_mass= central_point_mass/M_to_solar
+
+
     if filetype=='hdf5':
         var=rw.make_IC_hdf5(str(output_filename)+ '.hdf5',\
         mp, central_point_mass,\
         super_x, super_y, super_z,super_E) #, userho=False
         #svar=rw.make_IC_hdf5_old_way(hdf5file, mp, super_x, super_y, super_z,super_E)
 
+
+
     elif filetype=='gadget_binary':
+        #print "mp, ex z before norm: ", mp, super_z[5]
+        # print "\n\nWARNING! NORMALIZED >>> mass <<< COORDINATES NECESSARY FOR BINARY FORMAT!"
+        # #radius = radius/R_to_solar
+        # mp = mp/M_to_solar
+        # central_point_mass= central_point_mass/M_to_solar
+
+        super_x=super_x #/(R_to_solar)**(0.5)
+        super_y=super_y #/(R_to_solar)**(0.5)
+        super_z=super_z #/(R_to_solar)**(0.5)
+       # print "mp, ex z after norm: ",mp, super_z[5]
+       #print super_z[5]
+
         var=rw.make_IC_binary(str(output_filename)+ '.bin',\
         mp, central_point_mass,\
-        super_x, super_y, super_z, super_E, which_dtype=which_dtype)#central mass not handled 
+        super_x, super_y, super_z, super_E, which_dtype=which_dtype)  #central mass not handled (??? is this true)
+
     
+
     else:
         var=rw.make_IC_text(str(output_filename)+ '.txt',\
         (super_x*0. + mp), central_point_mass,\

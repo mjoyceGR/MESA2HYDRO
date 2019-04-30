@@ -102,12 +102,21 @@ def strip_MESA_header(in_filename, out_filename, *args, **kwargs):
 
 def get_MESA_output_fields(filename):
     inf=open(filename,'r')
-    lines = inf.readlines()[6:]
-    for line in lines:#inf:
-        p=line.split()
-
-
+    line = inf.readlines()[5:6]
+    #print "line: ", line
+    p=line[0].split()
+    #print "p ", p
+    #for line in inf:
+        # if 'profile' in filename: #"zone" in line and "num_zones" not in line:
+        #     line = inf.readlines()[6]
+        #     p=line.split()
+        #     print "p", p
+        #     sys.exit()
+        # else:
+        #     if 'luminosity' in line:                    
+        #        p=line.split()
     phys_dict={}
+    
     try:		 	
         for i,v in enumerate(p):
             phys_dict[str(v)]=i# careful
@@ -115,6 +124,7 @@ def get_MESA_output_fields(filename):
         print "problem with "+str(filename)+" format"
         sys.exit(0)  
     return phys_dict
+
 
 
 def get_columns(filename,keyname_list):
@@ -147,21 +157,32 @@ def get_key(filename,keyname):
 
 
 def get_quantity(readfile,keyname):
+    #print "readfile", readfile
+
     keyname=str(keyname)
     keyname_list=get_MESA_output_fields(readfile).keys()
     column_dict=get_columns(readfile,keyname_list)
-    quantity=np.array(column_dict.get(keyname))#[3:]# NO WRONG .astype(float)
+    if "profile" in readfile:
+        quantity=np.array(column_dict.get(keyname))[3:]# NO WRONG .astype(float)
+    elif "history" in readfile:
+        quantity=np.array(column_dict.get(keyname))[5:]
+    else:
+        print "'profile' or 'history' not found in filename"
+        sys.exit()
     #magic 3 to eliminate column numbers being interpreted as data in the profile file
+    # quantity=quantity[1:]
+    # print quantity
     return np.array(quantity).astype(float)
 
-def get_quantity_history_file(readfile,keyname):
-    #### DANGER!!! DO NOT USE IN PLACE OF "get_quantity" IN PROFILE OPERATIONS
-    keyname=str(keyname)
-    keyname_list=get_MESA_output_fields(readfile).keys()
-    column_dict=get_columns(readfile,keyname_list)
-    quantity=np.array(column_dict.get(keyname))[5:]
-    #magic 3 to eliminate column numbers being interpreted as data in the profile file
-    return np.array(quantity).astype(float)
+
+# def get_quantity_history_file(readfile,keyname):
+#     #### DANGER!!! DO NOT USE IN PLACE OF "get_quantity" IN PROFILE OPERATIONS
+#     keyname=str(keyname)
+#     keyname_list=get_MESA_output_fields(readfile).keys()
+#     column_dict=get_columns(readfile,keyname_list)
+#     quantity=np.array(column_dict.get(keyname))[5:]
+#     #magic 3 to eliminate column numbers being interpreted as data in the profile file
+#     return np.array(quantity).astype(float)
 
 
 
