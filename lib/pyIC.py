@@ -11,12 +11,11 @@ print "\n\nWARNING: using pyIC for binary readwrite\n\n"
 format_number=1 ##want 2, designed for 1
 
 
-## restructure and cite Long Do Cao #https://github.com/ldocao
+## restructure and cite Long Do Cao #https://github.com/ldocao/pygadgetic
 class Header:
     def __init__(self):
         self.NumPart_ThisFile    = np.zeros(6) #number of particles of each type in present file
-
-        self.MassTable           = np.zeros(6).astype(float) #mass of each particle type
+        self.MassTable           = np.zeros(6) #.astype(float) #mass of each particle type
 
         self.Time                = 0 #time of output, or expansion factor for cosmo simu
         self.Redshift            = 0 #redshift
@@ -28,7 +27,7 @@ class Header:
         self.BoxSize             = 0 #box size if periodic boundary condition
         self.Omega0              = 0 #matter density at z=0
         self.OmegaLambda         = 0 #vaccum energy at z=0
-        self.HubbleParam         = 0 #hubble constant
+        self.HubbleParam         = 1 #hubble constant
         self.Flag_StellarAge     = int(0) #creation times of stars (unused)
         self.Flag_Metals         = int(0) #flag mettalicity (unused)
 
@@ -40,6 +39,11 @@ class Header:
 
 
 class Body:
+    #################################################################
+    #
+    # THE ORDER MATTERS
+    #
+    #################################################################
     def __init__(self, npart):
         npart=np.array(npart) #make sure it is a numpy array
         total_number_of_particles = np.sum(npart,dtype="int") #was int
@@ -51,12 +55,23 @@ class Body:
         self.vel = np.zeros([total_number_of_particles,int(3)]) #Velocities
         self.id  = (np.zeros(total_number_of_particles)).astype(int)     #Particle ID's
 
-        self.mass =  np.zeros(gas_particles)   #Masses
-        ### meridith 
-        self.u =  np.zeros(total_number_of_particles) #was gas particles
-        self.hsml =(np.zeros(total_number_of_particles)).astype(int)
-        self.rho = np.zeros(total_number_of_particles)
+        #######################################
+        #
+        # WARNING! REPLACED np.zeros(gas_particles) with total_num_particles
+        #
+        #######################################
+        #self.mass =  np.zeros(gas_particles)   #Masses
+        self.mass = np.zeros(total_number_of_particles)
 
+        ### meridith 
+        #
+        # PHIL ASKING FOR N-1 for fields that arne't mass, velocity, ID, or position
+        #
+        # total_number_of_particles= gas_particles = npart[0]
+        #
+        self.u =  np.zeros(total_number_of_particles-1) #was gas particles
+        self.rho = np.zeros(total_number_of_particles-1)
+        self.hsml =(np.zeros(total_number_of_particles-1)).astype(int)
         #else:
         #    raise ValueError, "There are no particles !"
 
