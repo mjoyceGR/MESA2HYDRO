@@ -18,6 +18,9 @@ import time
 #
 #########################################################
 
+########### FOR DEBUGGING ONLY
+use_normalized=False
+
 
 print "\n\nusing git version\n\n"
 
@@ -190,10 +193,13 @@ def get_IC(MESA_file, masscut, NR_file_name,output_filename,mp,which_dtype='f', 
         E_val=E[i]
         # print 'WARNING!! sending physical radius!!!!\nmp IS multipled by Msolar'
 
-
         radius=float(rmid[i])
-        #print "\n\nWARNING! NORMALIZED >>> radius <<< COORDINATES NECESSARY FOR BINARY FORMAT!"
-        radius=radius/R_to_solar
+
+        if use_normalized:
+            print "\n\nWARNING! NORMALIZED >>> radius <<< COORDINATES NECESSARY FOR BINARY FORMAT!"
+            radius = radius/R_to_solar
+        else:
+            radius=radius
         #print "normalized radius: ", radius
 
         #radius=float(rmid[i])/float(rmax) ##normalized coordinates
@@ -240,12 +246,13 @@ def get_IC(MESA_file, masscut, NR_file_name,output_filename,mp,which_dtype='f', 
     super_E=cf.to_array(super_E)
 
 
-    # print "last entries of super arrays: ". super_x[-1], super_y[-1], super_z[-1]
-
-    print "\n\nWARNING! NORMALIZED >>> mass <<< COORDINATES NECESSARY FOR BINARY FORMAT!"
-    #radius = radius/R_to_solar
-    mp = mp/M_to_solar
-    central_point_mass= central_point_mass/M_to_solar
+    if use_normalized:
+        print "\n\nWARNING! NORMALIZED >>> mass <<< COORDINATES NECESSARY FOR BINARY FORMAT!"
+        mp = mp/M_to_solar
+        central_point_mass= central_point_mass/M_to_solar
+    else:
+        mp = mp
+        central_point_mass= central_point_mass
 
 
     if filetype=='hdf5':
