@@ -17,6 +17,17 @@ M_to_solar=1.988*10.0**33.0 ## g/Msolar
 R_to_solar=6.957*10.0**10.0 ## cm/Rsolar
 
 
+def to_Rsun(R_in_cm):
+	try:
+		Rs=np.float(R_in_cm)/R_to_solar
+		return Rs
+	except:
+		Rs=[]
+		for  i in range(len(R_in_cm)):
+			Rs.append(float(R_in_cm[i])/R_to_solar)
+		Rs= np.array(Rs)
+		return Rs 
+
 #######################################################################################
 #
 # Numerical integration
@@ -87,7 +98,7 @@ def rho_r(r,MESA_file,masscut, *args, **kwargs):
 	if (r0 <= r <= r1):
 		return float(rrho_r)
 	else:
-		print "no."
+		print "rho(r) finished"
 		return 
 		
 def m_r(r,MESA_file,masscut, *args, **kwargs):
@@ -345,15 +356,14 @@ def to_log(xq):
 
 
 def unlog(xq):
-	unlogged=[]
-	for i in range(len(xq)):
-		#print xq
-		try:
-			q=10.0**float(xq[i])
-			unlogged.append(q)
-		except ValueError:
-			pass
-	unlogged = np.array(unlogged).astype(float)
+	#print type(xq)
+	try:
+		unlogged=10.0**xq
+	except TypeError:
+		unlogged=10.0**float(xq)
+	except:
+		print "error in unlog (MESA2HYDRO/lib/converge_funcs.py"
+		sys.exit()
 	return unlogged 
 
 

@@ -188,12 +188,18 @@ def write_body(body, ic_file, format_output, which_dtype='f'):
 
     write_block(body.mass.astype(which_dtype), ndim*total_number_of_particles, ic_file)
     write_block(body.u.astype(which_dtype), ndim*gas_particles, ic_file)
+    
 
 
-    write_block(body.hsml.astype(which_dtype), ndim*total_number_of_particles, ic_file)
-    print "\n\nvalues in body.hsml: ", body.hsml.astype(which_dtype)    
-    write_block(body.u.astype(which_dtype),ndim*total_number_of_particles, ic_file )
-    write_block(body.rho.astype(which_dtype),ndim*total_number_of_particles, ic_file )
+    # write_block(body.rho.astype(which_dtype),ndim*total_number_of_particles, ic_file )
+    # write_block(body.hsml.astype(which_dtype), ndim*total_number_of_particles, ic_file)
+    write_block(body.rho.astype(which_dtype), ndim*gas_particles, ic_file )
+    write_block(body.hsml.astype(which_dtype),ndim*gas_particles, ic_file)
+ 
+    print "(loc 9)", "sanity check"
+
+    #print "\n\nvalues in body.hsml: ", body.hsml.astype(which_dtype)    
+    #write_block(body.u.astype(which_dtype),ndim*total_number_of_particles, ic_file )
     
     return None
 

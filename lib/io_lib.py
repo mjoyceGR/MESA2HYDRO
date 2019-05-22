@@ -18,7 +18,7 @@ from yanked import *
 # hdf5 writing routine
 #
 ###############################################################
-def make_IC_hdf5(out_fname, mp,central_point_mass,\
+def make_IC_hdf5(out_fname, mp, central_point_mass,\
          x, y, z,E, **kwargs):
 
     print "\n\n\nusing modified hdf5 writer 5/3/18\n"
@@ -57,8 +57,13 @@ def make_IC_hdf5(out_fname, mp,central_point_mass,\
     masses=mp + 0.*x 
     masses[-1]=central_point_mass
 
-
+    ###########################################################################
     hsml=0.*x + (-1)
+    print "5/21/19"
+    print "hsml--smoothing length (loc 1): ", hsml
+    ###########################################################################
+
+
     #U=P_desired/((gamma_eos-1.)*rho_desired) 
     #internalE = U + 0.*x
     internalE=E
@@ -99,7 +104,11 @@ def make_IC_hdf5(out_fname, mp,central_point_mass,\
 
 
 def make_IC_binary(fname, mp, central_point_mass,\
-    x, y, z, E, which_dtype='f',**kwargs):
+                   x, y, z,\
+                   local_MESA_rho, local_MESA_P, local_MESA_E,\
+                   which_dtype='f',**kwargs):
+                   # E removed!!!
+
     #central_mass=float(kwargs.get('central_mass', 10e6)) #<-----WARNING!! not properly handled!!!
     print "mp in make_IC_binary is", mp
     import pyIC as pygadgetic
@@ -108,9 +117,6 @@ def make_IC_binary(fname, mp, central_point_mass,\
     total_number_of_particles=len(x)
 
     #gas particles = npart[0] = gas_particles
-    #
-    #???
-    #
     npart=[gas_particles,1,0,0,0,0] # central mass should be Type 1 according to The Phil
 
     my_header=pygadgetic.Header()
@@ -131,7 +137,7 @@ def make_IC_binary(fname, mp, central_point_mass,\
 
     ##fill the body with minimal information
     my_body.id[:]=np.arange(0,total_number_of_particles) #id_g
-    
+
     #########################
     #
     # WARNING! confused here!
@@ -148,31 +154,37 @@ def make_IC_binary(fname, mp, central_point_mass,\
     my_body.mass[-1]=central_point_mass 
 
 
-    rho_desired = 1.0
-    P_desired = 1.0 
-    gamma_eos = 5./3.
-    #  U=P_desired/((gamma_eos-1.)*rho_desired) # internal energy 
-    #U + 0.*x#internal_energy ### <--------- load this from MESA directly
-    ## trying to load this from MESA!
-
-
     #########################
     #
     # WARNING! confused here!
     #
     ##########################
-    my_body.u[:]=E[0:gas_particles]   ##this is in ergs maybe??? unclear??
-    #my_body.u[0]
+    h=1.2*(mp/local_MESA_rho)**(1.0/3.0)
+    h=2.0*h ### GADGET defines hsml as the kernel radius, so use 2H here
+    
+    # Q: this should... include the central particle? yes no? 5/21/19
+    # A: maybe doesn't matter, but gas_particles/total_num_particles here
+    #    needs to MATCH the definition in the pyIC binary writer
 
-    my_body.hsml[:]=0.*gas_particles + (-1)  #shazrene says -1 but that's not working at all
+    my_body.hsml[:]=h[0:gas_particles]  
+    #my_body.hsml[:]=0.*gas_particles + (-1)  
 
-    #print "my header: ", my_header
 
+    ### give hydro MESA's density estimate directly, to ease starting guess 
+    my_body.rho[:]=local_MESA_rho[0:gas_particles]
+
+    ## give hydro some energy per unit mass from 
+    ## an ideal gas equation of state gamma=5/3 (and then hydro code has to use that EOS too)
+    gamma_eos    = 5.0/3.0     
+    internal_E   = local_MESA_P/((gamma_eos-1.0)*local_MESA_rho)
+    my_body.u[:] = internal_E[0:gas_particles]
+
+    # sanity check that MESA and ideal EOS look the same
+    #my_body.u[:]=local_MESA_E[0:gas_particles]
+
+    
     pygadgetic.check_header(my_header)
-
-    #print "my body: ", my_body
     pygadgetic.dump_ic(my_header,my_body,fname, which_dtype=which_dtype)
-    #pygadgetic.
     return fname
 
 

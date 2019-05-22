@@ -18,12 +18,15 @@ import time
 #
 #########################################################
 
+########### FOR DEBUGGING ONLY
+use_normalized=False
+
 
 print "\n\nusing git version\n\n"
 
 ###################################################
-M_to_solar=1.988*10.0**33.0 ## g/Msolar
-R_to_solar=6.957*10.0**10.0 ## cm/Rsolar
+M_to_solar=1.988e33 # *10.0**33.0 ## g/Msolar
+R_to_solar=6.957e10 #**10.0 ## cm/Rsolar
 ###################################################
 
 
@@ -45,12 +48,27 @@ def MESA_m(MESA_file,masscut):
     fit_region_M=cf.get_MESA_profile_edge(MESA_file, quantity='mass', masscut=masscut,strip=False)*M_to_solar
     return fit_region_M
 
-def MESA_internalE(MESA_file,masscut):
-    fit_region_E=cf.get_MESA_profile_edge(MESA_file, quantity='logE', masscut=masscut,strip=False)
+
+#### 5/21/19-- Dan Price intervention
+#
+# nix this--doesn't make sense
+#
+#
+# def MESA_internalE(MESA_file,masscut):
+#     fit_region_E=cf.get_MESA_profile_edge(MESA_file, quantity='logE', masscut=masscut,strip=False)
+#     fit_region_E=cf.unlog(fit_region_E)
+#     return fit_region_E
+
+
+def MESA_P(MESA_file, masscut):
+    fit_region_P=cf.get_MESA_profile_edge(MESA_file, quantity='logP', masscut=masscut, strip=False)
+    fit_region_P=cf.unlog(fit_region_P)
+    return fit_region_P
+
+def MESA_E(MESA_file, masscut):
+    fit_region_E=cf.get_MESA_profile_edge(MESA_file, quantity='logE', masscut=masscut, strip=False)
     fit_region_E=cf.unlog(fit_region_E)
     return fit_region_E
-
-
 
 ################################################### 
 
@@ -182,18 +200,50 @@ def get_IC(MESA_file, masscut, NR_file_name,output_filename,mp,which_dtype='f', 
     super_y=[]
     super_z=[]
 
+
+    ## New 5/21/19
+    #print "loc 4"
+    fit_region_rho=MESA_rho(MESA_file,masscut)
+    fit_region_R=MESA_r(MESA_file, masscut)
+    fit_region_P=MESA_P(MESA_file, masscut)
+    fit_region_E=MESA_E(MESA_file, masscut)
+
+    #print fit_region_rho
+    #sys.exit()
+    super_rho=[]
+    super_P=[]
     super_E=[]
+    
+    #print "(loc 4) range(len(N))", range(len(N))
 
     for i in range(len(N)):
         NSIDE= N[i]
         r_mid= rmid[i]
-        E_val=E[i]
+        #E_val=E[i]
+
+        ## New 5/21/19
+        # shell-constant value of r_mid: the local density should only change with every shell
+        r_nearest,r_idx=cf.find_nearest(fit_region_R,r_mid)
+        local_MESA_rho=fit_region_rho[r_idx]
+        local_MESA_P=fit_region_P[r_idx]
+
+        ## for sanity check
+        local_MESA_E=fit_region_E[r_idx]
+
+        #print "(loc 5) local_MESA_P(r)/1e10, local_MESA_P(r) ", local_MESA_P/1.0e10, local_MESA_rho#/1.0e10  #, r_nearest
+
+
+        #print "(loc 3) i, rmid[i], local_MESA_rho: ", i,  rmid[i], local_MESA_rho, ""
+        #sys.exit()
+
         # print 'WARNING!! sending physical radius!!!!\nmp IS multipled by Msolar'
 
-
         radius=float(rmid[i])
-        #print "\n\nWARNING! NORMALIZED >>> radius <<< COORDINATES NECESSARY FOR BINARY FORMAT!"
-        radius=radius/R_to_solar
+        if use_normalized:
+            print "\n\nWARNING! NORMALIZED >>> radius <<< COORDINATES NECESSARY FOR BINARY FORMAT!"
+            radius = radius/R_to_solar
+        else:
+            radius=radius
         #print "normalized radius: ", radius
 
         #radius=float(rmid[i])/float(rmax) ##normalized coordinates
@@ -206,14 +256,26 @@ def get_IC(MESA_file, masscut, NR_file_name,output_filename,mp,which_dtype='f', 
         x=x*radius
         y=y*radius
         z=z*radius
+        
         #same size as x, but same value of internal E for points at radius r
-        E_array=x*0.+E_val
+        #E_array=x*0.+E_val
 
-        super_x=np.concatenate((super_x,x),axis=0)
-        super_y=np.concatenate((super_y,y),axis=0)
-        super_z=np.concatenate((super_z,z),axis=0)
+        ## New 5/21/19
+        rho_array = x*0 + local_MESA_rho
+        P_array   = x*0 + local_MESA_P
+        E_array   = x*0 + local_MESA_E
+
+        super_x  =np.concatenate((super_x,x),axis=0)
+        super_y  =np.concatenate((super_y,y),axis=0)
+        super_z  =np.concatenate((super_z,z),axis=0)
         #r_super=np.sqrt(super_x**2.0+ super_y**2.0 + super_z**2.0)
-        super_E=np.concatenate((super_E,E_array),axis=0)
+        
+        #super_E=np.concatenate((super_E,E_array),axis=0)
+        
+        ## New 5/21/19
+        super_rho =np.concatenate((super_rho,rho_array), axis=0) 
+        super_P   =np.concatenate((super_P, P_array), axis=0)
+        super_E   =np.concatenate((super_E, E_array), axis=0)
 
     ############################################################    
     #
@@ -228,7 +290,21 @@ def get_IC(MESA_file, masscut, NR_file_name,output_filename,mp,which_dtype='f', 
     super_x=np.concatenate((super_x,zero_space),axis=0)
     super_y=np.concatenate((super_y,zero_space),axis=0)
     super_z=np.concatenate((super_z,zero_space),axis=0)
-    super_E=np.concatenate((super_E,zero_space),axis=0) ## don't know what to do about this
+    
+    #super_E=np.concatenate((super_E,zero_space),axis=0) ## don't know what to do about this
+   
+
+    ### this last entry cannot be zero! because division!
+    # central_MESA_rho=MJ.get_quantity(MESA_file, "logRho").max()
+    # print "(loc 4) central MESA logRho: ", central_MESA_rho
+
+    # central_MESA_rho= cf.unlog(central_MESA_rho) #unlog
+    # central_dens_estimate=np.array([central_MESA_rho])
+    # print "(loc 5) central_dens_estimate: ", central_dens_estimate, " unlog (cgs)"
+
+    # super_rho=np.concatenate((super_rho,central_dens_estimate),axis=0)
+    # print "(loc 6) len(super_rho), len(super_x): ", len(super_rho), len(super_x)
+
 
     central_point_mass=central_mass(MESA_file, masscut)
     #central_point_mass/M_to_solar
@@ -237,17 +313,24 @@ def get_IC(MESA_file, masscut, NR_file_name,output_filename,mp,which_dtype='f', 
     super_x=cf.to_array(super_x)
     super_y=cf.to_array(super_y)
     super_z=cf.to_array(super_z)
+
+    super_rho=cf.to_array(super_rho)
+    super_P= cf.to_array(super_P)
     super_E=cf.to_array(super_E)
 
+    if use_normalized:
+        print "\n\nWARNING! NORMALIZED >>> mass <<< COORDINATES NECESSARY FOR BINARY FORMAT!"
+        mp = mp/M_to_solar
+        central_point_mass= central_point_mass/M_to_solar
+    else:
+        mp = mp
+        central_point_mass= central_point_mass
 
-    # print "last entries of super arrays: ". super_x[-1], super_y[-1], super_z[-1]
-
-    print "\n\nWARNING! NORMALIZED >>> mass <<< COORDINATES NECESSARY FOR BINARY FORMAT!"
-    #radius = radius/R_to_solar
-    mp = mp/M_to_solar
-    central_point_mass= central_point_mass/M_to_solar
-
-
+    #############################################
+    #
+    # warning, super_rho not parsed yet here 5/21/19
+    #
+    #############################################
     if filetype=='hdf5':
         var=rw.make_IC_hdf5(str(output_filename)+ '.hdf5',\
         mp, central_point_mass,\
@@ -255,30 +338,22 @@ def get_IC(MESA_file, masscut, NR_file_name,output_filename,mp,which_dtype='f', 
         #svar=rw.make_IC_hdf5_old_way(hdf5file, mp, super_x, super_y, super_z,super_E)
 
 
-
     elif filetype=='gadget_binary':
-        #print "mp, ex z before norm: ", mp, super_z[5]
-        # print "\n\nWARNING! NORMALIZED >>> mass <<< COORDINATES NECESSARY FOR BINARY FORMAT!"
-        # #radius = radius/R_to_solar
-        # mp = mp/M_to_solar
-        # central_point_mass= central_point_mass/M_to_solar
 
-        super_x=super_x #/(R_to_solar)**(0.5)
-        super_y=super_y #/(R_to_solar)**(0.5)
-        super_z=super_z #/(R_to_solar)**(0.5)
-       # print "mp, ex z after norm: ",mp, super_z[5]
-       #print super_z[5]
-
+        ## super_E removed!!!
         var=rw.make_IC_binary(str(output_filename)+ '.bin',\
         mp, central_point_mass,\
-        super_x, super_y, super_z, super_E, which_dtype=which_dtype)  #central mass not handled (??? is this true)
+        super_x, super_y, super_z,\
+        super_rho, super_P, super_E,
+        which_dtype=which_dtype)  #central mass not handled (??? is this true)
 
     
-
     else:
         var=rw.make_IC_text(str(output_filename)+ '.txt',\
         (super_x*0. + mp), central_point_mass,\
-        super_x, super_y, super_z, super_E, which_dtype=which_dtype)
+        super_x, super_y, super_z, super_E,\
+        super_rho,
+        which_dtype=which_dtype)
 
     print var, type(var)
     return

@@ -16,35 +16,7 @@ import random as rand
 #
 ################################################################
 
-def plotter(xmaj,xmin,ymaj,ymin, xf, yf, *args, **kwargs):
-    figsize=kwargs.get("figsize", (15,15))
-    #h=10
-
-    fig = plt.figure(figsize=figsize)#(2.5*h,h)) #plt.subplots()#(figsize=figsize)
-    ax = fig.add_subplot(1, 1, 1)
-
-    majorLocator_x  = MultipleLocator(xmaj)     # I want a major tick every "number"
-    majorFormatter_x = FormatStrFormatter(xf)#('%1.1f')     # label these (the major ones) with a 1.2f format string
-    minorLocator_x  = MultipleLocator(xmin)     # I want a minor tick every "number"
-
-    majorLocator_y  = MultipleLocator(ymaj)     # now for the y axis...
-    majorFormatter_y = FormatStrFormatter(yf)#('%1.1f')     # 
-    minorLocator_y  = MultipleLocator(ymin)     #
-
-
-
-    ax.xaxis.set_major_locator(majorLocator_x)
-    ax.xaxis.set_major_formatter(majorFormatter_x)
-    ax.xaxis.set_minor_locator(minorLocator_x)
-
-    ax.yaxis.set_major_locator(majorLocator_y)
-    ax.yaxis.set_major_formatter(majorFormatter_y)
-    ax.yaxis.set_minor_locator(minorLocator_y)
-
-    return fig, ax
-
-
-def multi_plotter(ax,xmaj, xmin, ymaj, ymin,**kwargs):
+def plotter(xmaj, xmin, ymaj, ymin,**kwargs):
     xf = kwargs.get('xf', '%1.1f')
     yf = kwargs.get('yf', '%1.1f')
 
@@ -56,7 +28,7 @@ def multi_plotter(ax,xmaj, xmin, ymaj, ymin,**kwargs):
     majorFormatter_y = FormatStrFormatter(yf)#('%1.1f')     # 
     minorLocator_y  = MultipleLocator(ymin)     #
 
-    # fig, ax = plt.subplots()
+    fig, ax = plt.subplots()
 
     ax.xaxis.set_major_locator(majorLocator_x)
     ax.xaxis.set_major_formatter(majorFormatter_x)
@@ -66,8 +38,7 @@ def multi_plotter(ax,xmaj, xmin, ymaj, ymin,**kwargs):
     ax.yaxis.set_major_formatter(majorFormatter_y)
     ax.yaxis.set_minor_locator(minorLocator_y)
 
-    return 
-
+    return fig,ax
 
 
 
@@ -113,19 +84,19 @@ def grab_fields(MESA_inlist):
 #########################################################################
 def strip_MESA_header(in_filename, out_filename, *args, **kwargs):
 
-	n = int(kwargs.get('n', 5))
-	num_delete=int(n) #the number of line to be read and deleted
-	outfn=out_filename
+    n = int(kwargs.get('n', 5))
+    num_delete=int(n) #the number of line to be read and deleted
+    outfn=out_filename
 
-	with open(in_filename) as f:
-	    mylist = f.read().splitlines()
-	newlist = mylist[:]
+    with open(in_filename) as f:
+        mylist = f.read().splitlines()
+    newlist = mylist[:]
 
-	thefile = open(outfn, 'w')
-	del mylist[:num_delete]
-	for item in mylist:
-		thefile.write("%s\n" % item)
-	return  thefile, outfn
+    thefile = open(outfn, 'w')
+    del mylist[:num_delete]
+    for item in mylist:
+        thefile.write("%s\n" % item)
+    return  thefile, outfn
 
 
 
@@ -146,7 +117,7 @@ def get_MESA_output_fields(filename):
         #        p=line.split()
     phys_dict={}
     
-    try:		 	
+    try:            
         for i,v in enumerate(p):
             phys_dict[str(v)]=i# careful
     except UnboundLocalError:
