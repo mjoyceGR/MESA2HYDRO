@@ -232,6 +232,7 @@ def get_IC(MESA_file, masscut, NR_file_name,output_filename,mp,which_dtype='f', 
 
         #print "(loc 5) local_MESA_P(r)/1e10, local_MESA_P(r) ", local_MESA_P/1.0e10, local_MESA_rho#/1.0e10  #, r_nearest
 
+<<<<<<< HEAD
 
         #print "(loc 3) i, rmid[i], local_MESA_rho: ", i,  rmid[i], local_MESA_rho, ""
         #sys.exit()
@@ -239,6 +240,10 @@ def get_IC(MESA_file, masscut, NR_file_name,output_filename,mp,which_dtype='f', 
         # print 'WARNING!! sending physical radius!!!!\nmp IS multipled by Msolar'
 
         radius=float(rmid[i])
+=======
+        radius=float(rmid[i])
+
+>>>>>>> cb47e60e8240154e1b8ed8d0786267c36f7182ce
         if use_normalized:
             print "\n\nWARNING! NORMALIZED >>> radius <<< COORDINATES NECESSARY FOR BINARY FORMAT!"
             radius = radius/R_to_solar
@@ -313,10 +318,23 @@ def get_IC(MESA_file, masscut, NR_file_name,output_filename,mp,which_dtype='f', 
     super_x=cf.to_array(super_x)
     super_y=cf.to_array(super_y)
     super_z=cf.to_array(super_z)
+<<<<<<< HEAD
 
     super_rho=cf.to_array(super_rho)
     super_P= cf.to_array(super_P)
     super_E=cf.to_array(super_E)
+=======
+    super_E=cf.to_array(super_E)
+
+
+    if use_normalized:
+        print "\n\nWARNING! NORMALIZED >>> mass <<< COORDINATES NECESSARY FOR BINARY FORMAT!"
+        mp = mp/M_to_solar
+        central_point_mass= central_point_mass/M_to_solar
+    else:
+        mp = mp
+        central_point_mass= central_point_mass
+>>>>>>> cb47e60e8240154e1b8ed8d0786267c36f7182ce
 
     if use_normalized:
         print "\n\nWARNING! NORMALIZED >>> mass <<< COORDINATES NECESSARY FOR BINARY FORMAT!"
