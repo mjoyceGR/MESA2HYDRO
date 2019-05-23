@@ -81,39 +81,12 @@ def central_mass(MESA_file, masscut):
 
     masses = MJ.get_quantity(MESA_file,'mass').astype(np.float)*M_to_solar ## WARNING
     radii = 10.0**(MJ.get_quantity(MESA_file, 'logR').astype(np.float))
-
-    #Mentry=masses.max()#masses[0]
     Mtot=masses.max()#sum(masses)#masses[0]
-    #print "Mentry at (loc 1) = ", Mentry
-    print "Mtot at (loc 1) = ", Mtot
-
-    # import matplotlib.pyplot as plt
-    # plt.plot(radii, masses, "g-", label="mass vs radius")
-    # plt.xlabel("radius Rsolar")
-    # plt.ylabel("mass Msolar")
-    # plt.show()
-    # plt.close()
-    # sys.exit()
-
-    #print "masscut: ", masscut
-
+    #print "Mtot at (loc 1) = ", Mtot
     central_M = masscut*Mtot
-    #print "central_M at (loc 2) = ", central_M
-
-    # rest = 1.0e-7*(221185)#(473088) 
-    # other_tot = rest + central_M
-    # print "rest of mass at (loc (3) = ", rest
-    # print "total mass at (loc 3) = ", other_tot
-
-    # print "actual mass percentage represented in atm vs prescribed rate:", (1.0-rest/Mtot), "   ", masscut
-
-    #sys.exit()
-
 
     return central_M#.astype(float)
 ################################################### mjoyce 11/2/2018
-
-
 
 
 ##########################################################
@@ -149,25 +122,40 @@ def make_NR_file(MESA_file,masscut,N,mp, RKstep,NR_file, *args, **kwargs):
     # mp must be passed in units of solar masses, e.g. 1e-7 
 
     start_time=time.time()
-    fit_region_R=MESA_r(MESA_file, masscut)
-    fit_region_rho=MESA_rho(MESA_file, masscut)
 
-    fit_region_E=MESA_internalE(MESA_file,masscut)
+    fit_region_R   =MESA_r(MESA_file, masscut)
+    #fit_region_rho =MESA_rho(MESA_file, masscut)
+    fit_region_E   =MESA_E(MESA_file, masscut) #MESA_internalE(MESA_file,masscut)
 
     #mp=mp*M_to_solar
     rl=fit_region_R.min()
     rmax=fit_region_R.max()
 
     outf=NR_file
-    print >> outf, '## fname',MESA_file ,' masscut',masscut,'   N', N, '  mp (Ms)', mp/M_to_solar,\
-       '  mp (g)', mp,'  RKstep',('%1.3e'% RKstep)
-    print >> outf, '#N    (ru+rl)/2 (cm)    M(g) contained in shell ru-rl   internal energy E (unlog)...ergs?'
+    print >> outf, '## fname',  MESA_file ,\
+                   ' masscut',  masscut,\
+                   '   N',      N,\
+                   '  mp (Ms)', mp/M_to_solar,\
+                   '  mp (g)',  mp,\
+                   '  stepsize',  ('%1.7e'% RKstep)
+    print >> outf, '#N    (ru+rl)/2 (cm)    Mcontained in shell ru-rl     u(rmid)'
 
     ru=rl
     while ru <= rmax:
         try:
-            ru, Mshell=cf.get_placement_radii(rl, ru, RKstep, N, mp, MESA_file,masscut, suppress_output=False, load_unlogged=False)
-            print >> outf, N, ru, Mshell, cf.get_logE(ru,MESA_file,masscut)
+            ru, Mshell=cf.get_placement_radii(rl, ru, RKstep, N, mp, MESA_file,masscut, supqpress_output=False, load_unlogged=False)
+            
+            r_print=(ru + rl)/2.0
+            r_nearest,rdex=cf.find_nearest(fit_region_R,r_print)
+            u_local=fit_region_E[rdex]
+
+            print >> outf,\
+                     N,\
+                     r_print,\
+                     Mshell,\
+                     u_local ## 5/22/19
+                     #cf.get_logE(ru,MESA_file,masscut)
+            
             rl=ru
         except TypeError:
             print 'reached', ('%1.5f'% (ru*100.0/rmax)), r'% of outer radius' 
@@ -183,6 +171,7 @@ def make_NR_file(MESA_file,masscut,N,mp, RKstep,NR_file, *args, **kwargs):
 
 
 
+
 ##########################################################
 #
 # Make the initial conditions file from an NR file
@@ -190,9 +179,6 @@ def make_NR_file(MESA_file,masscut,N,mp, RKstep,NR_file, *args, **kwargs):
 ###########################################################
 def get_IC(MESA_file, masscut, NR_file_name,output_filename,mp,which_dtype='f', *args, **kwargs): #temp remove rmax
     filetype=str(kwargs.get('format_type','binary'))
-    #print 'WARNING!! sending physical radius!!!!\nmp IS multipled by Msolar'
-    #print "\n\nWARNING! mp not multiplied by M_solar!! \n\n"
-    #mp=mp*M_to_solar 
 
     N,rmid,E=np.loadtxt(NR_file_name, usecols=(0,1,3), unpack=True) 
 
@@ -208,8 +194,7 @@ def get_IC(MESA_file, masscut, NR_file_name,output_filename,mp,which_dtype='f', 
     fit_region_P=MESA_P(MESA_file, masscut)
     fit_region_E=MESA_E(MESA_file, masscut)
 
-    #print fit_region_rho
-    #sys.exit()
+
     super_rho=[]
     super_P=[]
     super_E=[]
@@ -230,20 +215,8 @@ def get_IC(MESA_file, masscut, NR_file_name,output_filename,mp,which_dtype='f', 
         ## for sanity check
         local_MESA_E=fit_region_E[r_idx]
 
-        #print "(loc 5) local_MESA_P(r)/1e10, local_MESA_P(r) ", local_MESA_P/1.0e10, local_MESA_rho#/1.0e10  #, r_nearest
-
-<<<<<<< HEAD
-
-        #print "(loc 3) i, rmid[i], local_MESA_rho: ", i,  rmid[i], local_MESA_rho, ""
-        #sys.exit()
-
-        # print 'WARNING!! sending physical radius!!!!\nmp IS multipled by Msolar'
-
-        radius=float(rmid[i])
-=======
         radius=float(rmid[i])
 
->>>>>>> cb47e60e8240154e1b8ed8d0786267c36f7182ce
         if use_normalized:
             print "\n\nWARNING! NORMALIZED >>> radius <<< COORDINATES NECESSARY FOR BINARY FORMAT!"
             radius = radius/R_to_solar
@@ -318,12 +291,10 @@ def get_IC(MESA_file, masscut, NR_file_name,output_filename,mp,which_dtype='f', 
     super_x=cf.to_array(super_x)
     super_y=cf.to_array(super_y)
     super_z=cf.to_array(super_z)
-<<<<<<< HEAD
+
 
     super_rho=cf.to_array(super_rho)
     super_P= cf.to_array(super_P)
-    super_E=cf.to_array(super_E)
-=======
     super_E=cf.to_array(super_E)
 
 
@@ -334,7 +305,7 @@ def get_IC(MESA_file, masscut, NR_file_name,output_filename,mp,which_dtype='f', 
     else:
         mp = mp
         central_point_mass= central_point_mass
->>>>>>> cb47e60e8240154e1b8ed8d0786267c36f7182ce
+
 
     if use_normalized:
         print "\n\nWARNING! NORMALIZED >>> mass <<< COORDINATES NECESSARY FOR BINARY FORMAT!"
@@ -346,7 +317,12 @@ def get_IC(MESA_file, masscut, NR_file_name,output_filename,mp,which_dtype='f', 
 
     #############################################
     #
-    # warning, super_rho not parsed yet here 5/21/19
+    # 5/22/19
+    #
+    # WARNING! 
+    # only gadget_binary writer is up to date!!!!
+    #
+    # 5/22/19
     #
     #############################################
     if filetype=='hdf5':
@@ -356,9 +332,18 @@ def get_IC(MESA_file, masscut, NR_file_name,output_filename,mp,which_dtype='f', 
         #svar=rw.make_IC_hdf5_old_way(hdf5file, mp, super_x, super_y, super_z,super_E)
 
 
-    elif filetype=='gadget_binary':
+    elif filetype=='phantom_binary':
+        
+        print "phantom binary format attempt (loc 1 in mainlib)"
+        
+        var = rw.make_IC_Phantom(str(output_filename), mp, central_point_mass,\
+                   x, y, z,\
+                   local_MESA_rho, local_MESA_P, local_MESA_E,\
+                   gamma=5.0/3.0)    
 
-        ## super_E removed!!!
+
+
+    elif filetype=='gadget_binary':
         var=rw.make_IC_binary(str(output_filename)+ '.bin',\
         mp, central_point_mass,\
         super_x, super_y, super_z,\

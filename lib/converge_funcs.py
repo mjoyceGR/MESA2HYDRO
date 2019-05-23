@@ -16,7 +16,6 @@ import healpy as hp
 M_to_solar=1.988*10.0**33.0 ## g/Msolar
 R_to_solar=6.957*10.0**10.0 ## cm/Rsolar
 
-
 def to_Rsun(R_in_cm):
 	try:
 		Rs=np.float(R_in_cm)/R_to_solar
@@ -28,52 +27,16 @@ def to_Rsun(R_in_cm):
 		Rs= np.array(Rs)
 		return Rs 
 
-#######################################################################################
-#
-# Numerical integration
-#
-#######################################################################################
-
-def RK1(r, m, fx, h,MESA_file,masscut, *args, **kwargs):
-	#need to pass the value of rho roughly at r but don't update it, just need it for calculation
-	#use_unlog=bool(kwargs.get('load_unlogged',False))
-	h=float(h)
-
-	rho_k0=rho_r(r,MESA_file,masscut)#,load_unlogged=use_unlog)
-	rho_k12=rho_r(r+0.5*h,MESA_file,masscut)#,load_unlogged=use_unlog)
-	rho_k3=rho_r(r+h,MESA_file,masscut)#,load_unlogged=use_unlog)
-
-	k0=float(fx(r, rho_k0 )*h)
-	k1=float(fx(r + 0.5*h, rho_k12 )*h)  #+ 0.5*k0
-	k2=float(fx(r + 0.5*h, rho_k12 )*h)  #+ 0.5*k1
-	k3=float(fx(r + h, rho_k3 )*h)  #+ k2
-	r     = r     + h
-	m = m + (k0 + 2.0*k1 + 2.0*k2 + k3)/6.0
-	return float(r), float(m)
-
-def density_integral_numeric(r, rho_r): 
-	# will need to write an interpolation function to go between points in order to have
-	dmdr=4.0*np.pi*(r**2.0)*float(rho_r)
-	return float(dmdr)
-
-
-def Mshell_from_RK(rl, rmax, step, MESA_file,masscut, *args,**kwargs):
-	#use_unlog=bool(kwargs.get('load_unlogged',False))
-	### rmax is NOT MODIFIED BY THIS ROUTINE, it is simply a STOPPING CRITERION
-	r = rl      
-	m=0
-	while r<rmax:
-	    r, m= RK1(r,m, density_integral_numeric, step, MESA_file,masscut)#, load_unlogged=use_unlog)
-	Mshell=m
-	return Mshell
-
-
 def find_nearest(array,value):
     idx = (np.abs(array-value)).argmin()
     return array[idx],idx
 
 
-
+#######################################################################################
+#
+# data scanning functions
+#
+#######################################################################################
 def rho_r(r,MESA_file,masscut, *args, **kwargs):
 	############################################################
 	#
@@ -125,42 +88,143 @@ def m_r(r,MESA_file,masscut, *args, **kwargs):
 	if (r0 <= r <= r1):
 		return float(rm_r)
 	else:
-		print "no."
+		print "could not compute m(r) for point"
 		return 
 
 
 
-def get_logE(r,MESA_file,masscut):
 
-	fit_region_R=mn.MESA_r(MESA_file,masscut)
-	fit_region_E=mn.MESA_internalE(MESA_file,masscut)
-
-	r0,idx=find_nearest(fit_region_R,r)
-
-	if r0 <= r:
-		E0=fit_region_E[idx]
-		r1=fit_region_R[idx-1]
-		E1=fit_region_E[idx-1]
-	else:
-		r0=fit_region_R[idx+1]
-		E0=fit_region_E[idx+1]
-		r1=fit_region_R[idx]
-		E1=fit_region_E[idx]
-
-	E= (  (r1-r)*E0 + (r-r0)*E1 ) /(r1-r0)
-	if (r0 <= r <= r1):
-		return E
-	else:
-		print "Error obtaining internal energy E."
-		return 
-
-
-
+#######################################################################################
+#
+# Numerical integration/integral interpolation
+#
+#######################################################################################
 def target_Mshell(N,mp):
 	Mshell=N**2.0*12.0*mp
 	return Mshell
 
+def density_integral_numeric(r, rho_r): 
+	dmdr=4.0*np.pi*(r**2.0)*float(rho_r)
+	return float(dmdr)
 
+
+
+
+
+def Mshell_from_RK(rl, rmax, step, MESA_file,masscut, *args,**kwargs):
+	#use_unlog=bool(kwargs.get('load_unlogged',False))
+	### rmax is NOT MODIFIED BY THIS ROUTINE, it is simply a STOPPING CRITERION
+	r = rl      
+	m=0
+	while r<rmax:
+	    r, m= RK1(r,m, density_integral_numeric, step, MESA_file,masscut)#, load_unlogged=use_unlog)
+	Mshell=m
+	return Mshell
+
+
+def Mshell_from_Romberg(rl, rmax, stepsize, MESA_file, masscut,  *args,**kwargs): #step, MESA_file,masscut,
+	# r = rl      
+	# m=0
+	steps=float(kwargs.get("steps", 1)) ## global parameter representing order?
+
+	# a = rl 
+	# b = rmax
+	#print "(Romberg location 1) steps=", steps
+
+	r=rl
+	m=0
+	#while r<rmax:
+
+	stepsize=rmax-rl
+
+	print "DOING INTEGRAL TOO MANY TIMES"
+
+	r, m = Romberg_integrate( r, m, density_integral_numeric,\
+								  stepsize, steps, MESA_file, masscut)
+	                              #a, b, steps, MESA_file, masscut)
+		#print "Romberg loc 3   r,m", r,m
+	
+	Mshell=m
+	return  Mshell
+
+
+def Newton_Raphson():
+	#############################################
+	#
+	# TBD
+	#
+	############################################
+	return
+
+
+def RK1(r, m, fx, h, MESA_file,masscut, *args, **kwargs):
+	#need to pass the value of rho roughly at r but don't update it, just need it for calculation
+	#use_unlog=bool(kwargs.get('load_unlogged',False))
+	h=float(h)
+
+	rho_k0=rho_r(r,MESA_file,masscut)#,load_unlogged=use_unlog)
+	rho_k12=rho_r(r+0.5*h,MESA_file,masscut)#,load_unlogged=use_unlog)
+	rho_k3=rho_r(r+h,MESA_file,masscut)#,load_unlogged=use_unlog)
+
+	k0=float(fx(r, rho_k0 )*h)
+	k1=float(fx(r + 0.5*h, rho_k12 )*h)  #+ 0.5*k0
+	k2=float(fx(r + 0.5*h, rho_k12 )*h)  #+ 0.5*k1
+	k3=float(fx(r + h, rho_k3 )*h)  #+ k2
+	r     = r     + h
+	m = m + (k0 + 2.0*k1 + 2.0*k2 + k3)/6.0
+	return float(r), float(m)
+
+
+
+def Romberg_integrate(r, m, fn,\
+                      stepsize,  steps, MESA_file, masscut, debug=False, exact=None): #a, b,
+	
+	### change these input parameters, should not be passing m or step size; use a, b to represent limits of integral
+
+	def local_rho(nn):
+			#print "local rho activated"
+		return rho_r(nn, MESA_file, masscut)
+
+
+	steps=int(steps)
+	table = np.zeros((steps, steps))
+	pow_4 = 4 ** np.arange(steps, dtype=np.float64) - 1
+
+
+	# trapezoidal rule
+	a = r
+	b = r + stepsize
+
+
+	h = (b - a)
+	table[0, 0] = h * (fn(a,  local_rho(a)) + fn(b, local_rho(b))) / 2
+
+	for j in range(1, steps):
+	    h /= 2
+
+	    #print "(Romberg location 4) step j=", j
+
+	    # extended trapezoidal rule
+	    table[j, 0] = table[j - 1, 0] / 2
+	    table[j, 0] += h * np.sum(
+	        fn(a + i * h, local_rho(a + i * h)) for i in range(1, 2 ** j + 1, 2)
+	    )
+	    # richardson extrapolation
+	    for k in range(1, j + 1):
+	        table[j, k] = table[j, k - 1] + \
+	            (table[j, k - 1] - table[j - 1, k - 1]) / pow_4[k]
+
+
+
+	mass_val=table[-1, -1]
+	#print "(Rombger location 5) ", r, mass_val
+
+	### should not be returing b! onyl mass_val
+	return b, mass_val ## WARNING returning b not r
+
+
+
+Romberg=False
 def get_placement_radii(rl, ru, RKstep, force_N, mp, MESA_file, masscut, *args, **kwargs):
 	############### FINE
 	#use_unlog=bool(kwargs.get('load_unlogged',True))
@@ -172,23 +236,49 @@ def get_placement_radii(rl, ru, RKstep, force_N, mp, MESA_file, masscut, *args, 
 	Mshell=0
 	Mshell_temp=0
 	oldru=rl
+
+	####################################
+	#
+	# MASSIVE WARNING 5/22/19
+	#
+	######################################
+	# hold = True
+	# while hold
+	i=0
 	while Mshell <= Mshell_target:
-		Mshell=Mshell_temp+Mshell_from_RK(oldru, ru, RKstep, MESA_file,masscut)#, load_unlogged=use_unlog)
+		##
+		## WARNING! 5/22/19
+		##
+		if Romberg:
+			print "WARNING!!! ROMBERG SWITCH ON!"
+		 	Mshell = Mshell_temp + Mshell_from_Romberg(oldru, ru, RKstep, MESA_file, masscut, steps=7)	
+	 	else:
+			Mshell=Mshell_temp+Mshell_from_RK(oldru, ru, RKstep, MESA_file,masscut)#, load_unlogged=use_unlog)
+		
+
+
 		oldru=ru
 		Mshell_temp=Mshell
 		ru=ru+RKstep
+		print "convergence step ", i
+		i=i+1
 
 	if SO:
 		pass
 	else:
+		# print '',\
+		# 'target_Mshell/true_Mshell ', ('%.3f'%(100.0*Mshell_target/Mshell)),r'%',\
+		# "   rl, ru:", ('%1.3e'%rl),('%1.3e'%ru),'   radius',\
+		# ('%1.3f'%(100.0*ru/rtot))+str('%'),'    RKstep:',  ('%1.3e'%RKstep) 
 		print '',\
 		'target_Mshell/true_Mshell ', ('%.3f'%(100.0*Mshell_target/Mshell)),r'%',\
-		"   rl, ru:", ('%1.3e'%rl),('%1.3e'%ru),'   radius',\
-		('%1.3f'%(100.0*ru/rtot))+str('%'),'    RKstep:',  ('%1.3e'%RKstep) 
+		"   rl, ru:", ('%.6f'%rl),('%.6f'%ru),'   radius',\
+		('%1.3f'%(100.0*ru/rtot))+str('%'),'    RKstep:',  ('%.6f'%RKstep) 
+
 
 		#" converged Mshell:", ('%.3E'%Mshell),\ "target Mshell",('%.3E'%Mshell_target)
-	r_place=(ru+rl)/2.0
-	return r_place,Mshell
+	r_place=ru   #(ru+rl)/2.0 ## WARNING! MODIFIED 5/21/19
+	return r_place, Mshell
 
 
 
@@ -450,3 +540,29 @@ def poly_curve(xdata,ydata,degree):
 # 	Mshell=4.0*np.pi*density_integral(ru,rl,A,B,C)
 # 	mp=Mshell/n_p
 # 	return mp
+
+
+# def get_logE(r,MESA_file,masscut):
+
+# 	fit_region_R=mn.MESA_r(MESA_file,masscut)
+# 	fit_region_E=mn.MESA_internalE(MESA_file,masscut)
+
+# 	r0,idx=find_nearest(fit_region_R,r)
+
+# 	if r0 <= r:
+# 		E0=fit_region_E[idx]
+# 		r1=fit_region_R[idx-1]
+# 		E1=fit_region_E[idx-1]
+# 	else:
+# 		r0=fit_region_R[idx+1]
+# 		E0=fit_region_E[idx+1]
+# 		r1=fit_region_R[idx]
+# 		E1=fit_region_E[idx]
+
+# 	E= (  (r1-r)*E0 + (r-r0)*E1 ) /(r1-r0)
+# 	if (r0 <= r <= r1):
+# 		return E
+# 	else:
+# 		print "Error obtaining internal energy E."
+# 		return 
+

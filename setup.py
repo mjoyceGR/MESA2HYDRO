@@ -1,11 +1,17 @@
 #!/usr/bin/env python
-
 import os
 import pip
 import sys
 import shutil
 import subprocess
 from setuptools import setup
+
+################################
+import subprocess
+## lib/setup.py needs to be executable
+#subprocess.call("python lib/setup.py build_ext --inplace", shell=True)
+
+
 
 PKG_DIR = os.path.abspath(os.path.dirname(__file__))
 
@@ -37,7 +43,7 @@ setup(name='MESA2GADGET',
       author_email='TBD',
       url='https://github.com/mjoyceGR/MESA2GADGET',
       download_url='https://github.com/mjoyceGR/MESA2GADGET/archive/0.1.0.tar.gz',
-      keywords=['mesa', 'gadget', 'astronomy'],
+      keywords=['mesa', 'hydro', 'astronomy'],
       classifiers=[],
       entry_points={
         'console_scripts': [
@@ -47,4 +53,5 @@ setup(name='MESA2GADGET',
       requires=required_pkgs,
       zip_safe=False
 )
+
 

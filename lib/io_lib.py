@@ -96,32 +96,25 @@ def make_IC_hdf5(out_fname, mp, central_point_mass,\
 
 ###############################################################
 #
-# binary writing routine
+# GADGET format binary writing routine
 #
 ###############################################################
-
-
-
-
 def make_IC_binary(fname, mp, central_point_mass,\
                    x, y, z,\
                    local_MESA_rho, local_MESA_P, local_MESA_E,\
                    which_dtype='f',**kwargs):
-                   # E removed!!!
 
+    compute_direct=kwargs.get("compute_direct", 0)
     #central_mass=float(kwargs.get('central_mass', 10e6)) #<-----WARNING!! not properly handled!!!
     print "mp in make_IC_binary is", mp
     import pyIC as pygadgetic
 
     gas_particles=len(x)-1#+1  ## mjoyce 11/2/2018  for central mass
     total_number_of_particles=len(x)
-
     #gas particles = npart[0] = gas_particles
     npart=[gas_particles,1,0,0,0,0] # central mass should be Type 1 according to The Phil
 
     my_header=pygadgetic.Header()
-
-
     my_body=pygadgetic.Body(npart)
     my_header.NumPart_ThisFile = np.array(npart)
     my_header.NumPart_Total = np.array(npart)
@@ -137,12 +130,6 @@ def make_IC_binary(fname, mp, central_point_mass,\
 
     ##fill the body with minimal information
     my_body.id[:]=np.arange(0,total_number_of_particles) #id_g
-
-    #########################
-    #
-    # WARNING! confused here!
-    #
-    ##########################
     my_body.mass[:]=0.*total_number_of_particles + mp #particle_masses 
 
     ############################
@@ -153,39 +140,58 @@ def make_IC_binary(fname, mp, central_point_mass,\
     print "value of central_point_mass: ", central_point_mass
     my_body.mass[-1]=central_point_mass 
 
-
-    #########################
-    #
-    # WARNING! confused here!
-    #
-    ##########################
     h=1.2*(mp/local_MESA_rho)**(1.0/3.0)
     h=2.0*h ### GADGET defines hsml as the kernel radius, so use 2H here
     
     # Q: this should... include the central particle? yes no? 5/21/19
     # A: maybe doesn't matter, but gas_particles/total_num_particles here
     #    needs to MATCH the definition in the pyIC binary writer
-
     my_body.hsml[:]=h[0:gas_particles]  
-    #my_body.hsml[:]=0.*gas_particles + (-1)  
-
-
     ### give hydro MESA's density estimate directly, to ease starting guess 
     my_body.rho[:]=local_MESA_rho[0:gas_particles]
 
     ## give hydro some energy per unit mass from 
     ## an ideal gas equation of state gamma=5/3 (and then hydro code has to use that EOS too)
-    gamma_eos    = 5.0/3.0     
-    internal_E   = local_MESA_P/((gamma_eos-1.0)*local_MESA_rho)
-    my_body.u[:] = internal_E[0:gas_particles]
+    if compute_direct:
+        print "WARNING! computing u based on ideal gas EOS--NOT SUITABLE FOR e.g. WHITE DWARF"
+        gamma_eos    = 5.0/3.0     
+        internal_E   = local_MESA_P/((gamma_eos-1.0)*local_MESA_rho)
+        my_body.u[:] = internal_E[0:gas_particles]
 
-    # sanity check that MESA and ideal EOS look the same
-    #my_body.u[:]=local_MESA_E[0:gas_particles]
+    else:
+        # sanity check that MESA and ideal EOS look the same
+        my_body.u[:]=local_MESA_E[0:gas_particles]
 
     
     pygadgetic.check_header(my_header)
     pygadgetic.dump_ic(my_header,my_body,fname, which_dtype=which_dtype)
     return fname
+
+###############################################################
+#
+# PHANTOM format binary writing routine
+#
+###############################################################
+def make_IC_Phantom(fname, mp, central_point_mass,\
+                   x, y, z,\
+                   local_MESA_rho, local_MESA_P, local_MESA_E,\
+                   which_dtype='f',**kwargs):
+    print "(loc 2) io_lib"
+
+    ngas = len(x) -1
+    mgas= 1
+
+    h=1.2*(mp/local_MESA_rho)**(1.0/3.0)
+    h=2.0*h 
+    hsml=h[0:ngas]  
+    u = local_MESA_E[0:ngas]
+
+    from pygfunc import to_cdef        
+    to_cdef(ngas, mgas, x, y, z, hsml, u, central_point_mass)
+    ## pass fname somehow too?
+
+    return fname
+
 
 
 ###############################################################
@@ -227,3 +233,74 @@ def make_IC_text(\
     return fname
 
 
+
+# def print_phantom_inlist(time, gamma, dat, ntotal, ntypes,\
+#                          npartoftype, masstype, ncolumns,\
+#                          output_filename, *args, **kwargs):
+
+#     print "(loc 3) print_phantom_inlist"
+#     phant_namelist=kwargs.get("phant_namelist", 'phantIC.in')
+#     outf=open(phant_namelist, "w")
+
+#     print >> outf, "time = "+str(float(time))              #1.0
+#     print >> outf, "gamma = "+str(float(gamma))            #2.0
+
+#     # supposed to have dimensions [ntotal x ncolumns]-- not sure how to deal with this yet
+#     print >> outf, "dat = "+str(float(dat))                
+#     print >> outf, "ntotal = "+str(int(ntotal))
+#     print >> outf, "ntypes = "+str(int(ntypes))
+
+#     print >> outf, "npartoftype = "+str(int(npartoftype))
+#     print >> outf, "masstype = "+str(float(masstype))      # says "real"
+#     print >> outf, "ncolumns = "+str(int(ncolumns))
+
+#     print >> outf, "filename = '"+str(output_filename)+"'"
+
+#     outf.close()
+#     return phant_namelist
+
+
+# # def gphysics_to_phantphysics():
+# #     return 
+
+
+# def make_IC_Phantom(fname, mp, central_point_mass,\
+#                    x, y, z,\
+#                    local_MESA_rho, local_MESA_P, local_MESA_E,\
+#                    which_dtype='f',**kwargs):
+#     print "(loc 2) io_lib"
+
+#     #is this physics gamma or sph gamma? assuming physics
+#     #ideal gas gamma unless otherwise specified
+#     gamma_default=5.0/3.0               
+#     gamma=float(kwargs.get("gamma", gamma_default))  
+    
+
+#     output_filename=fname
+#     time=0.0                       #don't know what this does, should be float
+
+
+#     ## npartoftype(:) is an array of length total_particle_number, maybe
+#     ntypes=2                 #is this true?
+#     npartoftype = len(x)     #number of gas particles
+#     npartoftype = 1          #number of ...sink particles?
+
+
+#     ## flatten x,y,z coords into an array somehow, probably
+#     ntotal=len(x)
+#     ncolumns=3.0
+#     dat=3.0 #np.array([ntotal,ncolumns])         #unclear
+
+#     masstype=0                              # ???
+
+#     phant_namelist=print_phantom_inlist(time, gamma, dat, ntotal, ntypes,\
+#                          npartoftype, masstype, ncolumns,\
+#                          output_filename)
+
+#     ## launch compilation and write processes
+#     import subprocess
+#     subprocess.call("gfortran ../lib/phantom_write.f90 -o ../lib/phant.out ", shell=True)
+#     subprocess.call("../lib/phant.out "+str(phant_namelist), shell=True)
+
+
+#     return fname #+"_phantom.bin" ##name of phantom-compatible IC file
