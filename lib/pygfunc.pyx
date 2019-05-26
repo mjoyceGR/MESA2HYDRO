@@ -1,36 +1,19 @@
 from numpy import linspace, empty
 from numpy cimport ndarray as ar
+from cpython cimport array
+import array
 
 cdef extern from "pygfunc.h":
-    void c_gfunc(int* ngas,int* mgas, double* x, double* y, double* z, double*h, double* u, double* msink);
+    void c_gfunc(int ngas, int* mgas, double* x, double* y, double* z, double* h, double* u, double* msink);
     ## arguments: (double* a, int* n, int* m, double* a, double* b, double* c)
 
 
-def to_cdef(ngas, mgas, x, y, z, h, u, central_point_mass, *args, **kwargs):
-	## this function's job is to pass things to c_gfunc()
-
-	#double x, double a=-10.0, double b=10.0,
+def to_cdef(int ngas, int[::1] mgas, double[::1] x, double[::1] y, double[::1] z, double[::1] h, double[::1] u, double[::1] central_point_mass):
+    ## this function's job is to pass things to c_gfunc()
     #cdef:
-    #     ar[double] ax = linspace(a, b, n)
-    #     ar[double,ndim=2] c = empty((n, n), order='F')
- 
+    #    int c_ngas = ngas
+    #    array.array c_mgas = array.array('i', mgas)
 
-    ## cast my python types as c types ?
-    cdef:
-    	int ngas = ngas
-    	int mgas = mgas
-		ar[double] xcoords = x
-		ar[double] ycoords = y
-		ar[double] zcoords = z
-		ar[double] hsml = h
-		ar[double] uvals = u
-		double msink = central_point_mass
-
- 	# pointers?
- 	# figure out basic C syntax or whatever this is
-    c_gfunc(&ngas, &mgas,\
-    		<double*> xcoords, <double*> ycoords, <double*> zcoords,\
-    		<double*> hsml, <double*> uvals, &msink)
+    # figure out basic C syntax or whatever this is
+    c_gfunc(ngas, &mgas[0], &x[0], &y[0], &z[0], &h[0], &u[0], &central_point_mass[0])
     #c_gfunc(&x, &n, &n, <double*> ax.data, <double*> ax.data, <double*> c.data)
-    
-    return 
