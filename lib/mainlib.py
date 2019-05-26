@@ -336,9 +336,10 @@ def get_IC(MESA_file, masscut, NR_file_name,output_filename,mp,which_dtype='f', 
         
         print "phantom binary format attempt (loc 1 in mainlib)"
         
-        var = rw.make_IC_Phantom(str(output_filename), mp, central_point_mass,\
-                   x, y, z,\
-                   local_MESA_rho, local_MESA_P, local_MESA_E,\
+        var = rw.make_IC_Phantom(str(output_filename),\
+                   mp, central_point_mass,\
+                   super_x, super_y, super_z,\
+                   super_rho, super_P, super_E,\
                    gamma=5.0/3.0)    
 
 
