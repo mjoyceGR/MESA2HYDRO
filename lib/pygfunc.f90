@@ -1,13 +1,12 @@
 module write_data_phantom_interface
 use iso_c_binding, only: c_double, c_int  !magic?
 use phantread_module, only: write_data_phantom
-!implicit none
+implicit none
 contains
 
 !! pass MY python things here, through this, and build daniel's things out of them
 
 subroutine c_gfunc(ngas,mgas,x,y,z,h,u,msink) bind(c)!!x, n, m, a, b, c 
-	!!int* ngas,int* mgas,double* x,double* y,double* z, double*h, double* u,double* msink
 
 	!! ACCEPTS THINGS FROM PYTHON
 	!! NOT COMPLETELY WRITTEN YET
@@ -24,6 +23,7 @@ subroutine c_gfunc(ngas,mgas,x,y,z,h,u,msink) bind(c)!!x, n, m, a, b, c
     integer(c_int), intent(in) :: mgas(ngas)
     real(c_double), intent(in) :: x(ngas), y(ngas), z(ngas), h(ngas), u(ngas), msink(ngas)
 
+    print *, "Starting"
     print *, ngas
     print *, mgas
     print *, x
