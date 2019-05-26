@@ -24,14 +24,13 @@ subroutine c_gfunc(ngas,mgas,x,y,z,h,u,msink) bind(c)!!x, n, m, a, b, c
     real(c_double), intent(in) :: x(ngas), y(ngas), z(ngas), h(ngas), u(ngas), msink(ngas)
 
     print *, "Starting"
-    print *, ngas
-    print *, mgas
-    print *, x
-    print *, y
-    print *, z
-    print *, h
-    print *, u
-    print *, msink
+    print *, mgas(1)
+    print *, x(1)
+    print *, y(1)
+    print *, z(1)
+    print *, h(1)
+    print *, u(1)
+    print *, msink(1)
 
     !n = ngas
 
