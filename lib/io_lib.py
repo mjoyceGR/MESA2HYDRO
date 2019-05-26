@@ -179,12 +179,15 @@ def make_IC_Phantom(fname, mp, central_point_mass,\
     print "(loc 2) io_lib"
 
     ngas = len(x) -1
-    mgas= 1
+    mgas= np.array(ngas)*0 + mp
+
+
+    print "loc 3, local_MESA_rho", local_MESA_rho
 
     h=1.2*(mp/local_MESA_rho)**(1.0/3.0)
-    h=2.0*h 
-    hsml=h[0:ngas]  
-    u = local_MESA_E[0:ngas]
+    h=2.0*h  ## GADGET scale definition --> factor of 2
+    hsml=h
+    u = local_MESA_E
 
     from pygfunc import to_cdef        
     to_cdef(ngas, mgas, x, y, z, hsml, u, central_point_mass)
