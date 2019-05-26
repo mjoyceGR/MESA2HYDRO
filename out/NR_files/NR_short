@@ -1,0 +1,9 @@
+## fname /home/mjoyce/UCT_SAAO/research/MESA2HYDRO/data/sample_MESA_output/profile_mainsequence_logE.data  masscut 0.94    N 8   mp (Ms) 1e-07   mp (g) 1.988e+26   stepsize 8.0000000e+05
+#N    (ru+rl)/2 (cm)    Mcontained in shell ru-rl     u(rmid)
+8 41407946039.728714 1.60607324645e+29 660338772348221.9
+8 41422346039.728714 1.60374424479e+29 660338772348221.9
+8 67751146039.728714 1.5273472461e+29 53517628102277.76
+8 68648746039.728714 1.52704131899e+29 37549071875213.13
+#
+#
+# runtime:  18539.738915  seconds
