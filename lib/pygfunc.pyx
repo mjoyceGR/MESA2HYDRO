@@ -5,7 +5,6 @@ import array
 
 cdef extern from "pygfunc.h":
     void c_gfunc(int ngas, int* mgas, double* x, double* y, double* z, double* h, double* u, double* msink);
-    ## arguments: (double* a, int* n, int* m, double* a, double* b, double* c)
 
 
 def to_cdef(int ngas, int[::1] mgas, double[::1] x, double[::1] y, double[::1] z, double[::1] h, double[::1] u, double[::1] central_point_mass):
@@ -15,5 +14,6 @@ def to_cdef(int ngas, int[::1] mgas, double[::1] x, double[::1] y, double[::1] z
     #    array.array c_mgas = array.array('i', mgas)
 
     # figure out basic C syntax or whatever this is
+    print("calling")
     c_gfunc(ngas, &mgas[0], &x[0], &y[0], &z[0], &h[0], &u[0], &central_point_mass[0])
-    #c_gfunc(&x, &n, &n, <double*> ax.data, <double*> ax.data, <double*> c.data)
+    print("called")
