@@ -1,7 +1,16 @@
-/*extern void c_gfunc(int* n);
-*/
-extern void c_gfunc(int ngas, int* mgas, double* x, double* y, double* z, double* h, double* u, double* msink);
+/* ngas is an int, the rest are arrays, msink is a float
 
-/* whatever the arguments in pygfunc.f90 are, in here
+	is double* the correct prefix for arrays of doubles AND for stand-alone doubles?
+
+extern void c_gfunc(int ngas, double* msink);
+*/
+
+/* extremely careful with asterisks (pointers) here !!! */
+extern void c_gfunc(int* ngas, double* mgas, double* x, double* y, double* z, double* h, double* u, double* msink);
+/*
+, double* x, double* y, double* z, double* h, double* u, double* msink);
+
+ 
+whatever the arguments in pygfunc.f90 are, in here
 ex) extern void c_gfunc(double* x, int* n, int* m, double* a, double* b, double* c);
 */

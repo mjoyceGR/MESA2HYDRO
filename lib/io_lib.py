@@ -172,25 +172,33 @@ def make_IC_binary(fname, mp, central_point_mass,\
 # PHANTOM format binary writing routine
 #
 ###############################################################
-def make_IC_Phantom(fname, mp, central_point_mass,\
-                   x, y, z,\
-                   local_MESA_rho, local_MESA_P, local_MESA_E,\
-                   which_dtype='f',**kwargs):
+def make_IC_Phantom(fname,\
+                    mp, central_point_mass,\
+                    x, y, z,\
+                    local_MESA_rho, local_MESA_P, local_MESA_E,\
+                    which_dtype='f',**kwargs):
     print "(loc 2) io_lib"
-
     ngas = len(x) -1
-    mgas= np.array(ngas)*0 + mp
-
+    mgas= np.zeros(ngas)+ np.float(mp)
 
     print "loc 3, local_MESA_rho", local_MESA_rho
+    print "loc 3, type(mgas) ", type(mgas)
+    print "loc 3 mgas", mgas
+    #sys.exit()
+
 
     h=1.2*(mp/local_MESA_rho)**(1.0/3.0)
     h=2.0*h  ## GADGET scale definition --> factor of 2
     hsml=h
     u = local_MESA_E
 
+    central_point_mass=float(central_point_mass)#.astype(np.float64)
+    print "type(central_point_mass)", type(central_point_mass)
+
     from pygfunc import to_cdef        
-    to_cdef(ngas, mgas, x, y, z, hsml, u, central_point_mass)
+    to_cdef(ngas, mgas, x, y, z, hsml, u, central_point_mass)    
+    #to_cdef(ngas, central_point_mass)
+
     ## pass fname somehow too?
 
     return fname
