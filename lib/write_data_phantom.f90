@@ -24,7 +24,7 @@
 ! Module implementing "splash to phantom" operation, writing
 ! a binary dump file suitable for input to the PHANTOM code
 !-----------------------------------------------------------------
-module write_data_phantom_DPmod
+module write_data_phantom
  use iso_c_binding, only:c_float,c_double
  implicit none
  integer, parameter :: int8 = selected_int_kind(10)
@@ -47,17 +47,25 @@ function tag(string)
 end function tag
 
 subroutine write_sphdata_phantom(time,gamma,dat,ndim,ntotal,ntypes,npartoftype, &
-                                 masstype,ncolumns,udist,umass,utime,umagfd,labeltype,&
-                                 label_dat,ix,ih,ivx,iBfirst,ipmass,iutherm,filename)
+                                  masstype,ncolumns,udist,umass,utime,umagfd,labeltype,&
+                                  label_dat,ix,ih,ivx,iBfirst,ipmass,iutherm,filename,hsoft_sink)
+
+!integer, intent(in) :: n
+!print *, "loc 8, n=", n
+
  integer, intent(in)          :: ndim,ntotal,ntypes,ncolumns
  integer, intent(in)          :: npartoftype(:)
- real, intent(in)             :: time,gamma
+
+ real, intent(in)             :: time !! real8 vs real4 error
+
+ real, intent(in)             :: gamma
  real, intent(in)             :: dat(ntotal,ncolumns)
  real, intent(in)             :: masstype(:)
  real(doub_prec), intent(in)  :: udist,umass,utime,umagfd
  character(len=*), intent(in) :: labeltype(ntypes),label_dat(ncolumns)
  integer,          intent(in) :: ix(3),ivx,ih,iBfirst,ipmass,iutherm
  character(len=*), intent(in) :: filename
+ real,             intent(in) :: hsoft_sink
 
  integer, parameter    :: i_int   = 1, &
                           i_int1  = 2, &
@@ -79,7 +87,7 @@ subroutine write_sphdata_phantom(time,gamma,dat,ndim,ntotal,ntypes,npartoftype, 
  integer            :: i,j,ierr,i1,index1,number,npart,nptmass,iversion,np
  real               :: rheader(idimhead)
  character(len=lentag) :: rheader_tags(idimhead)
- real               :: r1,hfact
+ real               :: r1,hfact,macc,spinx,spiny,spinz
  logical            :: mhd
 !
 ! sink particle locations in dat array
@@ -117,6 +125,11 @@ subroutine write_sphdata_phantom(time,gamma,dat,ndim,ntotal,ntypes,npartoftype, 
     mhd = .true.
     narraylengths = 4
  endif
+!
+!--figure out whether we have sink particles
+!
+ call extract_sink_particles_from_data(ntypes,npartoftype,labeltype,np,nptmass,ntypesi,ilocsink)
+
 !--fill rheader and check that we have equal mass particles
  rheader_tags = ' '
  rheader(:) = 0.
@@ -128,7 +141,7 @@ subroutine write_sphdata_phantom(time,gamma,dat,ndim,ntotal,ntypes,npartoftype, 
  rheader_tags(6) = 'hfact'
  if (ipmass > 0) then
     index1 = 1
-    do i=1,ntypes
+    do i=1,ntypesi
        rheader(14+i) = dat(index1,ipmass)
        rheader_tags(14+i) = 'massoftype'
        if (npartoftype(i) > 0) then
@@ -150,7 +163,7 @@ subroutine write_sphdata_phantom(time,gamma,dat,ndim,ntotal,ntypes,npartoftype, 
               "': full dump written to file ',a,' on unit ',i2,'   <--------',/)") &
        time,trim(outfile),idump
 
- open(unit=idump,file=outfile,status='new',form='unformatted',iostat=ierr)
+ open(unit=idump,file=outfile,status='replace',form='unformatted',iostat=ierr)
  if (ierr /= 0) then
     write(*,*) 'error: can''t create new dumpfile '//trim(outfile)
     return
@@ -163,11 +176,6 @@ subroutine write_sphdata_phantom(time,gamma,dat,ndim,ntotal,ntypes,npartoftype, 
  iversion = 1 ! file version to write
  write (idump, err=100) intval1,r1,intval2,iversion,int1o
  write (idump, err=100) fileident('F','Phantom',mhd=mhd)
-
-!
-!--figure out whether we have sink particles
-!
- call extract_sink_particles_from_data(ntypes,npartoftype,labeltype,np,nptmass,ntypesi,ilocsink)
 
  npart = npartoftype(1)
  npartoftypetot(:) = 0
@@ -190,17 +198,17 @@ subroutine write_sphdata_phantom(time,gamma,dat,ndim,ntotal,ntypes,npartoftype, 
 !--single values
 !
 !--default int
- number = 8
+ number = 9
  write (idump, err=100) number
- write (idump, err=100) tag('nparttot'),tag('ntypes'),(tag('npartoftype'),i=1,5),tag('nblocks')
- write (idump, err=100) int(nparttot),ntypesi,(int(npartoftypetot(i)),i=1,5),nblocks
+ write (idump, err=100) tag('nparttot'),tag('ntypes'),(tag('npartoftype'),i=1,5),tag('nblocks'),tag('nptmass')
+ write (idump, err=100) int(nparttot),ntypesi,(int(npartoftypetot(i)),i=1,5),nblocks,nptmass
 !--int*1, int*2, int*4
  number = 0
  do i = 1, 3
     write (idump, err=100) number
  end do
 !--int*8
- number = 2 + ntypes
+ number = 2 + ntypesi
  write (idump, err=100) number
  write (idump, err=100) tag('nparttot'),tag('ntypes'),(tag('npartoftypet'),i=1,ntypesi)
  write (idump, err=100) nparttot,int(ntypesi,kind=8),npartoftypetot(1:ntypesi)
@@ -245,7 +253,7 @@ subroutine write_sphdata_phantom(time,gamma,dat,ndim,ntotal,ntypes,npartoftype, 
 !--array length 2 header
 !
  number8 = nptmass
- nums(:) = 0
+ nums(i_real) = 13
  write (idump, err=100) number8, (nums(i), i=1,8)
 !
 !--array length 3 header
@@ -309,11 +317,18 @@ subroutine write_sphdata_phantom(time,gamma,dat,ndim,ntotal,ntypes,npartoftype, 
     write (idump, err=100) (dat(ilocsink(i),ipmass),i=1,nptmass)
     write (idump, err=100) tag(label_dat(ih))
     write (idump, err=100) (dat(ilocsink(i),ih),i=1,nptmass)
-!    write (idump, err=100) (hsoft,i=1,nptmass)
-!    write (idump, err=100) (macc,i=1,nptmass)
-!    write (idump, err=100) (spinx,i=1,nptmass)
-!    write (idump, err=100) (spinx,i=1,nptmass)
-!    write (idump, err=100) (spinx,i=1,nptmass)
+
+    ! extra sink information
+    write (idump, err=100) tag('hsoft')
+    write (idump, err=100) (hsoft_sink,i=1,nptmass)
+    write (idump, err=100) tag('macc')
+    write (idump, err=100) (macc,i=1,nptmass)
+    write (idump, err=100) tag('spinx')
+    write (idump, err=100) (spinx,i=1,nptmass)
+    write (idump, err=100) tag('spiny')
+    write (idump, err=100) (spiny,i=1,nptmass)
+    write (idump, err=100) tag('spinz')
+    write (idump, err=100) (spinz,i=1,nptmass)
     do j = 1, 3
        write (idump, err=100) tag(label_dat(ivx+j-1))
        write (idump, err=100) (dat(ilocsink(i),ivx+j-1),i=1,nptmass)
@@ -406,4 +421,4 @@ subroutine extract_sink_particles_from_data(ntypes,npartoftype,labeltype,np,nptm
 
 end subroutine extract_sink_particles_from_data
 
-end module write_data_phantom_DPmod
+end module write_data_phantom

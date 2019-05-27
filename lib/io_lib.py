@@ -187,6 +187,8 @@ def make_IC_Phantom(fname,\
     #sys.exit()
 
 
+    hsoft_sink = 0.5*x.max()
+
     h=1.2*(mp/local_MESA_rho)**(1.0/3.0)
     h=2.0*h  ## GADGET scale definition --> factor of 2
     hsml=h
@@ -196,7 +198,7 @@ def make_IC_Phantom(fname,\
     print "type(central_point_mass)", type(central_point_mass)
 
     from pygfunc import to_cdef        
-    to_cdef(ngas, mgas, x, y, z, hsml, u, central_point_mass)    
+    to_cdef(ngas, mgas, x, y, z, hsml, u, central_point_mass, hsoft_sink)    
     #to_cdef(ngas, central_point_mass)
 
     ## pass fname somehow too?
