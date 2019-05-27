@@ -3,10 +3,9 @@
 	is double* the correct prefix for arrays of doubles AND for stand-alone doubles?
 
 extern void c_gfunc(int ngas, double* msink);
-*/
 
 /* extremely careful with asterisks (pointers) here !!! */
-extern void c_gfunc(int* ngas, double* mgas, double* x, double* y, double* z, double* h, double* u, double* msink);
+extern void c_gfunc(int* ngas, double* mgas, double* x, double* y, double* z, double* h, double* u, double* msink,double* hsink_soft);
 /*
 , double* x, double* y, double* z, double* h, double* u, double* msink);
 

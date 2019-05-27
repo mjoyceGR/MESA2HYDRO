@@ -1,37 +1,47 @@
 module write_data_phantom_interface
-use iso_c_binding, only: c_double, c_int  !magic?
+use iso_c_binding, only: c_double, c_float, c_int, c_char  !magic?
 !use phantread_module, only: write_data_phantom
-use write_data_phantom_DPmod, only: write_sphdata_phantom
+use write_data_phantom, only: write_sphdata_phantom
 implicit none
 contains
 
 !! pass MY python things here, through this, and build daniel's things out of them
 
-subroutine c_gfunc(ngas,mgas,x,y,z,h,u,msink) bind(c) 
+subroutine c_gfunc(ngas,mgas,x,y,z,h,u,msink, hsink_soft) bind(c) 
+
+
+!(time,gamma,dat,ndim,ntotal,ntypes,npartoftype, &
+  ! masstype,ncolumns,udist,umass,utime,umagfd,labeltype,&
+   ! label_dat,ix,ih,ivx,iBfirst,ipmass,iutherm,filename)
+
+
+
 	!! ACCEPTS THINGS FROM PYTHON
 	!! NOT COMPLETELY WRITTEN YET
 
     integer(c_int), intent(in) :: ngas 
-    real(c_double), dimension(1), intent(in) :: mgas(ngas), x(ngas), y(ngas), z(ngas), h(ngas), u(ngas)
-    real(c_double), intent(in) ::  msink
+    real(c_double), intent(in) :: mgas(ngas), x(ngas), y(ngas), z(ngas), h(ngas), u(ngas)
+    real(c_double), intent(in) :: msink, hsink_soft
 
+    integer, parameter :: ncolumns = 9 ! number of quantities to write
 
-	! integer, parameter :: int8 = selected_int_kind(10)
-	! integer, parameter :: sing_prec = c_float
-	! integer, parameter :: doub_prec = c_double
-	! character(len=10), parameter, public :: formatname='phantom'
-	! ! integer, parameter :: lentag = 16
+	integer :: i,ndim,ntotal,ntypes,nsink
+	integer :: npartoftype(5),npart
+	real(c_double) :: time
+	real(c_double) :: gamma
 
-	!  integer(c_int), intent(in)          :: ndim,ntotal,ntypes,ncolumns
-	!  integer(c_int), intent(in)          :: npartoftype(:)
-	!  real(c_double), intent(in)             :: time,gamma
-	!  real(c_double), intent(in)             :: dat(ntotal,ncolumns)
-	!  real(c_double), intent(in)             :: masstype(:)
-	!  real(c_double), intent(in)  :: udist,umass,utime,umagfd
-	!  character(len=*), intent(in) :: labeltype(ntypes),label_dat(ncolumns)
-	!  integer(c_int),          intent(in) :: ix(3),ivx,ih,iBfirst,ipmass,iutherm
-	!  character(len=*), intent(in) :: filename
+	real(c_double), allocatable  :: dat(:,:)
+	real(c_double) :: masstype(5)
+	character(len=16) :: label(ncolumns)
 
+	real(c_double) :: udist,umass,utime,umagfd
+	character(len=*), parameter :: labeltype(5) = (/'gas ','sink','    ','    ','    '/)
+
+	integer :: ix(3),ivx,ih,iBfirst,ipmass,iutherm
+	character(len=120) :: filename
+
+	time = 0.0
+	gamma = 5.0/3.0
 
     print *, "Starting (loc 5)"
     print *, "ngas:", ngas
@@ -43,46 +53,62 @@ subroutine c_gfunc(ngas,mgas,x,y,z,h,u,msink) bind(c)
     print *, "u_array",u(1)
     print *, "msink", msink!(1)
 
-    !n = ngas
-!    real, allocatable :: dat(:,:), datsink(:,:)
+    umass = 1.98d33
+    udist = 6.95d10
+    utime = sqrt(udist**3/(6.673d-8*umass))
+    umagfd = 0.
 
-!    nsink = 1
-!    allocate(dat(8,n),datsink(6,nsink))
-    !! BUILD the dat, datsink, label, and label_sink data structures in the form compatible with phantom reader
+    nsink = 1
+    npart = ngas+nsink
+    allocate(dat(npart,ncolumns))
 
+    ! BUILD the dat, datsink, label, and label_sink data structures in the form compatible with phantom reader
+    ix(1:3) = (/1,2,3/)
+    ipmass = 4
+    ih = 5
+    ivx = 6
+    iBfirst = 0
+    iutherm = 9
 
-!    dat(1,:) = x
-!    dat(2,:) = y
-!    dat(3,:) = z
-!    dat(4,:) = h
-!    dat(5,:) = 0. !vx(:)
-!    dat(6,:) = 0. !vy(:)
-!    dat(7,:) = 0. !vz(:)
-!    dat(8,:) = u
+    dat = 0.
+    do i=1,ngas
+       dat(i,1) = x(i)/udist
+       dat(i,2) = y(i)/udist
+       dat(i,3) = z(i)/udist
+       dat(i,4) = mgas(i)/umass
+       dat(i,5) = h(i)/udist
+       dat(i,6) = 0. !vx(:)
+       dat(i,7) = 0. !vy(:)
+       dat(i,8) = 0. !vz(:)
+       dat(i,9) = u(i)/(udist/utime)**2
+    enddo
 
-    !label = (/'x','y','z','h','u'/)
+    ! sink particle properties
+    do i=ngas+1,ngas+nsink
+       dat(i,4) = msink/umass
+       dat(i,5) = 0.
+    enddo
 
-!    datsink(1,1) = xsink
-!    datsink(2,1) = ysink
-!    datsink(3,1) = zsink
-!    datsink(4,1) = msink
-!    datsink(5,1) = rsink
-!    datsink(6,1) = hsoftsink
+    ntypes = 2
+    npartoftype(:) = 0
+    masstype(:) = 0.
+    npartoftype(1) = ngas
+    masstype(1) = mgas(1)
+    npartoftype(2) = nsink
+    masstype(2) = msink
 
-!    label_sink = (/'x','y','z','m','h','hsoft'/)
+    label = (/'x ','y ','z ','m ','h ','vx','vy','vz','u '/)
+    ndim = 3
 
-!    ntypes = 1
-    !npartoftype(1) = ngas
-    !massoftype(1) = mgas
+    filename = 'star_00000'
 
+	call write_sphdata_phantom(time,gamma,dat,ndim,npart,ntypes,npartoftype, &
+                               masstype,ncolumns,udist,umass,utime,umagfd,labeltype,&
+                               label,ix,ih,ivx,iBfirst,ipmass,iutherm,filename, hsink_soft)
 
-	! call write_sphdata_phantom(time,gamma,dat,ndim,ntotal,ntypes,npartoftype, &
- !                                 masstype,ncolumns,udist,umass,utime,umagfd,labeltype,&
- !                                 label_dat,ix,ih,ivx,iBfirst,ipmass,iutherm,filename)
-	!(n,dat,label,datsink,label_sink)
     print *, "Hello? (loc 6)\n\n"
 
-!    deallocate(dat,datsink)
+    deallocate(dat)
 
 end subroutine
 end module

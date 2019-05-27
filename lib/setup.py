@@ -12,7 +12,7 @@ print "addition to setup.py 5/23/19-- TO BE INTEGRATED: contact Lianne about com
 ## command: python setup.py build_ext --inplace
 
 # compile the fortran modules without linking
-fortran_mod_comp = 'gfortran phantread_module.f90 -c -o phantread_module.o -O3 -fPIC'
+fortran_mod_comp = 'gfortran -fdefault-real-8 write_data_phantom.f90 -c -o write_data_phantom.o -O3 -fPIC'
 print fortran_mod_comp
 system(fortran_mod_comp)
 shared_obj_comp = 'gfortran pygfunc.f90 -c -o pygfunc.o -O3 -fPIC'
@@ -27,7 +27,7 @@ ext_modules = [Extension(# module name:
                          # other compile args for gcc
                          extra_compile_args=['-fPIC', '-O3'],
                          # other files to link to
-                         extra_objects=['phantread_module.o', 'pygfunc.o'])]
+                         extra_objects=['write_data_phantom.o', 'pygfunc.o'])]
 
 setup(name = 'pygfunc',
       cmdclass = {'build_ext': build_ext},
