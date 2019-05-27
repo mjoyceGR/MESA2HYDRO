@@ -1,39 +1,49 @@
 module write_data_phantom_interface
 use iso_c_binding, only: c_double, c_int  !magic?
-use phantread_module, only: write_data_phantom
+!use phantread_module, only: write_data_phantom
+use write_data_phantom_DPmod, only: write_sphdata_phantom
 implicit none
 contains
 
 !! pass MY python things here, through this, and build daniel's things out of them
 
-subroutine c_gfunc(ngas,mgas,x,y,z,h,u,msink) bind(c)!!x, n, m, a, b, c 
-
+subroutine c_gfunc(ngas,mgas,x,y,z,h,u,msink) bind(c) 
 	!! ACCEPTS THINGS FROM PYTHON
 	!! NOT COMPLETELY WRITTEN YET
 
+    integer(c_int), intent(in) :: ngas 
+    real(c_double), dimension(1), intent(in) :: mgas(ngas), x(ngas), y(ngas), z(ngas), h(ngas), u(ngas)
+    real(c_double), intent(in) ::  msink
 
-    ! real(c_double), intent(in) :: x
-    ! integer(c_int), intent(in) ::  n, m
-    ! real(c_double), dimension(n), intent(in) :: a
-    ! real(c_double), dimension(m), intent(in) :: b
-    ! real(c_double), dimension(n, m), intent(out) :: c
 
-    !integer(c_int), intent(in) :: nsink, ntypes, npartoftype, massoftype
-    integer(c_int), intent(in) :: ngas
-    integer(c_int), intent(in) :: mgas(ngas)
-    real(c_double), intent(in) :: x(ngas), y(ngas), z(ngas), h(ngas), u(ngas), msink(ngas)
+	! integer, parameter :: int8 = selected_int_kind(10)
+	! integer, parameter :: sing_prec = c_float
+	! integer, parameter :: doub_prec = c_double
+	! character(len=10), parameter, public :: formatname='phantom'
+	! ! integer, parameter :: lentag = 16
 
-    print *, "Starting"
-    print *, mgas(1)
-    print *, x(1)
-    print *, y(1)
-    print *, z(1)
-    print *, h(1)
-    print *, u(1)
-    print *, msink(1)
+	!  integer(c_int), intent(in)          :: ndim,ntotal,ntypes,ncolumns
+	!  integer(c_int), intent(in)          :: npartoftype(:)
+	!  real(c_double), intent(in)             :: time,gamma
+	!  real(c_double), intent(in)             :: dat(ntotal,ncolumns)
+	!  real(c_double), intent(in)             :: masstype(:)
+	!  real(c_double), intent(in)  :: udist,umass,utime,umagfd
+	!  character(len=*), intent(in) :: labeltype(ntypes),label_dat(ncolumns)
+	!  integer(c_int),          intent(in) :: ix(3),ivx,ih,iBfirst,ipmass,iutherm
+	!  character(len=*), intent(in) :: filename
+
+
+    print *, "Starting (loc 5)"
+    print *, "ngas:", ngas
+    print *, "mgas:", mgas(1)
+    print *, "x_array", x(1)
+    print *, "y_array",y(1)
+    print *, "z_array",z(1)
+    print *, "h_array",h(1)
+    print *, "u_array",u(1)
+    print *, "msink", msink!(1)
 
     !n = ngas
-
 !    real, allocatable :: dat(:,:), datsink(:,:)
 
 !    nsink = 1
@@ -65,8 +75,12 @@ subroutine c_gfunc(ngas,mgas,x,y,z,h,u,msink) bind(c)!!x, n, m, a, b, c
     !npartoftype(1) = ngas
     !massoftype(1) = mgas
 
-!    call write_data_phantom(n,dat,label,datsink,label_sink)
-    print *, "Hello?"
+
+	! call write_sphdata_phantom(time,gamma,dat,ndim,ntotal,ntypes,npartoftype, &
+ !                                 masstype,ncolumns,udist,umass,utime,umagfd,labeltype,&
+ !                                 label_dat,ix,ih,ivx,iBfirst,ipmass,iutherm,filename)
+	!(n,dat,label,datsink,label_sink)
+    print *, "Hello? (loc 6)\n\n"
 
 !    deallocate(dat,datsink)
 
