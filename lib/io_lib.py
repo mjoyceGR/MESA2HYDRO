@@ -185,9 +185,9 @@ def make_IC_Phantom(fname,\
     ngas = len(x) -1
     mgas= np.zeros(ngas)+ np.float(mp)
 
-    print "loc 3, local_MESA_rho", local_MESA_rho
-    print "loc 3, type(mgas) ", type(mgas)
-    print "loc 3 mgas", mgas
+    # print "loc 3, local_MESA_rho", local_MESA_rho
+    # print "loc 3, type(mgas) ", type(mgas)
+    # print "loc 3 mgas", mgas
     #sys.exit()
 
 
@@ -207,6 +207,8 @@ def make_IC_Phantom(fname,\
 
     ## pass fname somehow too?
 
+
+    print "loc 8, phantom file generated"
     return fname
 
 
