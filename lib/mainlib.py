@@ -122,42 +122,14 @@ def get_sink_mass(MESA_file, masscut):
 
 
 def make_NR_file(MESA_file,masscut,N,mp, RKstep,NR_file, *args, **kwargs):
-    ## NR_file must be FILE OBJECT, not STRING
-    # mp must be passed in units of solar masses, e.g. 1e-7 
     start_time=time.time()
-
-    #
-    #
-    #
-    #
-    #
-    #
-    #
-    #
-    ### 5/28/19 #####
-    ## redefining mp
-    #shell_particle_number = 12.0*N**2.0 ## this is different than the global particle number, which we don't know yet at this point
-    #central_point_mass = get_sink_mass(MESA_file,masscut) ## this is specified at onset from conditions in .cfg file
-    #
-    #mp = (Mstar-central_point_mass)/shell_particle_number ????
-    #
-    #
-    #   
-    #
-    #
-    #
-    #
-    #
-    #
-    #
-
-
     fit_region_R   =MESA_r(MESA_file, masscut)
-    fit_region_E   =MESA_E(MESA_file, masscut) #MESA_internalE(MESA_file,masscut)
-
-    #mp=mp*M_to_solar
+    fit_region_E   =MESA_E(MESA_file, masscut) 
     rl=fit_region_R.min()
     rmax=fit_region_R.max()
+
+    print "loc 1: generating NR file"
+
 
     outf=NR_file
     print >> outf, '## fname',  MESA_file ,\
@@ -166,36 +138,68 @@ def make_NR_file(MESA_file,masscut,N,mp, RKstep,NR_file, *args, **kwargs):
                    '  mp (Ms)', mp/M_to_solar,\
                    '  mp (g)',  mp,\
                    '  stepsize',  ('%1.7e'% RKstep)
+    
     print >> outf, '#N    (ru+rl)/2 (cm)    Mcontained in shell ru-rl     u(rmid)'
 
-    ru=rl
-    while ru <= rmax:
-        try:
-            ru, Mshell=cf.get_placement_radii(rl, ru, RKstep, N, mp, MESA_file,masscut, supqpress_output=False, load_unlogged=False)
-            
-            r_print=(ru + rl)/2.0
-            r_nearest,rdex=cf.find_nearest(fit_region_R,r_print)
-            u_local=fit_region_E[rdex]
 
-            print >> outf,\
-                     N,\
-                     r_print,\
-                     Mshell,\
-                     u_local ## 5/22/19
-                     #cf.get_logE(ru,MESA_file,masscut)
-            
-            rl=ru
-        except TypeError:
-            print 'reached', ('%1.5f'% (ru*100.0/rmax)), r'% of outer radius' 
-            break
+    ru=rmax
+    #ru, Mshell=
+    cf.get_placement_radii(rl, ru, RKstep, N, mp, MESA_file,masscut, outf)
 
-    # ################# mjoyce 11/2/18       
-    # print >> outf, 
 
-    print 'runtime: ', time.time()-start_time
+    print 'runtime: ', "%.1f"%(time.time()-start_time), "seconds"
     print >> outf, '#\n#\n# runtime: ', time.time()-start_time, " seconds"
-
     return
+
+
+
+
+
+
+# def make_NR_file(MESA_file,masscut,N,mp, RKstep,NR_file, *args, **kwargs):
+#     start_time=time.time()
+#     fit_region_R   =MESA_r(MESA_file, masscut)
+#     fit_region_E   =MESA_E(MESA_file, masscut) 
+#     rl=fit_region_R.min()
+#     rmax=fit_region_R.max()
+
+
+#     outf=NR_file
+#     print >> outf, '## fname',  MESA_file ,\
+#                    ' masscut',  masscut,\
+#                    '   N',      N,\
+#                    '  mp (Ms)', mp/M_to_solar,\
+#                    '  mp (g)',  mp,\
+#                    '  stepsize',  ('%1.7e'% RKstep)
+#     print >> outf, '#N    (ru+rl)/2 (cm)    Mcontained in shell ru-rl     u(rmid)'
+
+
+
+#     ru=rl
+#     while ru <= rmax:
+#         try:
+#             ru, Mshell=cf.get_placement_radii(rl, ru, RKstep, N, mp, MESA_file,masscut)
+            
+#             r_print=(ru + rl)/2.0
+#             r_nearest,rdex=cf.find_nearest(fit_region_R,r_print)
+#             u_local=fit_region_E[rdex]
+
+#             print >> outf,\
+#                      N,\
+#                      r_print,\
+#                      Mshell,\
+#                      u_local ## 5/22/19
+#                      #cf.get_logE(ru,MESA_file,masscut)
+#             rl=ru
+#         except TypeError:
+#            print 'reached', ('%1.5f'% (ru*100.0/rmax)), r'% of outer radius' 
+#            break
+
+
+
+#     print 'runtime: ', time.time()-start_time
+#     print >> outf, '#\n#\n# runtime: ', time.time()-start_time, " seconds"
+#     return
 
 
 
@@ -302,6 +306,10 @@ def get_IC(MESA_file, masscut, NR_file_name,output_filename,mp,which_dtype='f', 
 
     ### 5/28/19 #####
     ## redefining mp
+    #
+    #
+    # THIS SHOULD BE THE mp THE USER SPECIFIES IF ALL OF THESE ROUTINES ACTUALLY WORK!!!!!!!!!!!
+    #
     mp = (Mstar-central_point_mass)/len(super_x) 
 
     if use_normalized:
@@ -342,7 +350,7 @@ def get_IC(MESA_file, masscut, NR_file_name,output_filename,mp,which_dtype='f', 
         #print "\n\n\n\n\n\n\n\n"          
         import subprocess           
         subprocess.call("mv ../lib/star_00000.tmp  " + str(var) +".tmp", shell=True)           
-
+        subprocess.call("mv ../work/star_00000.tmp  " + str(var) +".tmp", shell=True)  
 
     elif filetype=='gadget_binary':
         var=rw.make_IC_binary(str(output_filename)+ '.bin',\

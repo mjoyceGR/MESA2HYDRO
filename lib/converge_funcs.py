@@ -13,8 +13,8 @@ import healpy as hp
 
 
 
-M_to_solar=1.988e33#*10.0**33.0 ## g/Msolar
-R_to_solar=6.957e10#*10.0**10.0 ## cm/Rsolar
+M_to_solar=1.988e33 #*10.0**33.0 ## g/Msolar
+R_to_solar=6.957e10 #*10.0**10.0 ## cm/Rsolar
 
 def to_Rsun(R_in_cm):
 	try:
@@ -61,8 +61,11 @@ def rho_r(r,MESA_file,masscut, *args, **kwargs):
 	if (r0 <= r <= r1):
 		return float(rrho_r)
 	else:
-		print "rho(r) finished"
-		return 
+		print "WARNING! r not found between r0 and r1....end of MESA density values"
+		#print "WARNING! rrho forced to rho_1"
+		return  #float(rho1)
+		#pass
+		#return 
 		
 def m_r(r,MESA_file,masscut, *args, **kwargs):
 	############################################################
@@ -118,8 +121,11 @@ def Mshell_from_RK(rl, rmax, step, MESA_file,masscut, *args,**kwargs):
 	m=0
 	while r<rmax:
 	    r, m= RK1(r,m, density_integral_numeric, step, MESA_file,masscut)#, load_unlogged=use_unlog)
+	    #print "r, m: ", r, m
 	Mshell=m
 	return Mshell
+
+
 
 
 def Mshell_from_Romberg(rl, rmax, stepsize, MESA_file, masscut,  *args,**kwargs): #step, MESA_file,masscut,
@@ -160,6 +166,8 @@ def Newton_Raphson():
 def RK1(r, m, fx, h, MESA_file,masscut, *args, **kwargs):
 	#need to pass the value of rho roughly at r but don't update it, just need it for calculation
 	#use_unlog=bool(kwargs.get('load_unlogged',False))
+	#print "in RK routine"
+
 	h=float(h)
 
 	rho_k0=rho_r(r,MESA_file,masscut)#,load_unlogged=use_unlog)
@@ -225,60 +233,99 @@ def Romberg_integrate(r, m, fn,\
 
 
 Romberg=False
-def get_placement_radii(rl, ru, RKstep, force_N, mp, MESA_file, masscut, *args, **kwargs):
-	############### FINE
-	#use_unlog=bool(kwargs.get('load_unlogged',True))
-	SO=bool(kwargs.get('suppress_output',False))
+def get_placement_radii(rl, ru, RKstep, force_N, mp, MESA_file, masscut, outf, *args, **kwargs):
+	#print "!!!!!!!!!!!!!!"
 
+	input_RKstep=RKstep
 	rtot=(mn.MESA_r(MESA_file, masscut)).max()
+
+	fit_region_R   =mn.MESA_r(MESA_file, masscut)
+	fit_region_E   =mn.MESA_E(MESA_file, masscut) 
+
+	rmax=fit_region_R.max()
+
 
 	Mshell_target=target_Mshell(force_N,mp)
 	Mshell=0
-	Mshell_temp=0
-	oldru=rl
 
-	####################################
-	#
-	# MASSIVE WARNING 5/22/19
-	#
-	######################################
-	# hold = True
-	# while hold
-	i=0
-	while Mshell <= Mshell_target:
-		##
-		## WARNING! 5/22/19
-		##
-		if Romberg:
-			print "WARNING!!! ROMBERG SWITCH ON!"
-		 	Mshell = Mshell_temp + Mshell_from_Romberg(oldru, ru, RKstep, MESA_file, masscut, steps=7)	
-	 	else:
-			Mshell=Mshell_temp+Mshell_from_RK(oldru, ru, RKstep, MESA_file,masscut)#, load_unlogged=use_unlog)
+
+	rdiff= rmax
+
+
+
+	rl=fit_region_R.min()
+	temp=rl + RKstep
+	ru_mass_loop = temp
+	Mshell_integral = 0.0	
+	while ru_mass_loop <= rmax:
 		
+		# if Romberg:
+		# 	print "WARNING!!! ROMBERG SWITCH ON!"
+		#  	Mshell_integral= Mshell_from_Romberg(oldru, ru, RKstep, MESA_file, masscut, steps=7)	
+		# else: 	
+		
+		#ru_mass_loop = rl + RKstep	
+		Mshell_target = 12.0*force_N**2.0*mp
 
 
-		oldru=ru
-		Mshell_temp=Mshell
-		ru=ru+RKstep
-		print "convergence step ", i
-		i=i+1
-
-	if SO:
-		pass
-	else:
-		# print '',\
-		# 'target_Mshell/true_Mshell ', ('%.3f'%(100.0*Mshell_target/Mshell)),r'%',\
-		# "   rl, ru:", ('%1.3e'%rl),('%1.3e'%ru),'   radius',\
-		# ('%1.3f'%(100.0*ru/rtot))+str('%'),'    RKstep:',  ('%1.3e'%RKstep) 
-		print '',\
-		'target_Mshell/true_Mshell ', ('%.3f'%(100.0*Mshell_target/Mshell)),r'%',\
-		"   rl, ru:", ('%.6f'%rl),('%.6f'%ru),'   radius',\
-		('%1.3f'%(100.0*ru/rtot))+str('%'),'    RKstep:',  ('%.6f'%RKstep) 
+		#temp_RKstep=RKstep
+		### keep pushing the upper limit outward until the integrals agree within 5%
 
 
-		#" converged Mshell:", ('%.3E'%Mshell),\ "target Mshell",('%.3E'%Mshell_target)
-	r_place=ru   #(ru+rl)/2.0 ## WARNING! MODIFIED 5/21/19
-	return r_place, Mshell
+		print "loc 1 value of RKstep: ", RKstep
+		while ( (100.0*Mshell_integral/Mshell_target) <= 95.0) or ((100.0*Mshell_integral/Mshell_target) >= 105.0): 
+			### what should ru be here?
+			#print "in while loop...."
+
+			#RKstep=temp_RKstep
+			#print "Mshell integral, top of while: ", Mshell_integral
+			#print "loc 2 value of RKstep: ", RKstep
+
+			try:
+				Mshell_integral = Mshell_from_RK(rl, ru_mass_loop, RKstep, MESA_file, masscut)#, load_unlogged=use_unlog)
+				print "Mshell_integral, ru_mass_loop, RKstep:             ",\
+			 	 		 ('%.3f'%(100.0*Mshell_integral/Mshell_target)), "    ", ru_mass_loop, "   ", RKstep
+			except TypeError:
+				break  	 		 
+
+			### adapative step size???
+			#print "ru before reset: ", ru_mass_loop
+			if (100.0*Mshell_integral/Mshell_target) >= 105.0:
+				RKstep=RKstep-0.5*RKstep
+				ru_mass_loop = ru_mass_loop - RKstep
+				Mshell_integral =0.0
+			
+			elif (100.0*Mshell_integral/Mshell_target) <= 95.0:
+				ru_mass_loop = ru_mass_loop + RKstep
+				Mshell_integral =0.0
+			else:
+				pass
+
+		## find central point between upper and lower integral limits for converged value
+		r_print=(ru_mass_loop + rl)/2.0
+		r_nearest,rdex=find_nearest(fit_region_R,r_print)
+		u_local=fit_region_E[rdex]
+		print >> outf, force_N, r_print, Mshell, u_local
+
+		## reset things for next integral at shell r_n+1
+		RKstep=input_RKstep
+		rl = ru_mass_loop
+		ru_mass_loop = ru_mass_loop + RKstep
+		Mshell_integral = 0
+					# break
+
+
+		#ru_mass_loop= ru_mass_loop + RKstep
+		print "integral at %radius ", ru_mass_loop/rmax, "...resetting RKstep =", RKstep
+		print ""
+
+	# print '',\
+	# 'target_Mshell/true_Mshell ', ('%.3f'%(100.0*Mshell_target/Mshell)),r'%',\
+	# "   rl, ru:", ('%.6f'%rl),('%.6f'%ru),'   radius',\
+	# ('%1.3f'%(100.0*ru/rtot))+str('%'),'    RKstep:',  ('%.6f'%RKstep) 
+
+	#r_place=ru   #(ru+rl)/2.0 ## WARNING! MODIFIED 5/21/19
+	return #r_place, Mshell
 
 
 
