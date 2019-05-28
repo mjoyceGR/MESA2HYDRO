@@ -11,3 +11,4 @@ python ../work/run.py ../work/mainsequence.cfg
 
 
 cp star_00000.tmp ../../run_phantom/M2H_test/
+cp  ../../run_phantom/M2H_test/star_00000.tmp ../../run_phantom/M2H_test/star_00000.back

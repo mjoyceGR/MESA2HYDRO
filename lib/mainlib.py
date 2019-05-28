@@ -85,7 +85,7 @@ def central_mass(MESA_file, masscut):
     #print "Mtot at (loc 1) = ", Mtot
     central_M = masscut*Mtot
 
-    return central_M#.astype(float)
+    return central_M, Mtot#.astype(float)
 ################################################### mjoyce 11/2/2018
 
 
@@ -284,7 +284,8 @@ def get_IC(MESA_file, masscut, NR_file_name,output_filename,mp,which_dtype='f', 
     # print "(loc 6) len(super_rho), len(super_x): ", len(super_rho), len(super_x)
 
 
-    central_point_mass=central_mass(MESA_file, masscut)
+    ## 5/28/19
+    central_point_mass, Mstar=central_mass(MESA_file, masscut)
     #central_point_mass/M_to_solar
 
     ############################################################
@@ -292,11 +293,14 @@ def get_IC(MESA_file, masscut, NR_file_name,output_filename,mp,which_dtype='f', 
     super_y=cf.to_array(super_y)
     super_z=cf.to_array(super_z)
 
-
     super_rho=cf.to_array(super_rho)
     super_P= cf.to_array(super_P)
     super_E=cf.to_array(super_E)
 
+
+    ### 5/28/19 #####
+    ## redefining mp
+    mp = (Mstar-central_point_mass)/len(super_x) 
 
     if use_normalized:
         print "\n\nWARNING! NORMALIZED >>> mass <<< COORDINATES NECESSARY FOR BINARY FORMAT!"

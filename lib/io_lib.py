@@ -18,6 +18,7 @@ from yanked import *
 # hdf5 writing routine
 #
 ###############################################################
+## change name to GADGET hdf5
 def make_IC_hdf5(out_fname, mp, central_point_mass,\
          x, y, z,E, **kwargs):
 
@@ -58,6 +59,9 @@ def make_IC_hdf5(out_fname, mp, central_point_mass,\
     masses[-1]=central_point_mass
 
     ###########################################################################
+    ### hsml should b 2h, also take definition from phantom writer
+
+
     hsml=0.*x + (-1)
     print "5/21/19"
     print "hsml--smoothing length (loc 1): ", hsml
@@ -140,9 +144,9 @@ def make_IC_binary(fname, mp, central_point_mass,\
     print "value of central_point_mass: ", central_point_mass
     my_body.mass[-1]=central_point_mass 
 
-    h=1.2*(mp/local_MESA_rho)**(1.0/3.0)
-    h=2.0*h ### GADGET defines hsml as the kernel radius, so use 2H here
-    
+    h=1.2*(mp/local_MESA_rho)**(1.0/3.0) ## add a *2 to gadget write
+    h = h*2.0
+
     # Q: this should... include the central particle? yes no? 5/21/19
     # A: maybe doesn't matter, but gas_particles/total_num_particles here
     #    needs to MATCH the definition in the pyIC binary writer
@@ -190,7 +194,7 @@ def make_IC_Phantom(fname,\
     hsoft_sink = 0.5*x.max()
 
     h=1.2*(mp/local_MESA_rho)**(1.0/3.0)
-    h=2.0*h  ## GADGET scale definition --> factor of 2
+    #h=2.0*h  ## GADGET scale definition --> factor of 2
     hsml=h
     u = local_MESA_E
 

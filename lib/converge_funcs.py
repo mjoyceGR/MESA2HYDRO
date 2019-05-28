@@ -13,8 +13,8 @@ import healpy as hp
 
 
 
-M_to_solar=1.988*10.0**33.0 ## g/Msolar
-R_to_solar=6.957*10.0**10.0 ## cm/Rsolar
+M_to_solar=1.988e33#*10.0**33.0 ## g/Msolar
+R_to_solar=6.957e10#*10.0**10.0 ## cm/Rsolar
 
 def to_Rsun(R_in_cm):
 	try:
