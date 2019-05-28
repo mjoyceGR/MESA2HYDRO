@@ -37,11 +37,7 @@ module write_data_phantom
  private
 
 contains
-!--------------------------------------------------------------------
-!+
-!  write header tag for tagged format
-!+
-!--------------------------------------------------------------------
+
 function tag(string)
  character(len=lentag) :: tag
  character(len=*), intent(in) :: string
@@ -50,14 +46,12 @@ function tag(string)
 
 end function tag
 
-!--------------------------------------------------------------------
-!+
-!  write output data file that is readable by phantom
-!+
-!--------------------------------------------------------------------
 subroutine write_sphdata_phantom(time,gamma,dat,ndim,ntotal,ntypes,npartoftype, &
                                   masstype,ncolumns,udist,umass,utime,umagfd,labeltype,&
-                                  label_dat,ix,ih,ivx,iBfirst,ipmass,iutherm,filename,hsoft_sink)
+                                  label_dat,ix,ih,ivx,iBfirst,ipmass,iutherm,filename)
+
+!integer, intent(in) :: n
+!print *, "loc 8, n=", n
 
  integer, intent(in)          :: ndim,ntotal,ntypes,ncolumns
  integer, intent(in)          :: npartoftype(:)
@@ -71,7 +65,6 @@ subroutine write_sphdata_phantom(time,gamma,dat,ndim,ntotal,ntypes,npartoftype, 
  character(len=*), intent(in) :: labeltype(ntypes),label_dat(ncolumns)
  integer,          intent(in) :: ix(3),ivx,ih,iBfirst,ipmass,iutherm
  character(len=*), intent(in) :: filename
- real,             intent(in) :: hsoft_sink
 
  integer, parameter    :: i_int   = 1, &
                           i_int1  = 2, &
@@ -90,10 +83,10 @@ subroutine write_sphdata_phantom(time,gamma,dat,ndim,ntotal,ntypes,npartoftype, 
  integer(kind=int8) :: nparttot,npartoftypetot(ntypes),number8
  integer            :: nums(8)
  integer            :: narraylengths,nblocks,nblockarrays,ntypesi
- integer            :: i,j,ierr,i1,index1,number,nptmass,iversion,np,maxrhead
+ integer            :: i,j,ierr,i1,index1,number,npart,nptmass,iversion,np
  real               :: rheader(idimhead)
  character(len=lentag) :: rheader_tags(idimhead)
- real               :: r1,hfact,macc,spinx,spiny,spinz
+ real               :: r1,hfact
  logical            :: mhd
 !
 ! sink particle locations in dat array
@@ -131,48 +124,40 @@ subroutine write_sphdata_phantom(time,gamma,dat,ndim,ntotal,ntypes,npartoftype, 
     mhd = .true.
     narraylengths = 4
  endif
-!
-!--figure out whether we have sink particles
-!
- call extract_sink_particles_from_data(ntypes,npartoftype,labeltype,np,&
-      npartoftypetot,nptmass,ntypesi,ilocsink)
-
- nparttot = np
-
 !--fill rheader and check that we have equal mass particles
  rheader_tags = ' '
  rheader(:) = 0.
  rheader(1) = time
- rheader(2) = gamma
- rheader(3) = hfact
+ rheader(3) = gamma
+ rheader(6) = hfact
  rheader_tags(1) = 'time'
- rheader_tags(2) = 'gamma'
- rheader_tags(3) = 'hfact'
+ rheader_tags(3) = 'gamma'
+ rheader_tags(6) = 'hfact'
  if (ipmass > 0) then
     index1 = 1
-    do i=1,ntypesi
-       rheader(3+i) = dat(index1,ipmass)
-       rheader_tags(3+i) = 'massoftype'
+    do i=1,ntypes
+       rheader(14+i) = dat(index1,ipmass)
+       rheader_tags(14+i) = 'massoftype'
        if (npartoftype(i) > 0) then
           if (any(dat(index1:index1+npartoftype(i)-1,ipmass).ne.dat(index1,ipmass))) then
-             print "(a)",' WARNING: unequal mass particles detected but PHANTOM only accepts equal mass...'
+             print*,' WARNING: unequal mass particles detected but PHANTOM only accepts equal mass, skipping...'
+             return
           endif
           index1 = index1 + npartoftype(i) - 1
        endif
     enddo
  else
-    do i=1,ntypesi
-       rheader(3+i) = masstype(i)
-       rheader_tags(3+i) = 'massoftype'
+    do i=1,ntypes
+       rheader(14+i) = masstype(i)
+       rheader_tags(14+i) = 'massoftype'
     enddo
  endif
- maxrhead = 3+ntypesi
 
  write(*,"(/,/,'-------->   TIME = ',f10.4,"// &
               "': full dump written to file ',a,' on unit ',i2,'   <--------',/)") &
        time,trim(outfile),idump
 
- open(unit=idump,file=outfile,status='replace',form='unformatted',iostat=ierr)
+ open(unit=idump,file=outfile,status='new',form='unformatted',iostat=ierr)
  if (ierr /= 0) then
     write(*,*) 'error: can''t create new dumpfile '//trim(outfile)
     return
@@ -185,30 +170,53 @@ subroutine write_sphdata_phantom(time,gamma,dat,ndim,ntotal,ntypes,npartoftype, 
  iversion = 1 ! file version to write
  write (idump, err=100) intval1,r1,intval2,iversion,int1o
  write (idump, err=100) fileident('F','Phantom',mhd=mhd)
+
+!
+!--figure out whether we have sink particles
+!
+ call extract_sink_particles_from_data(ntypes,npartoftype,labeltype,np,nptmass,ntypesi,ilocsink)
+
+ npart = npartoftype(1)
+ npartoftypetot(:) = 0
+ do i=2,ntypesi
+    npart = npart + npartoftype(i)
+    if (npartoftype(i) > 0) print "(a)",' WARNING: assuming '// &
+        trim(labeltype(i))//' particles are same as gas particles'
+    if (rheader(15) <= 0.) then
+        rheader(15) = masstype(i)
+        rheader(15+i) = 0.
+    elseif (abs(masstype(i)-rheader(15)) < tiny(masstype)) then
+        print*,' WARNING! WARNING! mass of '//trim(labeltype(i))// &
+              ' particles differs from '//trim(labeltype(1))//' particles'
+        print*,' Assuming all particles have '//trim(labeltype(1))//' particle mass'
+    endif
+ enddo
+ npartoftypetot(1) = npart
+ nparttot = npart
 !
 !--single values
 !
 !--default int
- number = 4+ntypesi
+ number = 8
  write (idump, err=100) number
- write (idump, err=100) tag('nparttot'),tag('ntypes'),(tag('npartoftype'),i=1,ntypesi),tag('nblocks'),tag('nptmass')
- write (idump, err=100) int(nparttot),ntypesi,(int(npartoftypetot(i)),i=1,ntypesi),nblocks,nptmass
-
+ write (idump, err=100) tag('nparttot'),tag('ntypes'),(tag('npartoftype'),i=1,5),tag('nblocks')
+ write (idump, err=100) int(nparttot),ntypesi,(int(npartoftypetot(i)),i=1,5),nblocks
 !--int*1, int*2, int*4
  number = 0
  do i = 1, 3
     write (idump, err=100) number
  end do
 !--int*8
- number = 2 + ntypesi
+ number = 2 + ntypes
  write (idump, err=100) number
- write (idump, err=100) tag('nparttot'),tag('ntypes'),(tag('npartoftype'),i=1,ntypesi)
- write (idump, err=100) nparttot,int(ntypesi,kind=int8),npartoftypetot(1:ntypesi)
+ write (idump, err=100) tag('nparttot'),tag('ntypes'),(tag('npartoftypet'),i=1,ntypesi)
+ write (idump, err=100) nparttot,int(ntypesi,kind=8),npartoftypetot(1:ntypesi)
 
 !--default real
- write (idump, err=100) maxrhead
- write (idump, err=100) rheader_tags(1:maxrhead)
- write (idump, err=100) rheader(1:maxrhead)
+
+ write (idump, err=100) idimhead
+ write (idump, err=100) rheader_tags(1:idimhead)
+ write (idump, err=100) rheader(1:idimhead)
 
 !--real*4
  number = 0
@@ -231,7 +239,7 @@ subroutine write_sphdata_phantom(time,gamma,dat,ndim,ntotal,ntypes,npartoftype, 
 !
 !--array length 1 header
 !
- number8 = np
+ number8 = npart
  nums(:) = 0
  if (iutherm.gt.0) then
     nums(i_real) = 7
@@ -245,7 +253,6 @@ subroutine write_sphdata_phantom(time,gamma,dat,ndim,ntotal,ntypes,npartoftype, 
 !
  number8 = nptmass
  nums(:) = 0
- nums(i_real) = 13
  write (idump, err=100) number8, (nums(i), i=1,8)
 !
 !--array length 3 header
@@ -260,7 +267,7 @@ subroutine write_sphdata_phantom(time,gamma,dat,ndim,ntotal,ntypes,npartoftype, 
 !
  if (narraylengths >= 4) then
     if (mhd) then
-       number8 = np
+       number8 = npart
     else
        number8 = 0
     endif
@@ -300,7 +307,7 @@ subroutine write_sphdata_phantom(time,gamma,dat,ndim,ntotal,ntypes,npartoftype, 
 !
 !--sink particle arrays
 !
- if (nptmass > 0 .and. allocated(ilocsink)) then
+ if (nptmass > 0) then
     do j = 1, 3
        write (idump, err=100) tag(label_dat(ix(j)))
        write (idump, err=100) (dat(ilocsink(i),ix(j)),i=1,nptmass)
@@ -309,29 +316,16 @@ subroutine write_sphdata_phantom(time,gamma,dat,ndim,ntotal,ntypes,npartoftype, 
     write (idump, err=100) (dat(ilocsink(i),ipmass),i=1,nptmass)
     write (idump, err=100) tag(label_dat(ih))
     write (idump, err=100) (dat(ilocsink(i),ih),i=1,nptmass)
-
-    ! extra sink information
-    macc = 0.
-    spinx = 0.
-    spiny = 0.
-    spinz = 0.
-    write (idump, err=100) tag('hsoft')
-    write (idump, err=100) (hsoft_sink,i=1,nptmass)
-    write (idump, err=100) tag('maccreted')
-    write (idump, err=100) (macc,i=1,nptmass)
-    write (idump, err=100) tag('spinx')
-    write (idump, err=100) (spinx,i=1,nptmass)
-    write (idump, err=100) tag('spiny')
-    write (idump, err=100) (spiny,i=1,nptmass)
-    write (idump, err=100) tag('spinz')
-    write (idump, err=100) (spinz,i=1,nptmass)
+!    write (idump, err=100) (hsoft,i=1,nptmass)
+!    write (idump, err=100) (macc,i=1,nptmass)
+!    write (idump, err=100) (spinx,i=1,nptmass)
+!    write (idump, err=100) (spinx,i=1,nptmass)
+!    write (idump, err=100) (spinx,i=1,nptmass)
     do j = 1, 3
        write (idump, err=100) tag(label_dat(ivx+j-1))
        write (idump, err=100) (dat(ilocsink(i),ivx+j-1),i=1,nptmass)
     enddo
  endif
-
- if (allocated(ilocsink)) deallocate(ilocsink)
 
  if (mhd) then
     do j=1,3
@@ -355,6 +349,7 @@ end subroutine write_sphdata_phantom
 !+
 !--------------------------------------------------------------------
 character(len=100) function fileident(firstchar,codestring,mhd)
+ implicit none
  character(len=1), intent(in) :: firstchar
  character(len=*), intent(in), optional :: codestring
  logical,          intent(in), optional :: mhd
@@ -392,21 +387,18 @@ end function fileident
 !  are written separately in phantom data files
 !+
 !--------------------------------------------------------------------
-subroutine extract_sink_particles_from_data(ntypes,npartoftype,labeltype,np,noftype,nptmass,ntypesi,ilocsink)
- integer,              intent(in)  :: ntypes,npartoftype(ntypes)
- character(len=*),     intent(in)  :: labeltype(ntypes)
- integer,              intent(out) :: np,nptmass,ntypesi
- integer(kind=int8),   intent(out) :: noftype(ntypes)
+subroutine extract_sink_particles_from_data(ntypes,npartoftype,labeltype,np,nptmass,ntypesi,ilocsink)
+ integer, intent(in) :: ntypes,npartoftype(ntypes)
+ character(len=*), intent(in) :: labeltype(ntypes)
+ integer, intent(out) :: np,nptmass,ntypesi
  integer, allocatable, intent(out) :: ilocsink(:)
  integer :: i,j
 
  np = 0
  ntypesi = ntypes
- noftype(:) = int(npartoftype(:),kind=8)
  over_types: do i=1,ntypes
-    if (trim(labeltype(i))=='sink' .or. (trim(labeltype(i))=='dark matter' .and. npartoftype(i) <= 1000)) then
+    if (trim(labeltype(i))=='sink' .or. trim(labeltype(i))=='dark matter') then
        nptmass = npartoftype(i)
-       noftype(i) = 0
        allocate(ilocsink(nptmass))
        do j=1,nptmass
           ilocsink(j) = np+j
