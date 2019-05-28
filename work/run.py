@@ -97,13 +97,13 @@ else:
 nrfile = relative_to_root(nrfile)
 icfile = relative_to_root(icfile)
 
-############################################################
+
+
 ###################################################
 M_to_solar=1.988*10.0**33.0 ## g/Msolar
 R_to_solar=6.957*10.0**10.0 ## cm/Rsolar
 ###################################################
 mp=mp*M_to_solar
-#try:
 mp_cgs=mp_cgs    
 
 if mp != mp_cgs:
@@ -147,12 +147,6 @@ if make_NR_file:
 #############################################################
 #which_dtype='d'
 
-
-########## TEMPORARY ###############
-#ftypes=['hdf5','gadget_binary','text']
-#for i in ftypes:
-#    IC_format_type=i
-########## TEMPORARY ###############
 
 
 if make_IC_file:

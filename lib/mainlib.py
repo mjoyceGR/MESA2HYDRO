@@ -116,15 +116,43 @@ def check_MESA(MESA_file, masscut,uselog=True,save=True):
     plt.close()
     return 
 
+def get_sink_mass(MESA_file, masscut):
+    sink_mass=central_mass(MESA_file, masscut)[0]
+    return sink_mass
+
 
 def make_NR_file(MESA_file,masscut,N,mp, RKstep,NR_file, *args, **kwargs):
     ## NR_file must be FILE OBJECT, not STRING
     # mp must be passed in units of solar masses, e.g. 1e-7 
-
     start_time=time.time()
 
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    ### 5/28/19 #####
+    ## redefining mp
+    #shell_particle_number = 12.0*N**2.0 ## this is different than the global particle number, which we don't know yet at this point
+    #central_point_mass = get_sink_mass(MESA_file,masscut) ## this is specified at onset from conditions in .cfg file
+    #
+    #mp = (Mstar-central_point_mass)/shell_particle_number ????
+    #
+    #
+    #   
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+
+
     fit_region_R   =MESA_r(MESA_file, masscut)
-    #fit_region_rho =MESA_rho(MESA_file, masscut)
     fit_region_E   =MESA_E(MESA_file, masscut) #MESA_internalE(MESA_file,masscut)
 
     #mp=mp*M_to_solar
@@ -187,14 +215,10 @@ def get_IC(MESA_file, masscut, NR_file_name,output_filename,mp,which_dtype='f', 
     super_z=[]
 
 
-    ## New 5/21/19
-    #print "loc 4"
     fit_region_rho=MESA_rho(MESA_file,masscut)
     fit_region_R=MESA_r(MESA_file, masscut)
     fit_region_P=MESA_P(MESA_file, masscut)
     fit_region_E=MESA_E(MESA_file, masscut)
-
-
     super_rho=[]
     super_P=[]
     super_E=[]
@@ -234,10 +258,6 @@ def get_IC(MESA_file, masscut, NR_file_name,output_filename,mp,which_dtype='f', 
         x=x*radius
         y=y*radius
         z=z*radius
-        
-        #same size as x, but same value of internal E for points at radius r
-        #E_array=x*0.+E_val
-
         ## New 5/21/19
         rho_array = x*0 + local_MESA_rho
         P_array   = x*0 + local_MESA_P
@@ -246,11 +266,7 @@ def get_IC(MESA_file, masscut, NR_file_name,output_filename,mp,which_dtype='f', 
         super_x  =np.concatenate((super_x,x),axis=0)
         super_y  =np.concatenate((super_y,y),axis=0)
         super_z  =np.concatenate((super_z,z),axis=0)
-        #r_super=np.sqrt(super_x**2.0+ super_y**2.0 + super_z**2.0)
-        
-        #super_E=np.concatenate((super_E,E_array),axis=0)
-        
-        ## New 5/21/19
+
         super_rho =np.concatenate((super_rho,rho_array), axis=0) 
         super_P   =np.concatenate((super_P, P_array), axis=0)
         super_E   =np.concatenate((super_E, E_array), axis=0)
@@ -269,20 +285,6 @@ def get_IC(MESA_file, masscut, NR_file_name,output_filename,mp,which_dtype='f', 
     super_y=np.concatenate((super_y,zero_space),axis=0)
     super_z=np.concatenate((super_z,zero_space),axis=0)
     
-    #super_E=np.concatenate((super_E,zero_space),axis=0) ## don't know what to do about this
-   
-
-    ### this last entry cannot be zero! because division!
-    # central_MESA_rho=MJ.get_quantity(MESA_file, "logRho").max()
-    # print "(loc 4) central MESA logRho: ", central_MESA_rho
-
-    # central_MESA_rho= cf.unlog(central_MESA_rho) #unlog
-    # central_dens_estimate=np.array([central_MESA_rho])
-    # print "(loc 5) central_dens_estimate: ", central_dens_estimate, " unlog (cgs)"
-
-    # super_rho=np.concatenate((super_rho,central_dens_estimate),axis=0)
-    # print "(loc 6) len(super_rho), len(super_x): ", len(super_rho), len(super_x)
-
 
     ## 5/28/19
     central_point_mass, Mstar=central_mass(MESA_file, masscut)
@@ -301,15 +303,6 @@ def get_IC(MESA_file, masscut, NR_file_name,output_filename,mp,which_dtype='f', 
     ### 5/28/19 #####
     ## redefining mp
     mp = (Mstar-central_point_mass)/len(super_x) 
-
-    if use_normalized:
-        print "\n\nWARNING! NORMALIZED >>> mass <<< COORDINATES NECESSARY FOR BINARY FORMAT!"
-        mp = mp/M_to_solar
-        central_point_mass= central_point_mass/M_to_solar
-    else:
-        mp = mp
-        central_point_mass= central_point_mass
-
 
     if use_normalized:
         print "\n\nWARNING! NORMALIZED >>> mass <<< COORDINATES NECESSARY FOR BINARY FORMAT!"
@@ -346,6 +339,9 @@ def get_IC(MESA_file, masscut, NR_file_name,output_filename,mp,which_dtype='f', 
                    super_rho, super_P, super_E)#,\
                    #gamma=5.0/3.0)    
 
+        #print "\n\n\n\n\n\n\n\n"          
+        import subprocess           
+        subprocess.call("mv ../lib/star_00000.tmp  " + str(var) +".tmp", shell=True)           
 
 
     elif filetype=='gadget_binary':
@@ -354,6 +350,7 @@ def get_IC(MESA_file, masscut, NR_file_name,output_filename,mp,which_dtype='f', 
         super_x, super_y, super_z,\
         super_rho, super_P, super_E,
         which_dtype=which_dtype)  #central mass not handled (??? is this true)
+
 
     
     else:
