@@ -3,7 +3,6 @@ import numpy as np
 import matplotlib.pyplot as plt
 import sys
 import os
-#m2g_path=os.environ['MESA2GADGET_ROOT']
 MESA_PKG_DIR = os.path.abspath(
     os.path.join(os.path.abspath(os.path.dirname(__file__)), '..'))
 sys.path.insert(0, os.path.join(MESA_PKG_DIR, 'lib'))
