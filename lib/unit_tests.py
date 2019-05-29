@@ -5,13 +5,13 @@ from scipy.optimize import curve_fit
 #import pygadgetreader as pgr # works- credit this person
 import sys
 import os
-m2g_path=os.environ['MESA2SPH_ROOT']
+m2g_path=os.environ['MESA2HYDRO_ROOT']
 sys.path.append(m2g_path+'/lib/')
-import MESA2GADGET.mesalib.MESAhandling as MJ
+import MESA2HYDRO.mesalib.MESAhandling as MJ
 import datetime as dt 
 import random as rand
 import healpy as hp
-import MESA2GADGET.mesalib.converge_funcs as cf  
+import MESA2HYDRO.mesalib.converge_funcs as cf  
 
 
 

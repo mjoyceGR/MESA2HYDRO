@@ -93,7 +93,7 @@ if make_IC_file:
 else:        
     icfile=loaded_IC_filename
 
-# makes the path relative to MESA2GADGET_ROOT directory
+# makes the path relative to MESA2HYDRO_ROOT directory
 nrfile = relative_to_root(nrfile)
 icfile = relative_to_root(icfile)
 
