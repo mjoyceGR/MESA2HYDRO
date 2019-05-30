@@ -16,6 +16,9 @@ import healpy as hp
 M_to_solar=1.988e33 #*10.0**33.0 ## g/Msolar
 R_to_solar=6.957e10 #*10.0**10.0 ## cm/Rsolar
 
+def R_to_solar_f(r):
+	return r*R_to_solar
+
 def to_Rsun(R_in_cm):
 	try:
 		Rs=np.float(R_in_cm)/R_to_solar
@@ -67,16 +70,16 @@ def rho_r(r,MESA_file,masscut, *args, **kwargs):
 		#pass
 		#return 
 		
-def m_r(r,MESA_file,masscut, *args, **kwargs):
-	############################################################
-	#
-	# WARNING! FIXING cgs units!!!
-	#
-	############################################################
-	fit_region_R=mn.MESA_r(MESA_file,masscut)
-	fit_region_m=mn.MESA_m(MESA_file,masscut)
-	r0,idx=find_nearest(fit_region_R,r)
+def m_r(r, MESA_file, *args, **kwargs):
+
+	all_MESA_m  = MJ.get_quantity(MESA_file,'mass').astype(np.float)
+	all_MESA_r  = R_to_solar_f(unlog(MJ.get_quantity(MESA_file,'logR').astype(np.float)))
+	fit_region_R = all_MESA_r
+	fit_region_m = all_MESA_m
+
+	r0,idx=find_nearest(all_MESA_r,r)
 	# WARNING! THIS RELIES ON LOADED DATA BEING SORTED! DO NOT TAMPER!
+
 	if r0 <= r:
 		m0=fit_region_m[idx]
 		r1=fit_region_R[idx-1]

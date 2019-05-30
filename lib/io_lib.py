@@ -185,7 +185,7 @@ def make_IC_Phantom(fname,\
     ngas = len(x) -1
     mgas= np.zeros(ngas)+ np.float(mp)
 
-    # print "loc 3, local_MESA_rho", local_MESA_rho
+    #ms_setup_00000.tmp    # print "loc 3, local_MESA_rho", local_MESA_rho
     # print "loc 3, type(mgas) ", type(mgas)
     # print "loc 3 mgas", mgas
     #sys.exit()
@@ -218,15 +218,14 @@ def make_IC_Phantom(fname,\
 # Safe Dumb Text, no fancy formatting
 #
 ###############################################################
-def make_IC_text(\
-    fname, mp, central_point_mass,\
-    x, y, z, E,\
-    which_dtype='f',**kwargs):
-    ################################################################
-    #
-    # last edited 4/26/19 by Mjoyce
-    #
-    #################################################################
+def make_IC_text(fname,\
+                mp, central_point_mass,\
+                x, y, z,\
+                local_MESA_rho, local_MESA_P, local_MESA_E,\
+                which_dtype='f',**kwargs):
+
+    
+    E = local_MESA_E
 
     print "central mass: ", central_point_mass, "  mp: ", mp
 

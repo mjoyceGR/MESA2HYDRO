@@ -364,22 +364,24 @@ def get_IC(MESA_file, masscut, NR_file_name,output_filename,mp,which_dtype='f', 
     else:
         var=rw.make_IC_text(str(output_filename)+ '.txt',\
         (super_x*0. + mp), central_point_mass,\
-        super_x, super_y, super_z, super_E,\
-        super_rho,
+        super_x, super_y, super_z,\
+        super_rho, super_P, super_E,\
         which_dtype=which_dtype)
+
+
 
     print var, type(var)
     return
 
 
 
-def estimate_stepsize(MESA_file, masscut, Nshells):
-    fit_region_R=MESA_r(MESA_file, masscut)
-    fit_region_rho=MESA_rho(MESA_file, masscut)
-    rl=fit_region_R.min()
-    rmax=fit_region_R.max()
+# def estimate_stepsize(MESA_file, masscut, Nshells):
+#     fit_region_R=MESA_r(MESA_file, masscut)
+#     fit_region_rho=MESA_rho(MESA_file, masscut)
+#     rl=fit_region_R.min()
+#     rmax=fit_region_R.max()
 
-    return (float(rmax)-float(rl))/float(Nshells)
+#     return (float(rmax)-float(rl))/float(Nshells)
 
 
 
@@ -459,29 +461,29 @@ def bins_from_NR(NR_file_name, r_array, mp):
 
 
 
-def quick_plot(MESA_file, masscut, r_reloaded,rho_reloaded,IC_format_type,png_tag='latest'):
-    import matplotlib.pyplot as plt
-    fit_region_R=MESA_r(MESA_file, masscut)
-    fit_region_rho=MESA_rho(MESA_file, masscut)
+# def quick_plot(MESA_file, masscut, r_reloaded,rho_reloaded,IC_format_type,png_tag='latest'):
+#     import matplotlib.pyplot as plt
+#     fit_region_R=MESA_r(MESA_file, masscut)
+#     fit_region_rho=MESA_rho(MESA_file, masscut)
 
-    # plt.plot(r_reloaded, rho_reloaded,'r.', markersize=6, label='GADGET data')
-    # plt.plot(fit_region_R, fit_region_rho, "b.", markersize=4, label='MESA data') #cf.to_log()
-    # plt.xlabel("R")
-    # plt.ylabel("test density")
-    # plt.legend(loc=1)
-    # #if IC_format_type=='hdf5':
-    # #    plt.savefig('lin_'+png_tag+'_hdf5.png')
-    # #else:
-    # plt.savefig('lin_'+png_tag+'.png')
-    # plt.close()
+#     # plt.plot(r_reloaded, rho_reloaded,'r.', markersize=6, label='GADGET data')
+#     # plt.plot(fit_region_R, fit_region_rho, "b.", markersize=4, label='MESA data') #cf.to_log()
+#     # plt.xlabel("R")
+#     # plt.ylabel("test density")
+#     # plt.legend(loc=1)
+#     # #if IC_format_type=='hdf5':
+#     # #    plt.savefig('lin_'+png_tag+'_hdf5.png')
+#     # #else:
+#     # plt.savefig('lin_'+png_tag+'.png')
+#     # plt.close()
 
-    plt.plot(fit_region_R, cf.to_log(fit_region_rho), "b.", markersize=4, label='MESA data') #cf.to_log()
-    plt.plot(r_reloaded, cf.to_log(rho_reloaded),'r.', markersize=6, label='GADGET data')
-    plt.xlabel("R")
-    plt.ylabel("log(test density)")
-    plt.legend(loc=1)
-    #if IC_format_type=='hdf5':
-    #    plt.savefig('log_'+png_tag+'_hdf5.png')
-    #else:
-    plt.savefig('log_'+png_tag+'.png')
-    plt.close()
+#     plt.plot(fit_region_R, cf.to_log(fit_region_rho), "b.", markersize=4, label='MESA data') #cf.to_log()
+#     plt.plot(r_reloaded, cf.to_log(rho_reloaded),'r.', markersize=6, label='GADGET data')
+#     plt.xlabel("R")
+#     plt.ylabel("log(test density)")
+#     plt.legend(loc=1)
+#     #if IC_format_type=='hdf5':
+#     #    plt.savefig('log_'+png_tag+'_hdf5.png')
+#     #else:
+#     plt.savefig('log_'+png_tag+'.png')
+#     plt.close()
