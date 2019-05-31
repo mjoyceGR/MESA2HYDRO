@@ -299,6 +299,11 @@ def get_placement_radii(rl, ru, RKstep, force_N, mp, MESA_file, masscut, outf, *
 				Mshell_integral =0.0
 			
 			elif (100.0*Mshell_integral/Mshell_target) <= 95.0:
+				#
+				# experimental
+				#
+				RKstep = RKstep + RKstep
+				#
 				ru_mass_loop = ru_mass_loop + RKstep
 				Mshell_integral =0.0
 			else:
@@ -311,7 +316,11 @@ def get_placement_radii(rl, ru, RKstep, force_N, mp, MESA_file, masscut, outf, *
 		print >> outf, force_N, r_print, Mshell, u_local
 
 		## reset things for next integral at shell r_n+1
-		RKstep=input_RKstep
+		## experimentally commenting this out		
+		#RKstep=input_RKstep
+		RKstep=RKstep + RKstep ## doubling for basically no reason
+		#RKstep=unlog( (np.log(RKstep)+np.log(input_RKstep))/2.0 )	
+
 		rl = ru_mass_loop
 		ru_mass_loop = ru_mass_loop + RKstep
 		Mshell_integral = 0
@@ -319,7 +328,7 @@ def get_placement_radii(rl, ru, RKstep, force_N, mp, MESA_file, masscut, outf, *
 
 
 		#ru_mass_loop= ru_mass_loop + RKstep
-		print "integral at %radius ", ru_mass_loop/rmax, "...resetting RKstep =", RKstep
+		print "integral at %radius ", ru_mass_loop/rmax, "...resetting RKstep =    ", RKstep
 		print ""
 
 	# print '',\
