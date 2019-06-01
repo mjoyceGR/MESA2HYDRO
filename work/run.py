@@ -38,18 +38,18 @@ SCRIPT_CONFIGS = {
     'IC_format_type': 'binary',
 
     'masscut': 0.95,
+
+    'r_depth':-1.0,
+
     'N': 8,
     'mp': 1e-7,
     'mp_cgs': 1.988e26,
     'stepsize': 2.45e6,
-
-    'try_reload': False,
-    'png_tag': 'latest',
-
-    'reload_bin_number': 70.0,
-    'use_bins_from_NR_file': False,
-    'which_dtype':'f'}
+    
+    'which_dtype':'f',
+    'TOL':0.01}
  
+
 
 # Auto generates command line arguments and configuration file reading from SCRIPT_CONFIG definition
 options = OptionInputs(SCRIPT_CONFIGS, description='Program for converting MESA output to Gadget simulation files')
@@ -61,26 +61,31 @@ user_configs = options.get_configs()
 check_MESA_profile = user_configs['check_MESA_profile']
 make_NR_file = user_configs['make_NR_file']
 make_IC_file = user_configs['make_IC_file']
-try_reload = user_configs['try_reload']
+#try_reload = user_configs['try_reload']
 IC_format_type = user_configs['IC_format_type']
 MESA_file = relative_to_root(user_configs['MESA_file'])
 masscut = user_configs['masscut']
+
+r_depth = user_configs['r_depth']
+
 N = user_configs['N']
 mp = user_configs['mp']
 mp_cgs = user_configs['mp_cgs']
 # doesn't seem to be used anymore
 #startype = user_configs['startype']
 stepsize = user_configs['stepsize']
-png_tag = user_configs['png_tag']
+#png_tag = user_configs['png_tag']
 new_NR_filename=user_configs['new_NR_filename']
 loaded_NR_filename = user_configs['loaded_NR_filename']
 new_IC_filename = user_configs['new_IC_filename']
 loaded_IC_filename = user_configs['loaded_IC_filename']
 
 ## meridith additional parameters
-reload_bin_number = user_configs['reload_bin_number']
-use_bins_from_NR_file=user_configs['use_bins_from_NR_file']
+#reload_bin_number = user_configs['reload_bin_number']
+#use_bins_from_NR_file=user_configs['use_bins_from_NR_file']
 which_dtype=user_configs['which_dtype']
+
+TOL = user_configs['TOL']
 
 
 
@@ -97,12 +102,45 @@ else:
 nrfile = relative_to_root(nrfile)
 icfile = relative_to_root(icfile)
 
-
-
 ###################################################
 M_to_solar=1.988*10.0**33.0 ## g/Msolar
 R_to_solar=6.957*10.0**10.0 ## cm/Rsolar
 ###################################################
+
+#################################################
+#
+# convert radial depth to masscut
+#
+#################################################
+#print "r_depth passed: ", r_depth
+if r_depth != -1.0:
+    ## if a radial preference has been passed
+    ## define mass proportion relative to r_depth
+    fit_region_R = 10.0**(MJ.get_quantity(MESA_file, 'logR').astype(np.float)) #mn.MESA_r(MESA_file, 0) #whole star
+    fit_region_M = MJ.get_quantity(MESA_file,'mass').astype(np.float)*M_to_solar  #mn.MESA_m(MESA_file, 0)
+    
+    print "len(R), len(M): ", len(fit_region_R), len(fit_region_M)
+
+
+    r_bound = r_depth*fit_region_R.max()
+
+    assoc_region=np.where( fit_region_R >= r_bound)[0]
+    print "len(assoc_region)", len(assoc_region)
+    mass_assoc = fit_region_M[assoc_region]
+
+    masscut = mass_assoc.min()/mass_assoc.max()
+    print "estimated masscut from radial input = ", masscut
+
+
+else:
+    masscut = masscut
+
+
+print "masscut being used is: ", masscut
+#sys.exit()
+
+###############################
+
 mp=mp*M_to_solar
 mp_cgs=mp_cgs    
 
@@ -127,6 +165,12 @@ if check_MESA_profile:
 #
 #############################################################
 ### need to include internal energy here
+
+
+Romberg=False#True
+
+
+
 if make_NR_file:
     t1=time.time()
     print '\n\nGenerating NR file...'
@@ -134,7 +178,7 @@ if make_NR_file:
         print("NR file already exists. Cannot overwrite {}.".format(nrfile))
         sys.exit(1)
     outf=open(nrfile,"w")
-    mn.make_NR_file(MESA_file,masscut,N,mp, stepsize,outf)
+    mn.make_NR_file(MESA_file,masscut,N,mp, stepsize, TOL, outf, Romberg=Romberg)
     outf.close()
     print 'NR file generation complete!'
     print("--- %s seconds ---" % (t1 - start_time))
