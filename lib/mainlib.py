@@ -30,6 +30,24 @@ R_to_solar=6.957e10 #**10.0 ## cm/Rsolar
 ###################################################
 
 
+def masscut_from_r(r, MESA_file):
+    fit_region_R = (10.0**(MJ.get_quantity(MESA_file, 'logR').astype(np.float)))*R_to_solar #mn.MESA_r(MESA_file, 0) #whole star
+    fit_region_M = MJ.get_quantity(MESA_file,'mass').astype(np.float)*M_to_solar  #mn.MESA_m(MESA_file, 0)
+    
+    #print "len(R), len(M): ", len(fit_region_R), len(fit_region_M)
+
+    r_bound = r #r_depth*fit_region_R.max()
+    #print "r passed to masscut: ", r, "    max of r_array:", fit_region_R.max()
+
+    assoc_region=np.where( fit_region_R >= r_bound)[0]
+    #print "len(assoc_region)", len(assoc_region)
+    mass_assoc = fit_region_M[assoc_region]
+
+    masscut = mass_assoc.min()/mass_assoc.max()
+    #print "experimental masscut function in use!!! masscut=", masscut
+
+    return masscut
+
 
 def MESA_r(MESA_file, masscut):
     ## returns R in cm
@@ -121,14 +139,16 @@ def get_sink_mass(MESA_file, masscut):
     return sink_mass
 
 
-def make_NR_file(MESA_file,masscut,N,mp, RKstep,NR_file, *args, **kwargs):
+def make_NR_file(MESA_file,masscut,N,mp, RKstep, TOL, NR_file, *args, **kwargs):
+    Romberg=kwargs.get("Romberg", False)    
+
     start_time=time.time()
     fit_region_R   =MESA_r(MESA_file, masscut)
-    fit_region_E   =MESA_E(MESA_file, masscut) 
+    #fit_region_E   =MESA_E(MESA_file, masscut) 
     rl=fit_region_R.min()
     rmax=fit_region_R.max()
 
-    print "loc 1: generating NR file"
+    #print "loc 1: generating NR file"
 
 
     outf=NR_file
@@ -142,64 +162,14 @@ def make_NR_file(MESA_file,masscut,N,mp, RKstep,NR_file, *args, **kwargs):
     print >> outf, '#N    (ru+rl)/2 (cm)    Mcontained in shell ru-rl     u(rmid)'
 
 
-    ru=rmax
+    #ru=rmax
     #ru, Mshell=
-    cf.get_placement_radii(rl, ru, RKstep, N, mp, MESA_file,masscut, outf)
+    cf.get_placement_radii(rl, rmax, RKstep, TOL,  N, mp, MESA_file,masscut, outf, Romberg=Romberg)
 
 
     print 'runtime: ', "%.1f"%(time.time()-start_time), "seconds"
     print >> outf, '#\n#\n# runtime: ', time.time()-start_time, " seconds"
     return
-
-
-
-
-
-
-# def make_NR_file(MESA_file,masscut,N,mp, RKstep,NR_file, *args, **kwargs):
-#     start_time=time.time()
-#     fit_region_R   =MESA_r(MESA_file, masscut)
-#     fit_region_E   =MESA_E(MESA_file, masscut) 
-#     rl=fit_region_R.min()
-#     rmax=fit_region_R.max()
-
-
-#     outf=NR_file
-#     print >> outf, '## fname',  MESA_file ,\
-#                    ' masscut',  masscut,\
-#                    '   N',      N,\
-#                    '  mp (Ms)', mp/M_to_solar,\
-#                    '  mp (g)',  mp,\
-#                    '  stepsize',  ('%1.7e'% RKstep)
-#     print >> outf, '#N    (ru+rl)/2 (cm)    Mcontained in shell ru-rl     u(rmid)'
-
-
-
-#     ru=rl
-#     while ru <= rmax:
-#         try:
-#             ru, Mshell=cf.get_placement_radii(rl, ru, RKstep, N, mp, MESA_file,masscut)
-            
-#             r_print=(ru + rl)/2.0
-#             r_nearest,rdex=cf.find_nearest(fit_region_R,r_print)
-#             u_local=fit_region_E[rdex]
-
-#             print >> outf,\
-#                      N,\
-#                      r_print,\
-#                      Mshell,\
-#                      u_local ## 5/22/19
-#                      #cf.get_logE(ru,MESA_file,masscut)
-#             rl=ru
-#         except TypeError:
-#            print 'reached', ('%1.5f'% (ru*100.0/rmax)), r'% of outer radius' 
-#            break
-
-
-
-#     print 'runtime: ', time.time()-start_time
-#     print >> outf, '#\n#\n# runtime: ', time.time()-start_time, " seconds"
-#     return
 
 
 
@@ -375,16 +345,6 @@ def get_IC(MESA_file, masscut, NR_file_name,output_filename,mp,which_dtype='f', 
 
 
 
-# def estimate_stepsize(MESA_file, masscut, Nshells):
-#     fit_region_R=MESA_r(MESA_file, masscut)
-#     fit_region_rho=MESA_rho(MESA_file, masscut)
-#     rl=fit_region_R.min()
-#     rmax=fit_region_R.max()
-
-#     return (float(rmax)-float(rl))/float(Nshells)
-
-
-
 def reload_IC( IC_file, format_type, which_dtype='f'): #rmax #NR_file
     filetype=str(format_type)
 
@@ -457,33 +417,3 @@ def bins_from_NR(NR_file_name, r_array, mp):
     return cf.to_array(r), cf.to_array(rho)
 
 
-
-
-
-
-# def quick_plot(MESA_file, masscut, r_reloaded,rho_reloaded,IC_format_type,png_tag='latest'):
-#     import matplotlib.pyplot as plt
-#     fit_region_R=MESA_r(MESA_file, masscut)
-#     fit_region_rho=MESA_rho(MESA_file, masscut)
-
-#     # plt.plot(r_reloaded, rho_reloaded,'r.', markersize=6, label='GADGET data')
-#     # plt.plot(fit_region_R, fit_region_rho, "b.", markersize=4, label='MESA data') #cf.to_log()
-#     # plt.xlabel("R")
-#     # plt.ylabel("test density")
-#     # plt.legend(loc=1)
-#     # #if IC_format_type=='hdf5':
-#     # #    plt.savefig('lin_'+png_tag+'_hdf5.png')
-#     # #else:
-#     # plt.savefig('lin_'+png_tag+'.png')
-#     # plt.close()
-
-#     plt.plot(fit_region_R, cf.to_log(fit_region_rho), "b.", markersize=4, label='MESA data') #cf.to_log()
-#     plt.plot(r_reloaded, cf.to_log(rho_reloaded),'r.', markersize=6, label='GADGET data')
-#     plt.xlabel("R")
-#     plt.ylabel("log(test density)")
-#     plt.legend(loc=1)
-#     #if IC_format_type=='hdf5':
-#     #    plt.savefig('log_'+png_tag+'_hdf5.png')
-#     #else:
-#     plt.savefig('log_'+png_tag+'.png')
-#     plt.close()
