@@ -164,7 +164,9 @@ def make_NR_file(MESA_file,masscut,N,mp, RKstep, TOL, NR_file, *args, **kwargs):
 
     #ru=rmax
     #ru, Mshell=
-    cf.get_placement_radii(rl, rmax, RKstep, TOL,  N, mp, MESA_file,masscut, outf, Romberg=Romberg)
+    cf.John_radii(rl, rmax, RKstep, TOL,  N, mp, MESA_file,masscut, outf)
+   #cf.get_placement_radii(rl, rmax, RKstep, TOL,  N, mp, MESA_file,masscut, outf)
+
 
 
     print 'runtime: ', "%.1f"%(time.time()-start_time), "seconds"
