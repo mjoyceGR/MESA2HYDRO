@@ -203,29 +203,23 @@ def Romberg_integrate(r, m, fn,\
                       stepsize,  steps, MESA_file, masscut, debug=False, exact=None): #a, b,
 	
 	### change these input parameters, should not be passing m or step size; use a, b to represent limits of integral
-
 	def local_rho(nn):
 			#print "local rho activated"
 		return rho_r(nn, MESA_file, masscut)
-
 
 	steps=int(steps)
 	table = np.zeros((steps, steps))
 	pow_4 = 4 ** np.arange(steps, dtype=np.float64) - 1
 
-
 	# trapezoidal rule
 	a = r
 	b = r + stepsize
-
 
 	h = (b - a)
 	table[0, 0] = h * (fn(a,  local_rho(a)) + fn(b, local_rho(b))) / 2
 
 	for j in range(1, steps):
 	    h /= 2
-
-	    #print "(Romberg location 4) step j=", j
 
 	    # extended trapezoidal rule
 	    table[j, 0] = table[j - 1, 0] / 2
@@ -236,148 +230,31 @@ def Romberg_integrate(r, m, fn,\
 	    for k in range(1, j + 1):
 	        table[j, k] = table[j, k - 1] + \
 	            (table[j, k - 1] - table[j - 1, k - 1]) / pow_4[k]
-
-
-
 	mass_val=table[-1, -1]
-	#print "(Rombger location 5) ", r, mass_val
-
-	### should not be returing b! onyl mass_val
 	return b, mass_val ## WARNING returning b not r
 
+
 ##################################################################################
-
-# def get_placement_radii(rl, rmax, RKstep, TOL, force_N, mp, MESA_file, masscut, outf, *args, **kwargs):
-# 	#print "loc 1"
-# 	#scale the tolerance by the maximum stellar mass--- units must be preserved
-# 	# tolerance = float(TOL)*(MJ.get_quantity(MESA_file,'mass').astype(np.float)*M_to_solar).max() ##(1.0 - float(TOL))
-# 	fit_region_R   =mn.MESA_r(MESA_file, masscut)
-# 	fit_region_E   =mn.MESA_E(MESA_file, masscut) 
-# 	rmin = fit_region_R.min()
-# 	rmax = fit_region_R.max()
-
-# 	Mshell_target = target_Mshell(force_N, mp)
-
-# 	#tolerance = float(TOL)*Mshell_target  ## random tolerance adjustment
-# 	tolerance =TOL*Mshell_target
-
-# 	## initial guess
-# 	rl = rmin
-# 	ru_mass_loop = rl + (rmax-rl)/1000.0 #rl + RKstep
-# 	while ru_mass_loop <= rmax:	
-
-# 		def f(r_slide):
-# 			#print "loc 5"
-# 			# Mshell_target = target_Mshell(force_N, mp)
-# 			Mshell_integral = Mshell_from_RK(rl, r_slide, RKstep, MESA_file, masscut)
-
-# 			quantity= Mshell_integral - Mshell_target
-# 			#print "rl, ru: ",rl/rmax, r_slide/rmax,"   value of Mshell_from_RK: ", Mshell_integral, "   Mshell_target: ", Mshell_target,  
-# 			#print "         mass difference: ", quantity
-# 			return  quantity
-
-# 		def dfdr(r_slide):
-# 			#return 4.0*np.pi*r_slide**2.0*rho_r(r_slide, MESA_file, masscut)
-# 			#print "loc 6"
-# 			return density_integral_numeric(r_slide,rho_r(r_slide, MESA_file, masscut))
-
-# 		def dx(f, x):
-# 			#print "loc 4"
-# 			return np.abs(0.0-f(x))
-
-# 		def Newton(f, dfdr, r0, e):
-# 			#print "loc 3"
-# 			delta = dx(f,r0)
-
-# 			#print "delta, e: ", delta, e
-			
-# 			while delta > e:
-# 			## MODIFIED!
-# 				#if r0 <= rmin:
-# 					#print "attempted to use ru < rmin...refining guess for ru..."
-# 					#ru_mass_loop = 0.5*ru_mass_loop
-# 					#r0 = 2.0*r0
-# 					#r0 = rmin + 1e-9*rmin
-# 					#r0 = r0 - f(r0)/dfdr(r0)
-# 					#delta = dx(f, r0)
-# 					#return rmin ##go back to the minimum in event of boundary crossing
-# 				#else:
-# 				r0 = r0 - f(r0)/dfdr(r0)
-# 				print "(Newton) r=", r0/fit_region_R.max()
-# 				delta = dx(f, r0)
-# 			#print "convergence found at: ", r0	
-# 			return r0
-
-# 		##print "loc 2"
-# 		#try:
-# 		ru_found = Newton(f, dfdr, ru_mass_loop, tolerance)
-# 		# except IndexError:
-# 		# 	print "attempted to use ru < rmin...refining guess for ru..."
-# 		# 	ru_mass_loop = 0.5*ru_mass_loop
-# 		# 	print "changing value of ru.."
-# 		# 	break
-
-
-
-# 		#print "convergence to within ", TOL, " found at r=", "%.5f"%(ru_found/rmax)
-
-# 		## find central point between upper and lower integral limits for converged value
-# 		Mshell_integral_at_ru= Mshell_from_RK(rl, ru_found, RKstep, MESA_file, masscut)
-		
-# 		r_print=(ru_found + rl)/2.0
-# 		r_nearest,rdex=find_nearest(fit_region_R,r_print)
-# 		u_local=fit_region_E[rdex]
-		
-# 		#print >> outf, force_N, r_print, Mshell_integral_at_ru, u_local
-
-
-# 		print "Mshell agreement ",  ('%.3f'%(100.0*Mshell_integral_at_ru/Mshell_target))\
-# 		       ," at ", "%.5f"%(ru_mass_loop/rmax), r"%radius  ...current RKstep=","%1.5e"%RKstep#
-
-# 		rl = ru_found
-# 		ru_mass_loop = ru_found + RKstep
-
-		
-# 	return 
-
-
-###################################################################################
-
-
-Romberg=False
 def get_placement_radii(rl, rmax, RKstep, TOL, force_N, mp, MESA_file, masscut, outf, *args, **kwargs):
 	lower_convergence_limit = 1.0 - float(TOL)
 	upper_convergence_limit = 1.0 + float(TOL)	
 
 	Romberg=kwargs.get("Romberg", False)
 	input_RKstep=RKstep
-	#rtot=(mn.MESA_r(MESA_file, masscut)).max()
 	fit_region_R   =mn.MESA_r(MESA_file, masscut)
 	fit_region_E   =mn.MESA_E(MESA_file, masscut) 
 	
-	#rmax=ru#fit_region_R.max()
 	Mshell_target=target_Mshell(force_N,mp)
-	Mshell=0
-	#rdiff= rmax
 
-	#rl=fit_region_R.min()
-	temp=rl + RKstep
-	ru_mass_loop = temp
+	ru_mass_loop = rl # RKstep 
 	Mshell_integral = 0.0	
-	while ru_mass_loop <= rmax:	
-		Mshell_target = 12.0*force_N**2.0*mp
 
-		#print "loc 1 value of RKstep: ", RKstep
+	while ru_mass_loop <= rmax:	
 		while ( (Mshell_integral/Mshell_target) <= lower_convergence_limit)\
 		   or ( (Mshell_integral/Mshell_target) >= upper_convergence_limit): 
 
 			try:		
-				if Romberg:
-					#print "WARNING!!! ROMBERG SWITCH ON!"
-					Mshell_integral = Mshell_from_Romberg(rl, ru_mass_loop, MESA_file, masscut, steps=1)
-					#print "loc 2"
-				else:
-					Mshell_integral = Mshell_from_RK(rl, ru_mass_loop, RKstep, MESA_file, masscut)#, load_unlogged=use_unlog)
+				Mshell_integral = Mshell_from_RK(rl, ru_mass_loop, RKstep, MESA_file, masscut)
 					#Mshell_integral= Mshell_from_quad(rl, ru_mass_loop, MESA_file, masscut)
 				#print "Mshell_integral, ru_mass_loop, stepsize:             ",\
 			 	#	  ('%.3f'%(100.0*Mshell_integral/Mshell_target)), "    ", ru_mass_loop, "   ", RKstep
@@ -386,20 +263,17 @@ def get_placement_radii(rl, rmax, RKstep, TOL, force_N, mp, MESA_file, masscut, 
 				print "TypeError in cf.get_placement_radii()"
 				break  	 		 
 
-			### adapative step size???
-			#print "ru before reset: ", ru_mass_loop
+			### adapative step size
 			if (Mshell_integral/Mshell_target) >= upper_convergence_limit:
 				RKstep=RKstep-0.5*RKstep
 				#print "too high, new step=", RKstep
 				ru_mass_loop = ru_mass_loop - RKstep
 				Mshell_integral =0.0
 			
-			elif (Mshell_integral/Mshell_target) <= lower_convergence_limit:
-				#
-				# experimental
-				#print "too low, new step=", RKstep
 
-				#RKstep=RKstep-0.5*RKstep  #john said to do this but I don't buy it 
+			elif (Mshell_integral/Mshell_target) <= lower_convergence_limit:
+				# experimental
+				#print "WARNING! no RK doubling"
 				RKstep = RKstep + RKstep   #my version 
 				
 				ru_mass_loop = ru_mass_loop + RKstep
@@ -408,7 +282,11 @@ def get_placement_radii(rl, rmax, RKstep, TOL, force_N, mp, MESA_file, masscut, 
 			else:
 				pass
 				
-
+		###############################################################
+		#
+		# reset parameters for journey to next shell
+		#
+		###############################################################
 		## find central point between upper and lower integral limits for converged value
 		r_print=(ru_mass_loop + rl)/2.0
 		r_nearest,rdex=find_nearest(fit_region_R,r_print)
@@ -417,21 +295,29 @@ def get_placement_radii(rl, rmax, RKstep, TOL, force_N, mp, MESA_file, masscut, 
 
 		RKtemp = RKstep	
 		Mshell_temp=Mshell_integral
-		print "Mshell agreement ",  ('%.3f'%(100.0*Mshell_temp/Mshell_target))\
-		       ," at ", "%.5f"%(ru_mass_loop/rmax), r"%radius  ...current RKstep=","%1.5e"%RKtemp,\
-		        "%1.5e"%input_RKstep,"  from ", "%1.5e"%RKtemp
+		print ('%.3f'%(100.0*Mshell_temp/Mshell_target)),"agreement  for Mshell =",Mshell_temp, \
+		       " at ", ru_mass_loop, "    ",\
+		        "%.5f"%(ru_mass_loop/rmax), r"%radius  ...current RKstep=","%1.5e"%RKtemp,\
+		        " from" , "%1.5e"%input_RKstep#, "  from ", "%1.5e"%RKtemp
 
 		## reset
-		print "not resetting!"
-		#RKstep=input_RKstep
-
-		#RKstep=RKstep + RKstep ## doubling for basically no reason
+		RKstep=input_RKstep
 		rl = ru_mass_loop
-		ru_mass_loop = ru_mass_loop + RKstep
 		Mshell_integral = 0
-
 	return #
+##################################################################################
 
+
+
+
+###################################################################################
+def John_radii(rmin, rmax, RKstep, TOL, force_N, mp, MESA_file, masscut, outf, *args, **kwargs):
+	import John_radii as jr 
+	jr.John_radii(rmin, rmax, RKstep, TOL, force_N, mp, MESA_file, masscut, outf)
+	return 
+###################################################################################
+
+	
 
 
 ###########################################################################

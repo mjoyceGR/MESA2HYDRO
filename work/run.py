@@ -214,20 +214,20 @@ if make_IC_file:
 # IC_format_type=
 # ########## TEMPORARY ###############
 
-if try_reload:
-    r_recovered, masses_recovered=mn.reload_IC(icfile,IC_format_type, which_dtype=which_dtype)
-    print "min and max radius from recovered data: ", r_recovered.min(), r_recovered.max()
+# if try_reload:
+#     r_recovered, masses_recovered=mn.reload_IC(icfile,IC_format_type, which_dtype=which_dtype)
+#     print "min and max radius from recovered data: ", r_recovered.min(), r_recovered.max()
 
-    if use_bins_from_NR_file:
-        r_reloaded,rho_reloaded=mn.bins_from_NR(nrfile,r_recovered,masses_recovered[0])
+#     if use_bins_from_NR_file:
+#         r_reloaded,rho_reloaded=mn.bins_from_NR(nrfile,r_recovered,masses_recovered[0])
 
-    else:
-        nbin=reload_bin_number
-        print "plotting data using ", reload_bin_number, " bins"
-        r_reloaded,rho_reloaded=mn.binned_r_rho(r_recovered, masses_recovered[0], reload_bin_number)
+#     else:
+#         nbin=reload_bin_number
+#         print "plotting data using ", reload_bin_number, " bins"
+#         r_reloaded,rho_reloaded=mn.binned_r_rho(r_recovered, masses_recovered[0], reload_bin_number)
 
 
-    mn.quick_plot(MESA_file,masscut, r_reloaded,rho_reloaded,IC_format_type,png_tag=png_tag)   
+#     mn.quick_plot(MESA_file,masscut, r_reloaded,rho_reloaded,IC_format_type,png_tag=png_tag)   
 
 
 print "total execution length: "

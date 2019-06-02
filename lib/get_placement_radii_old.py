@@ -84,7 +84,7 @@ def get_placement_radii(rl, ru, RKstep, force_N, mp, MESA_file, masscut, outf, *
 		#RKstep=unlog( (np.log(RKstep)+np.log(input_RKstep))/2.0 )	
 
 		rl = ru_mass_loop
-		ru_mass_loop = ru_mass_loop + RKstep
+		ru_mass_loop = rl #ru_mass_loop + RKstep
 		Mshell_integral = 0
 					# break
 
