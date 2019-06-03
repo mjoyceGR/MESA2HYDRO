@@ -145,7 +145,7 @@ def make_NR_file(MESA_file,masscut,N,mp, RKstep, TOL, NR_file, *args, **kwargs):
     start_time=time.time()
     fit_region_R   =MESA_r(MESA_file, masscut)
     #fit_region_E   =MESA_E(MESA_file, masscut) 
-    rl=fit_region_R.min()
+    rmin=fit_region_R.min()
     rmax=fit_region_R.max()
 
     #print "loc 1: generating NR file"
@@ -164,8 +164,9 @@ def make_NR_file(MESA_file,masscut,N,mp, RKstep, TOL, NR_file, *args, **kwargs):
 
     #ru=rmax
     #ru, Mshell=
-    cf.John_radii(rl, rmax, RKstep, TOL,  N, mp, MESA_file,masscut, outf)
-   #cf.get_placement_radii(rl, rmax, RKstep, TOL,  N, mp, MESA_file,masscut, outf)
+    #cf.John_radii(rmin, rmax, RKstep, TOL,  N, mp, MESA_file,masscut, outf)
+    #cf.jr_get_placement_radii_orig(rmin, rmax, RKstep, TOL,  N, mp, MESA_file,masscut, outf)
+    cf.get_placement_radii(rmin, rmax, RKstep, TOL,  N, mp, MESA_file,masscut, outf)
 
 
 

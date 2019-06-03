@@ -235,7 +235,7 @@ def Romberg_integrate(r, m, fn,\
 
 
 ##################################################################################
-def get_placement_radii(rl, rmax, RKstep, TOL, force_N, mp, MESA_file, masscut, outf, *args, **kwargs):
+def get_placement_radii(rmin, rmax, RKstep, TOL, force_N, mp, MESA_file, masscut, outf, *args, **kwargs):
 	lower_convergence_limit = 1.0 - float(TOL)
 	upper_convergence_limit = 1.0 + float(TOL)	
 
@@ -246,6 +246,7 @@ def get_placement_radii(rl, rmax, RKstep, TOL, force_N, mp, MESA_file, masscut, 
 	
 	Mshell_target=target_Mshell(force_N,mp)
 
+	rl = rmin
 	ru_mass_loop = rl # RKstep 
 	Mshell_integral = 0.0	
 
@@ -315,8 +316,12 @@ def John_radii(rmin, rmax, RKstep, TOL, force_N, mp, MESA_file, masscut, outf, *
 	import John_radii as jr 
 	jr.John_radii(rmin, rmax, RKstep, TOL, force_N, mp, MESA_file, masscut, outf)
 	return 
-###################################################################################
 
+###################################################################################
+def jr_get_placement_radii_orig(rmin, rmax, RKstep, TOL, force_N, mp, MESA_file, masscut, outf, *args, **kwargs):
+	import John_radii as jr 
+	jr.get_placement_radii_orig(rmin, rmax, RKstep, TOL, force_N, mp, MESA_file, masscut, outf)
+	return 
 	
 
 
