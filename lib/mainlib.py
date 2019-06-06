@@ -277,13 +277,21 @@ def get_IC(MESA_file, masscut, NR_file_name,output_filename,mp,which_dtype='f', 
     super_E=cf.to_array(super_E)
 
 
-    ### 5/28/19 #####
+    ### 5/28/19 ##############################################
     ## redefining mp
     #
     #
     # THIS SHOULD BE THE mp THE USER SPECIFIES IF ALL OF THESE ROUTINES ACTUALLY WORK!!!!!!!!!!!
     #
-    mp = (Mstar-central_point_mass)/len(super_x) 
+    print "WARNING!! REDEFINITION OF mp IS OFF!"
+    #mp = (Mstar-central_point_mass)/len(super_x) 
+    #
+    #
+    #
+    #
+    #
+    #########################################################
+
 
     if use_normalized:
         print "\n\nWARNING! NORMALIZED >>> mass <<< COORDINATES NECESSARY FOR BINARY FORMAT!"
@@ -322,8 +330,8 @@ def get_IC(MESA_file, masscut, NR_file_name,output_filename,mp,which_dtype='f', 
 
         #print "\n\n\n\n\n\n\n\n"          
         import subprocess           
-        subprocess.call("mv ../lib/star_00000.tmp  " + str(var) +".tmp", shell=True)           
-        subprocess.call("mv ../work/star_00000.tmp  " + str(var) +".tmp", shell=True)  
+        # subprocess.call("mv ../lib/star_00000.tmp  " + str(var) +".tmp", shell=True)           
+        subprocess.call("mv ../work/star_00000.tmp  " + str(var) +"_00000.tmp", shell=True)  
 
     elif filetype=='gadget_binary':
         var=rw.make_IC_binary(str(output_filename)+ '.bin',\
