@@ -198,7 +198,15 @@ if make_IC_file:
     print '\n\nGenerating IC file...'
     in_file=nrfile
     out_file=icfile
-    mn.get_IC(MESA_file, masscut, in_file, out_file, mp, format_type=IC_format_type,which_dtype=which_dtype)
+    if IC_format_type=="phantom_binary":
+        print "setting lognorm..."
+        #sys.exit()
+        lognorm=True
+        mn.get_IC(MESA_file, masscut, in_file, out_file, mp, format_type=IC_format_type,which_dtype=which_dtype, lognorm=True)
+        time.sleep(5)
+
+    else:
+        mn.get_IC(MESA_file, masscut, in_file, out_file, mp, format_type=IC_format_type,which_dtype=which_dtype)
     print 'IC file generation complete!'
     print("--- %s seconds ---" % (time.time() - t2))
 

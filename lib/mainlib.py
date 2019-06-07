@@ -164,10 +164,10 @@ def make_NR_file(MESA_file,masscut,N,mp, RKstep, TOL, NR_file, *args, **kwargs):
 
     #ru=rmax
     #ru, Mshell=
-    cf.John_radii(rmin, rmax, RKstep, TOL,  N, mp, MESA_file,masscut, outf)
+    #cf.John_radii(rmin, rmax, RKstep, TOL,  N, mp, MESA_file,masscut, outf)
     
     #cf.jr_get_placement_radii_orig(rmin, rmax, RKstep, TOL,  N, mp, MESA_file,masscut, outf)
-    #cf.get_placement_radii(rmin, rmax, RKstep, TOL,  N, mp, MESA_file,masscut, outf)
+    cf.get_placement_radii(rmin, rmax, RKstep, TOL,  N, mp, MESA_file,masscut, outf)
 
 
 
@@ -185,6 +185,7 @@ def make_NR_file(MESA_file,masscut,N,mp, RKstep, TOL, NR_file, *args, **kwargs):
 ###########################################################
 def get_IC(MESA_file, masscut, NR_file_name,output_filename,mp,which_dtype='f', *args, **kwargs): #temp remove rmax
     filetype=str(kwargs.get('format_type','binary'))
+    lognorm=kwargs.get('lognorm',False)
 
     N,rmid,E=np.loadtxt(NR_file_name, usecols=(0,1,3), unpack=True) 
 
@@ -322,17 +323,31 @@ def get_IC(MESA_file, masscut, NR_file_name,output_filename,mp,which_dtype='f', 
     elif filetype=='phantom_binary':
         
         print "phantom binary format attempt (loc 1 in mainlib)"
-        
-        var = rw.make_IC_Phantom(str(output_filename),\
+            
+        # print "WARNING! random rescaling in effect!"
+        if lognorm:
+            logged_super_rho = np.log10(np.array(super_rho))
+            for i in logged_super_rho:
+                print i
+
+            var = rw.make_IC_Phantom(str(output_filename),\
+                       mp, central_point_mass,\
+                       super_x, super_y, super_z,\
+                       logged_super_rho, super_P, super_E, lognorm=True)
+
+        else:
+             var = rw.make_IC_Phantom(str(output_filename),\
                    mp, central_point_mass,\
                    super_x, super_y, super_z,\
-                   super_rho, super_P, super_E)#,\
-                   #gamma=5.0/3.0)    
+                   super_rho, super_P, super_E, lognorm=False)
+    
+ 
 
-        #print "\n\n\n\n\n\n\n\n"          
-        import subprocess           
-        # subprocess.call("mv ../lib/star_00000.tmp  " + str(var) +".tmp", shell=True)           
+        import subprocess                    
         subprocess.call("mv ../work/star_00000.tmp  " + str(var) +"_00000.tmp", shell=True)  
+
+
+
 
     elif filetype=='gadget_binary':
         var=rw.make_IC_binary(str(output_filename)+ '.bin',\

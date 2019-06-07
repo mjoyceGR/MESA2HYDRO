@@ -181,7 +181,10 @@ def make_IC_Phantom(fname,\
                     x, y, z,\
                     local_MESA_rho, local_MESA_P, local_MESA_E,\
                     which_dtype='f',**kwargs):
-    print "(loc 2) io_lib"
+
+    lognorm=kwargs.get("lognorm", True)
+
+    #print "WARNING! forcing bad HSML values for zero denstiy entries"
     ngas = len(x) -1
     mgas= np.zeros(ngas)+ np.float(mp)
 
@@ -191,11 +194,18 @@ def make_IC_Phantom(fname,\
     #sys.exit()
 
 
-    hsoft_sink = 0.5*x.max()
+    hsoft_sink = 0.5*np.sqrt(x.max()**2.0 + y.max()**2.0 + z.max()**2.0) ##<---- this also changed and might have helped?
 
-    h=1.2*(mp/local_MESA_rho)**(1.0/3.0)
+
+
+    ### use the unlogged version of density in computing h....I DO NOT KNOW WHY this works
+    if lognorm:
+        h=1.2*(mp/(10.0**local_MESA_rho))**(1.0/3.0) ## rescale rho for calculation of HSML
+    else:
+        h=1.2*(mp/local_MESA_rho)**(1.0/3.0)
+
     #h=2.0*h  ## GADGET scale definition --> factor of 2
-    hsml=h
+    hsml=np.array(h)
     u = local_MESA_E
 
     central_point_mass=float(central_point_mass)#.astype(np.float64)

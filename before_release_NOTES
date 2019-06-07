@@ -1,0 +1,53 @@
+issue with pip and cython...maybe numpy conflict?
+
+pip install --no-cache-dir cytoolz
+
+
+CHECK THAT YOUR .bashrc ISN'T DOING SOMETHING FUCKING STUPID WITH PYTHON PATHS!!!!
+
+
+Need fortran.3.io or something, available with get-apt and googling
+
+
+$M2H > ./setup.py local
+	WORKS now...?....no
+
+
+try doing non-pip Cython/numpy
+https://stackoverflow.com/questions/35852646/undefined-symbol-pyfpe-jbuf-error-while-using-lxml-on-ubuntu
+
+
+--------------------------------------------------------------
+sudo apt-get install glibc-source
+
+
+mjoyce@Lovelace:~/MESA2HYDRO$ ./setup.py build_ext
+gfortran -fdefault-real-8 lib/write_data_phantom.f90 -c -o write_data_phantom.o -O3 -fPIC
+gfortran lib/pygfunc.f90 -c -o pygfunc.o -O3 -fPIC
+Traceback (most recent call last):
+  File "./setup.py", line 56, in <module>
+    ext_modules=cythonize(ext_modules),
+  File "/home/mjoyce/.local/lib/python2.7/site-packages/Cython/Build/Dependencies.py", line 958, in cythonize
+    ctx = c_options.create_context()
+  File "/home/mjoyce/.local/lib/python2.7/site-packages/Cython/Compiler/Main.py", line 595, in create_context
+    self.cplus, self.language_level, options=self)
+  File "/home/mjoyce/.local/lib/python2.7/site-packages/Cython/Compiler/Main.py", line 78, in __init__
+    from . import Builtin, CythonScope
+  File "/home/mjoyce/.local/lib/python2.7/site-packages/Cython/Compiler/CythonScope.py", line 5, in <module>
+    from .UtilityCode import CythonUtilityCode
+  File "/home/mjoyce/.local/lib/python2.7/site-packages/Cython/Compiler/UtilityCode.py", line 3, in <module>
+    from .TreeFragment import parse_from_strings, StringParseContext
+  File "/home/mjoyce/.local/lib/python2.7/site-packages/Cython/Compiler/TreeFragment.py", line 21, in <module>
+    from . import Parsing
+  File "Cython/Compiler/Scanning.pxd", line 12, in init Cython.Compiler.Parsing (/tmp/pip-build-LtYucA/cython/Cython/Compiler/Parsing.c:61358)
+ValueError: Cython.Compiler.Scanning.Method has the wrong size, try recompiling
+
+
+
+-------------------------------------
+sudo apt purge cython
+pip uninstall cython
+
+sudo apt-get install cython
+
+NEED TO MAKE SURE you get cython from the apt store, NOT pip, or else everything explodes
