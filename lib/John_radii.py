@@ -77,12 +77,12 @@ def get_placement_radii_orig(rmin, rmax, RKstep, TOL, force_N, mp, MESA_file, ma
 
 
 def John_radii(rmin, rmax, RKstep, TOL, force_N, mp, MESA_file, masscut, outf, *args, **kwargs):
-
 	print "   WARNING!! JOHN'S VERSION     "
 
 	###########################################################
-  use_prints=1
-	use_J=2.0
+  	use_print=1
+  	use_newsprint=1
+	use_J=0.0
 	use_delta=1 #turn on with 1
 	use_n=0  #requires use_delta
 	use_RK_doubling=1
@@ -90,7 +90,8 @@ def John_radii(rmin, rmax, RKstep, TOL, force_N, mp, MESA_file, masscut, outf, *
 	ud=float(use_delta)
 	un=float(use_n)
 	urkd=float(use_RK_doubling)
-  up=float{use_print}
+  	up=float(use_print)
+  	unp=float(use_newsprint)
 	###########################################################
 
 	lower_convergence_limit = 1.0 - float(TOL)
@@ -107,6 +108,7 @@ def John_radii(rmin, rmax, RKstep, TOL, force_N, mp, MESA_file, masscut, outf, *
 	Mshell_integral = 0.0	
 	#delta= ((rmax-rl)/2000.0)/3.0
  	delta=RKstep
+ 	reset_delta=delta
 	if use_J >= 1.0:
 		ru_mass_loop = rl+delta*ud
 		print "J working"
@@ -115,9 +117,12 @@ def John_radii(rmin, rmax, RKstep, TOL, force_N, mp, MESA_file, masscut, outf, *
 		ru_mass_loop = rl
 	
 	ru_mass_loop_previous = rl
-  
-  if up == 1.0:
-    print "starting first shell...  rl = ", rl, "and ru = ", ru_mass_loop
+	
+	undercuts=0
+	overcuts=0
+
+  	if up == 1.0:
+		print "starting first shell...  rl = ", rl, "and ru = ", ru_mass_loop
     
 	while ru_mass_loop <= rmax:	
 		while ( (Mshell_integral/Mshell_target) <= lower_convergence_limit)\
@@ -135,9 +140,10 @@ def John_radii(rmin, rmax, RKstep, TOL, force_N, mp, MESA_file, masscut, outf, *
 
 			### adapative step size
 			if (Mshell_integral/Mshell_target) >= upper_convergence_limit:
-        if up == 1.0:
-          print "overshot; Mshell_integral/Mshell_target = ", Mshell_integral/Mshell_target
+				if up == 1.0:
+					print "overshot; Mshell_integral/Mshell_target = ", Mshell_integral/Mshell_target
 				RKstep=RKstep-0.5*RKstep
+				delta=delta/2.0
 				#print "too high, new step=", RKstep                  	
 				if use_J < 3.0:
 					ru_mass_loop = ru_mass_loop - (1.0-ud)*RKstep - ud*delta
@@ -148,16 +154,19 @@ def John_radii(rmin, rmax, RKstep, TOL, force_N, mp, MESA_file, masscut, outf, *
 					print "J >=2.0 activated, ru_mass_loop_previous = ", ru_mass_loop_previous
 
 				Mshell_integral =0.0
-				delta=delta/2.0
+				
+				overcuts=overcuts+1
 			
-			elif (Mshell_integral/Mshell_target) <= lower_convergence_limit=:
-        if up == 1.0:
-          print "undershot; Mshell_integral/Mshell_target = " Mshell_integral/Mshell_target
+			elif (Mshell_integral/Mshell_target) <= lower_convergence_limit:
+				if up == 1.0:
+					print "undershot; Mshell_integral/Mshell_target = ", Mshell_integral/Mshell_target
 
 				ru_mass_loop_previous = ru_mass_loop
 				# experimental
 				#print "WARNING! no RK doubling"
 				RKstep = RKstep + urkd*RKstep   #my version 
+
+				delta = delta + urkd*delta   #my version 
 				#RKstep = RKstep + RKstep   #my version 
 
 				try:
@@ -169,15 +178,16 @@ def John_radii(rmin, rmax, RKstep, TOL, force_N, mp, MESA_file, masscut, outf, *
 				
 				
 				if use_J < 2.0:
-					ru_mass_loop = ru_mass_loop + RKstep
+					ru_mass_loop = ru_mass_loop + (1.0-ud)*RKstep+ud*delta
 				if use_J >= 2.0:
 					ru_mass_loop = ru_mass_loop + (1.0-ud)*RKstep + ud*(un*float(n)+(1.0-un)*1.0)*delta
         
-        if up == 1.0:
-          print "tring new rl ", rl, "and ru", ru_mass_loop
+				if up == 1.0:
+					print "trying new rl ", rl, "and ru", ru_mass_loop
 				
 				Mshell_temp=Mshell_integral
 				Mshell_integral =0.0
+				undercuts=undercuts+1
 			else:
 				pass
 		
@@ -199,17 +209,20 @@ def John_radii(rmin, rmax, RKstep, TOL, force_N, mp, MESA_file, masscut, outf, *
 		       " at ", ru_mass_loop, "    ",\
 		        "%.5f"%(ru_mass_loop/rmax), r"%radius  ...current RKstep=","%1.5e"%RKtemp,\
 		        " from" , "%1.5e"%input_RKstep#, "  from ", "%1.5e"%RKtemp
-
+		print "undercuts : ", undercuts, "and overcuts: ", overcuts
 		## reset
 		RKstep=input_RKstep
 		#delta= ((ru_mass_loop-rl))/3.0
-		delta = RKstep
+		delta = reset_delta
 
 		rl = ru_mass_loop
-        ru_mass_loop_previous = ru_mass_loop
+		ru_mass_loop_previous = ru_mass_loop
 		ru_mass_loop = ru_mass_loop + ud*delta 
 		Mshell_integral = 0
-    
-    if up == 1.0:
-    print "moving to next shell; rl = ", rl, "and ru = ", ru_mass_loop
+		undercuts=0
+		overcuts=0
+
+	if up == 1.0:
+		print "moving to next shell; rl = ", rl, "and ru = ", ru_mass_loop
+	
 	return #

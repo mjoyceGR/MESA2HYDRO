@@ -164,9 +164,10 @@ def make_NR_file(MESA_file,masscut,N,mp, RKstep, TOL, NR_file, *args, **kwargs):
 
     #ru=rmax
     #ru, Mshell=
-    #cf.John_radii(rmin, rmax, RKstep, TOL,  N, mp, MESA_file,masscut, outf)
+    cf.John_radii(rmin, rmax, RKstep, TOL,  N, mp, MESA_file,masscut, outf)
+    
     #cf.jr_get_placement_radii_orig(rmin, rmax, RKstep, TOL,  N, mp, MESA_file,masscut, outf)
-    cf.get_placement_radii(rmin, rmax, RKstep, TOL,  N, mp, MESA_file,masscut, outf)
+    #cf.get_placement_radii(rmin, rmax, RKstep, TOL,  N, mp, MESA_file,masscut, outf)
 
 
 
