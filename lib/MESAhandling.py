@@ -195,7 +195,7 @@ def get_quantity(readfile,keyname):
     column_dict=get_columns(readfile,keyname_list)
 
     if "profile" in readfile:
-        print "column_dict.get(keyname): ", column_dict.get(keyname), "\n\n"
+        #print "column_dict.get(keyname): ", column_dict.get(keyname), "\n\n"
         quantity=np.array(column_dict.get(keyname))[3:]# NO WRONG .astype(float)
 
     elif "history" in readfile:
