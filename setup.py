@@ -9,7 +9,9 @@ import shutil
 import subprocess
 from distutils.core import setup
 from distutils.extension import Extension
+import subprocess
 try:
+    subprocess.call("apt remove cython", shell=True)
     from Cython.Distutils import build_ext
     from Cython.Build import cythonize
 except ImportError:
@@ -20,7 +22,6 @@ from numpy import get_include
 from os import system
 
 ################################
-import subprocess
 
 
 
