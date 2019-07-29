@@ -21,7 +21,7 @@ The length of the file corresponds to the number of shells needed to reconstruct
 ## Installation
 From the directory in which this is unpacked, run 
 
-	./setup.py local
+	`python2 setup.py install`
 
 Further information on installation is described in the 1D-MESA2HYDRO-3D user's guide.
 
