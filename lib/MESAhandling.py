@@ -131,7 +131,8 @@ def strip_MESA_header(in_filename, out_filename, *args, **kwargs):
 
 def get_MESA_output_fields(filename):
     inf=open(filename,'r')
-    line = inf.readlines()[5:6]
+    line = inf.readlines()[4:5] ## was 5:6
+    #print line
     #print "line: ", line
     p=line[0].split()
     #print "p ", p

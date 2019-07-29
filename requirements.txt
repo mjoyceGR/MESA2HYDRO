@@ -3,4 +3,3 @@ h5py
 scipy
 healpy
 matplotlib
-cython

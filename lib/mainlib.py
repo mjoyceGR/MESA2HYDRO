@@ -285,8 +285,9 @@ def get_IC(MESA_file, masscut, NR_file_name,output_filename,mp,which_dtype='f', 
     #
     # THIS SHOULD BE THE mp THE USER SPECIFIES IF ALL OF THESE ROUTINES ACTUALLY WORK!!!!!!!!!!!
     #
-    print "WARNING!! REDEFINITION OF mp IS OFF!"
-    #mp = (Mstar-central_point_mass)/len(super_x) 
+    #print "WARNING!! REDEFINITION OF mp IS OFF!"
+    print "WARNING!!!!!! REDEFINITION OF mp is ON!!!!!!!!!!!!!!!!!!!!"
+    mp = (Mstar-central_point_mass)/len(super_x) 
     #
     #
     #

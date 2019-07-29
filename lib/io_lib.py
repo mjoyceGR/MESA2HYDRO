@@ -193,8 +193,23 @@ def make_IC_Phantom(fname,\
     # print "loc 3 mgas", mgas
     #sys.exit()
 
+#hsoft_sink = 0.5*np.sqrt(x.max()**2.0 + y.max()**2.0 + z.max()**2.0) ##<---- this also changed and might have helped?
+    ### maybe this should be a lot smaller? 5%?
 
-    hsoft_sink = 0.5*np.sqrt(x.max()**2.0 + y.max()**2.0 + z.max()**2.0) ##<---- this also changed and might have helped?
+    min_of_this=np.where( (x>0.0) )[0]
+    xh = x[min_of_this].min()
+
+    min_of_this=np.where( (y>0.0) )[0]
+    yh = y[min_of_this].min()
+
+    min_of_this=np.where( (z>0.0) )[0]
+    zh = z[min_of_this].min()
+
+    ## Macquarie:
+    hsoft_sink = 0.5*np.sqrt(xh**2.0 + yh**2.0 + zh**2.0)
+    print "hsoft_sink = ", hsoft_sink/np.sqrt(x.max()**2.0 + y.max()**2.0 + z.max()**2.0)
+    #sys.exit()
+
 
 
 
