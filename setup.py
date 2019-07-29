@@ -1,6 +1,9 @@
 #!/usr/bin/env python
 import os
-from pip._internal import main
+try:
+    from pip._internal import main
+except ImportError:
+    from pip import main
 import sys
 import shutil
 import subprocess
@@ -11,6 +14,8 @@ try:
     from Cython.Build import cythonize
 except ImportError:
     main(['install', 'cython'])
+    from Cython.Distutils import build_ext
+    from Cython.Build import cythonize
 from numpy import get_include
 from os import system
 
@@ -30,7 +35,8 @@ print("Compile interface: " + shared_obj_comp)
 system(shared_obj_comp)
 
 if len(sys.argv) > 1 and sys.argv[1] == 'install':
-    subprocess.call("python setup.py build_ext", shell=True)
+    main(['install', 'numpy', 'h5py', 'scipy', 'healpy', 'matplotlib'])
+    subprocess.call("python setup.py build_ext --inplace", shell=True)
 
 ext_modules = [Extension(# module name:
                          'pygfunc',
@@ -66,7 +72,6 @@ setup(name='MESA2HYDRO',
       download_url='https://github.com/mjoyceGR/MESA2HYDRO/archive/0.1.0.tar.gz',
       keywords=['mesa', 'hydro', 'astronomy'],
       classifiers=[]
-      #install_requires=['numpy', 'h5py', 'scipy', 'healpy', 'matplotlib']
 )
 
 
