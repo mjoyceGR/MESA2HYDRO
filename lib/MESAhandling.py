@@ -130,8 +130,11 @@ def strip_MESA_header(in_filename, out_filename, *args, **kwargs):
 
 
 def get_MESA_output_fields(filename):
+    ### 7/29/19 this needs to be cleaned; works with profile but not history
+
+
     inf=open(filename,'r')
-    line = inf.readlines()[4:5] ## was 5:6
+    line = inf.readlines()[5:6] ## was 5:6
     #print line
     #print "line: ", line
     p=line[0].split()
@@ -187,21 +190,19 @@ def get_key(filename,keyname):
 
 
 def get_quantity(readfile,keyname):
-    #print "readfile", readfile
-
     keyname=str(keyname)
     keyname_list=get_MESA_output_fields(readfile).keys()
     column_dict=get_columns(readfile,keyname_list)
+
     if "profile" in readfile:
+        print "column_dict.get(keyname): ", column_dict.get(keyname), "\n\n"
         quantity=np.array(column_dict.get(keyname))[3:]# NO WRONG .astype(float)
+
     elif "history" in readfile:
         quantity=np.array(column_dict.get(keyname))[5:]
     else:
-        print "'profile' or 'history' not found in filename"
+        print " 'profile' or 'history' not found in filename, or some other file corruption"
         sys.exit()
-    #magic 3 to eliminate column numbers being interpreted as data in the profile file
-    # quantity=quantity[1:]
-    # print quantity
     return np.array(quantity).astype(float)
 
 
@@ -213,7 +214,6 @@ def get_quantity(readfile,keyname):
 #     quantity=np.array(column_dict.get(keyname))[5:]
 #     #magic 3 to eliminate column numbers being interpreted as data in the profile file
 #     return np.array(quantity).astype(float)
-
 
 
 def show_allowed_MESA_keywords(readfile):
