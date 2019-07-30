@@ -319,3 +319,5 @@ def get_bool_option(config_file,name, default=None):
         if re.search(name, config_file):
             print("{} was malformed in config file".format(name))
         return default
+
+# end module cfg_parser

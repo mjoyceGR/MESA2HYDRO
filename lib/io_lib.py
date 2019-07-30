@@ -11,7 +11,7 @@ import converge_funcs as cf
 ######
 import hdf5lib as hdf5lib
 
-from yanked import *
+#from yanked import *
 
 ###############################################################
 #
@@ -240,7 +240,7 @@ def make_IC_Phantom(fname,\
 
 ###############################################################
 #
-# Safe Dumb Text, no fancy formatting
+# Safe ascii plain text, no fancy formatting
 #
 ###############################################################
 def make_IC_text(fname,\
@@ -248,14 +248,11 @@ def make_IC_text(fname,\
                 x, y, z,\
                 local_MESA_rho, local_MESA_P, local_MESA_E,\
                 which_dtype='f',**kwargs):
-
     
     E = local_MESA_E
-
-    print "central mass: ", central_point_mass, "  mp: ", mp
+    #print "central mass: ", central_point_mass, "  mp: ", mp
 
     format_str="%.12f"
-
     outf=open(fname, "w")
     lines = [( (format_str%mp[i])\
           +' '+(format_str%x[i])\
@@ -265,7 +262,6 @@ def make_IC_text(fname,\
           for i in range(len(x)-1)]
 
     print >> outf, "\n".join(lines)
-
     print >> outf, (format_str%central_point_mass)\
           +' '+(format_str%0)\
           +' '+(format_str%0)\
@@ -275,75 +271,5 @@ def make_IC_text(fname,\
     outf.close()
     return fname
 
-
-
-# def print_phantom_inlist(time, gamma, dat, ntotal, ntypes,\
-#                          npartoftype, masstype, ncolumns,\
-#                          output_filename, *args, **kwargs):
-
-#     print "(loc 3) print_phantom_inlist"
-#     phant_namelist=kwargs.get("phant_namelist", 'phantIC.in')
-#     outf=open(phant_namelist, "w")
-
-#     print >> outf, "time = "+str(float(time))              #1.0
-#     print >> outf, "gamma = "+str(float(gamma))            #2.0
-
-#     # supposed to have dimensions [ntotal x ncolumns]-- not sure how to deal with this yet
-#     print >> outf, "dat = "+str(float(dat))                
-#     print >> outf, "ntotal = "+str(int(ntotal))
-#     print >> outf, "ntypes = "+str(int(ntypes))
-
-#     print >> outf, "npartoftype = "+str(int(npartoftype))
-#     print >> outf, "masstype = "+str(float(masstype))      # says "real"
-#     print >> outf, "ncolumns = "+str(int(ncolumns))
-
-#     print >> outf, "filename = '"+str(output_filename)+"'"
-
-#     outf.close()
-#     return phant_namelist
-
-
-# # def gphysics_to_phantphysics():
-# #     return 
-
-
-# def make_IC_Phantom(fname, mp, central_point_mass,\
-#                    x, y, z,\
-#                    local_MESA_rho, local_MESA_P, local_MESA_E,\
-#                    which_dtype='f',**kwargs):
-#     print "(loc 2) io_lib"
-
-#     #is this physics gamma or sph gamma? assuming physics
-#     #ideal gas gamma unless otherwise specified
-#     gamma_default=5.0/3.0               
-#     gamma=float(kwargs.get("gamma", gamma_default))  
     
-
-#     output_filename=fname
-#     time=0.0                       #don't know what this does, should be float
-
-
-#     ## npartoftype(:) is an array of length total_particle_number, maybe
-#     ntypes=2                 #is this true?
-#     npartoftype = len(x)     #number of gas particles
-#     npartoftype = 1          #number of ...sink particles?
-
-
-#     ## flatten x,y,z coords into an array somehow, probably
-#     ntotal=len(x)
-#     ncolumns=3.0
-#     dat=3.0 #np.array([ntotal,ncolumns])         #unclear
-
-#     masstype=0                              # ???
-
-#     phant_namelist=print_phantom_inlist(time, gamma, dat, ntotal, ntypes,\
-#                          npartoftype, masstype, ncolumns,\
-#                          output_filename)
-
-#     ## launch compilation and write processes
-#     import subprocess
-#     subprocess.call("gfortran ../lib/phantom_write.f90 -o ../lib/phant.out ", shell=True)
-#     subprocess.call("../lib/phant.out "+str(phant_namelist), shell=True)
-
-
-#     return fname #+"_phantom.bin" ##name of phantom-compatible IC file
+# end module io_lib

@@ -23,7 +23,6 @@ start_time = time.time()
 # LOAD PARAMETER VALUES
 #
 ########################################################
-
 ## To add new parameters add name and default value
 SCRIPT_CONFIGS = {
     'check_MESA_profile': True,
@@ -49,14 +48,11 @@ SCRIPT_CONFIGS = {
     'which_dtype':'f',
     'TOL':0.01}
  
-
-
 # Auto generates command line arguments and configuration file reading from SCRIPT_CONFIG definition
 options = OptionInputs(SCRIPT_CONFIGS, description='Program for converting MESA output to Gadget simulation files')
 
 # Only arguments in SCRIPT_CONFIGS can be found in user_configs
 user_configs = options.get_configs()
-
 
 check_MESA_profile = user_configs['check_MESA_profile']
 make_NR_file = user_configs['make_NR_file']
@@ -84,15 +80,17 @@ loaded_IC_filename = user_configs['loaded_IC_filename']
 #reload_bin_number = user_configs['reload_bin_number']
 #use_bins_from_NR_file=user_configs['use_bins_from_NR_file']
 which_dtype=user_configs['which_dtype']
-
 TOL = user_configs['TOL']
+
+## add 'lognorm' boolean here 7/30/19
 
 
 
 if make_NR_file:
-    nrfile=new_NR_filename #loaded_NR_filename
+    nrfile=new_NR_filename 
 else:
     nrfile=loaded_NR_filename
+
 if make_IC_file:
     icfile=new_IC_filename
 else:        
@@ -102,20 +100,26 @@ else:
 nrfile = relative_to_root(nrfile)
 icfile = relative_to_root(icfile)
 
+
+
 ###################################################
 M_to_solar=1.988*10.0**33.0 ## g/Msolar
 R_to_solar=6.957*10.0**10.0 ## cm/Rsolar
 ###################################################
 
+
 #################################################
 #
 # convert radial depth to masscut
 #
+## if a radial preference has been passed, override mass depth and
+## define mass proportion relative to r_depth
+#
+# set r_depth to -1.0 in config file to rely on mass depth
+#
 #################################################
-#print "r_depth passed: ", r_depth
+
 if r_depth != -1.0:
-    ## if a radial preference has been passed
-    ## define mass proportion relative to r_depth
     fit_region_R = 10.0**(MJ.get_quantity(MESA_file, 'logR').astype(np.float)) #mn.MESA_r(MESA_file, 0) #whole star
     fit_region_M = MJ.get_quantity(MESA_file,'mass').astype(np.float)*M_to_solar  #mn.MESA_m(MESA_file, 0)
     
@@ -134,19 +138,14 @@ if r_depth != -1.0:
 
 else:
     masscut = masscut
-
-
 print "masscut being used is: ", masscut
-#sys.exit()
 
-###############################
 
 mp=mp*M_to_solar
 mp_cgs=mp_cgs    
 
 if mp != mp_cgs:
-    print '\n\nWARNING! Inconsistent values of mp and mp_cgs!'
-    print 'using mp'
+    print '\nWARNING! Inconsistent values of mp and mp_cgs! Choosing mp'
 
 
 ##############################################################
@@ -164,12 +163,7 @@ if check_MESA_profile:
 # Generate shell placement radii
 #
 #############################################################
-### need to include internal energy here
-
-
 Romberg=False#True
-
-
 
 if make_NR_file:
     t1=time.time()
@@ -184,15 +178,12 @@ if make_NR_file:
     print("--- %s seconds ---" % (t1 - start_time))
 
 
+
 ##############################################################
 #
 # Convert placement radii into HEALPix shells and send to IC
 #
 #############################################################
-#which_dtype='d'
-
-
-
 if make_IC_file:
     t2=time.time()
     print '\n\nGenerating IC file...'
@@ -201,12 +192,14 @@ if make_IC_file:
     if IC_format_type=="phantom_binary":
         print "setting lognorm..."
         #sys.exit()
-        lognorm=True
-        mn.get_IC(MESA_file, masscut, in_file, out_file, mp, format_type=IC_format_type,which_dtype=which_dtype, lognorm=True)
-        time.sleep(5)
+        lognorm= True ## make this a passable parameter
+        mn.get_IC(MESA_file, masscut, in_file, out_file, mp,\
+                format_type=IC_format_type,which_dtype=which_dtype, lognorm=lognorm)
+        time.sleep(2)
 
     else:
-        mn.get_IC(MESA_file, masscut, in_file, out_file, mp, format_type=IC_format_type,which_dtype=which_dtype)
+        mn.get_IC(MESA_file, masscut, in_file, out_file, mp,\
+                format_type=IC_format_type,which_dtype=which_dtype)
     print 'IC file generation complete!'
     print("--- %s seconds ---" % (time.time() - t2))
 
@@ -240,3 +233,5 @@ if make_IC_file:
 
 print "total execution length: "
 print("--- %s seconds ---" % (time.time() - start_time))
+
+# end run script

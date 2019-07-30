@@ -1,4 +1,12 @@
 #!/usr/bin/env python
+
+########################################################
+#
+# this module contains the main subroutines for run.py 
+# and subordinate minor subroutines
+#
+#########################################################
+
 import numpy as np
 import h5py as h5py
 import os.path
@@ -11,12 +19,6 @@ import MESAhandling as MJ
 import io_lib as rw
 import hdf5lib as hdf5lib
 import time
-########################################################
-#
-# this module contains the main subroutines for run.py 
-# and subordinate minor subroutines
-#
-#########################################################
 
 ########### FOR DEBUGGING ONLY
 use_normalized=False
@@ -31,21 +33,12 @@ R_to_solar=6.957e10 #**10.0 ## cm/Rsolar
 
 
 def masscut_from_r(r, MESA_file):
-    fit_region_R = (10.0**(MJ.get_quantity(MESA_file, 'logR').astype(np.float)))*R_to_solar #mn.MESA_r(MESA_file, 0) #whole star
-    fit_region_M = MJ.get_quantity(MESA_file,'mass').astype(np.float)*M_to_solar  #mn.MESA_m(MESA_file, 0)
-    
-    #print "len(R), len(M): ", len(fit_region_R), len(fit_region_M)
-
-    r_bound = r #r_depth*fit_region_R.max()
-    #print "r passed to masscut: ", r, "    max of r_array:", fit_region_R.max()
-
+    fit_region_R = (10.0**(MJ.get_quantity(MESA_file, 'logR').astype(np.float)))*R_to_solar 
+    fit_region_M = MJ.get_quantity(MESA_file,'mass').astype(np.float)*M_to_solar 
+    r_bound = r 
     assoc_region=np.where( fit_region_R >= r_bound)[0]
-    #print "len(assoc_region)", len(assoc_region)
     mass_assoc = fit_region_M[assoc_region]
-
     masscut = mass_assoc.min()/mass_assoc.max()
-    #print "experimental masscut function in use!!! masscut=", masscut
-
     return masscut
 
 
@@ -57,61 +50,39 @@ def MESA_r(MESA_file, masscut):
 
 
 def MESA_rho(MESA_file,masscut):
+    ## returns rho in cgs
     fit_region_rho = cf.get_MESA_profile_edge(MESA_file, quantity='logRho', masscut=masscut ,strip=False)
     fit_region_rho=cf.unlog(fit_region_rho)
     return fit_region_rho
 
 def MESA_m(MESA_file,masscut):
-    ### RETURNS M ARRAY IN cgs UNITS!!!!
+    ### returns mass in g
     fit_region_M=cf.get_MESA_profile_edge(MESA_file, quantity='mass', masscut=masscut,strip=False)*M_to_solar
     return fit_region_M
 
 
-#### 5/21/19-- Dan Price intervention
-#
-# nix this--doesn't make sense
-#
-#
-# def MESA_internalE(MESA_file,masscut):
-#     fit_region_E=cf.get_MESA_profile_edge(MESA_file, quantity='logE', masscut=masscut,strip=False)
-#     fit_region_E=cf.unlog(fit_region_E)
-#     return fit_region_E
-
-
 def MESA_P(MESA_file, masscut):
+    ## returns pressure in cgs
     fit_region_P=cf.get_MESA_profile_edge(MESA_file, quantity='logP', masscut=masscut, strip=False)
     fit_region_P=cf.unlog(fit_region_P)
     return fit_region_P
 
 def MESA_E(MESA_file, masscut):
+    ## cgs
     fit_region_E=cf.get_MESA_profile_edge(MESA_file, quantity='logE', masscut=masscut, strip=False)
     fit_region_E=cf.unlog(fit_region_E)
     return fit_region_E
 
-################################################### 
 
 def central_mass(MESA_file, masscut):
-    ################################################################
-    #
-    # last edited 4/26/19 by Mjoyce
-    #
-    #################################################################
-
+    ## mass to be cast as the sink particle/gravity well/stellar core
     masses = MJ.get_quantity(MESA_file,'mass').astype(np.float)*M_to_solar ## WARNING
     radii = 10.0**(MJ.get_quantity(MESA_file, 'logR').astype(np.float))
-    Mtot=masses.max()#sum(masses)#masses[0]
-    #print "Mtot at (loc 1) = ", Mtot
+    Mtot=masses.max()
     central_M = masscut*Mtot
-
-    return central_M, Mtot#.astype(float)
-################################################### mjoyce 11/2/2018
+    return central_M, Mtot
 
 
-##########################################################
-#
-# Make an NR file from MESA data
-#
-###########################################################
 def check_MESA(MESA_file, masscut,uselog=True,save=True):
     fit_region_R=MESA_r(MESA_file,masscut)
     fit_region_rho=MESA_rho(MESA_file,masscut)
@@ -139,17 +110,19 @@ def get_sink_mass(MESA_file, masscut):
     return sink_mass
 
 
+##########################################################
+#
+# Make an NR file from MESA data
+#
+###########################################################
 def make_NR_file(MESA_file,masscut,N,mp, RKstep, TOL, NR_file, *args, **kwargs):
     Romberg=kwargs.get("Romberg", False)    
 
     start_time=time.time()
     fit_region_R   =MESA_r(MESA_file, masscut)
-    #fit_region_E   =MESA_E(MESA_file, masscut) 
+
     rmin=fit_region_R.min()
     rmax=fit_region_R.max()
-
-    #print "loc 1: generating NR file"
-
 
     outf=NR_file
     print >> outf, '## fname',  MESA_file ,\
@@ -162,20 +135,11 @@ def make_NR_file(MESA_file,masscut,N,mp, RKstep, TOL, NR_file, *args, **kwargs):
     print >> outf, '#N    (ru+rl)/2 (cm)    Mcontained in shell ru-rl     u(rmid)'
 
 
-    #ru=rmax
-    #ru, Mshell=
-    #cf.John_radii(rmin, rmax, RKstep, TOL,  N, mp, MESA_file,masscut, outf)
-    
-    #cf.jr_get_placement_radii_orig(rmin, rmax, RKstep, TOL,  N, mp, MESA_file,masscut, outf)
     cf.get_placement_radii(rmin, rmax, RKstep, TOL,  N, mp, MESA_file,masscut, outf)
-
-
 
     print 'runtime: ', "%.1f"%(time.time()-start_time), "seconds"
     print >> outf, '#\n#\n# runtime: ', time.time()-start_time, " seconds"
     return
-
-
 
 
 ##########################################################
@@ -186,13 +150,14 @@ def make_NR_file(MESA_file,masscut,N,mp, RKstep, TOL, NR_file, *args, **kwargs):
 def get_IC(MESA_file, masscut, NR_file_name,output_filename,mp,which_dtype='f', *args, **kwargs): #temp remove rmax
     filetype=str(kwargs.get('format_type','binary'))
     lognorm=kwargs.get('lognorm',False)
+    phantom_rescale=kwargs.get('phantom_rescale',True)
 
-    N,rmid,E=np.loadtxt(NR_file_name, usecols=(0,1,3), unpack=True) 
+    ## do not actually need to load E here; better to search MESA profile directly 
+    N,rmid=np.loadtxt(NR_file_name, usecols=(0,1), unpack=True) 
 
     super_x=[]
     super_y=[]
     super_z=[]
-
 
     fit_region_rho=MESA_rho(MESA_file,masscut)
     fit_region_R=MESA_r(MESA_file, masscut)
@@ -202,32 +167,22 @@ def get_IC(MESA_file, masscut, NR_file_name,output_filename,mp,which_dtype='f', 
     super_P=[]
     super_E=[]
     
-    #print "(loc 4) range(len(N))", range(len(N))
-
     for i in range(len(N)):
         NSIDE= N[i]
         r_mid= rmid[i]
-        #E_val=E[i]
 
-        ## New 5/21/19
-        # shell-constant value of r_mid: the local density should only change with every shell
         r_nearest,r_idx=cf.find_nearest(fit_region_R,r_mid)
         local_MESA_rho=fit_region_rho[r_idx]
         local_MESA_P=fit_region_P[r_idx]
-
-        ## for sanity check
         local_MESA_E=fit_region_E[r_idx]
 
         radius=float(rmid[i])
-
         if use_normalized:
-            print "\n\nWARNING! NORMALIZED >>> radius <<< COORDINATES NECESSARY FOR BINARY FORMAT!"
+            print "WARNING! unit changed from [radius (cm)] to [radius/Rsolar (cm)]"
             radius = radius/R_to_solar
         else:
             radius=radius
-        #print "normalized radius: ", radius
 
-        #radius=float(rmid[i])/float(rmax) ##normalized coordinates
         ###############################################################
         #
         # Arbitrarily rotate shells
@@ -237,7 +192,7 @@ def get_IC(MESA_file, masscut, NR_file_name,output_filename,mp,which_dtype='f', 
         x=x*radius
         y=y*radius
         z=z*radius
-        ## New 5/21/19
+ 
         rho_array = x*0 + local_MESA_rho
         P_array   = x*0 + local_MESA_P
         E_array   = x*0 + local_MESA_E
@@ -250,26 +205,21 @@ def get_IC(MESA_file, masscut, NR_file_name,output_filename,mp,which_dtype='f', 
         super_P   =np.concatenate((super_P, P_array), axis=0)
         super_E   =np.concatenate((super_E, E_array), axis=0)
 
+
     ############################################################    
     #
-    ### add in the central mass point at coordiante 0,0,0
+    # add in the central mass point at coordiante 0,0,0
     #
     ############################################################
-    ##
-    ## maybe don't need to do this here, because we can do this in io_lib directly?
-
     zero_space=np.array([0.0])
 
     super_x=np.concatenate((super_x,zero_space),axis=0)
     super_y=np.concatenate((super_y,zero_space),axis=0)
     super_z=np.concatenate((super_z,zero_space),axis=0)
     
-
     ## 5/28/19
     central_point_mass, Mstar=central_mass(MESA_file, masscut)
-    #central_point_mass/M_to_solar
 
-    ############################################################
     super_x=cf.to_array(super_x)
     super_y=cf.to_array(super_y)
     super_z=cf.to_array(super_z)
@@ -279,25 +229,19 @@ def get_IC(MESA_file, masscut, NR_file_name,output_filename,mp,which_dtype='f', 
     super_E=cf.to_array(super_E)
 
 
-    ### 5/28/19 ##############################################
-    ## redefining mp
+    ############################################################    
     #
+    # Renormalization of physical units
     #
-    # THIS SHOULD BE THE mp THE USER SPECIFIES IF ALL OF THESE ROUTINES ACTUALLY WORK!!!!!!!!!!!
-    #
-    #print "WARNING!! REDEFINITION OF mp IS OFF!"
-    print "WARNING!!!!!! REDEFINITION OF mp is ON!!!!!!!!!!!!!!!!!!!!"
-    mp = (Mstar-central_point_mass)/len(super_x) 
-    #
-    #
-    #
-    #
-    #
-    #########################################################
-
+    ############################################################
+    if phantom_rescale:
+        print "IC WARNING: Renormalization of [mp] to [(Mstar - Mcore)/Np]\n"
+        mp = (Mstar-central_point_mass)/len(super_x) 
+    else:
+        print "IC WARNING: Renormalization of mp is OFF\n"
 
     if use_normalized:
-        print "\n\nWARNING! NORMALIZED >>> mass <<< COORDINATES NECESSARY FOR BINARY FORMAT!"
+        print "IC WARNING: unit changed from [mass (g)] to [mass/Msolar (g)]\n"
         mp = mp/M_to_solar
         central_point_mass= central_point_mass/M_to_solar
     else:
@@ -322,32 +266,22 @@ def get_IC(MESA_file, masscut, NR_file_name,output_filename,mp,which_dtype='f', 
 
 
     elif filetype=='phantom_binary':
-        
-        print "phantom binary format attempt (loc 1 in mainlib)"
-            
-        # print "WARNING! random rescaling in effect!"
         if lognorm:
+            print "Phantom IC WARNING: log normalization rho --> log10(rho) for phantom_binary format IC is ON!\n"
             logged_super_rho = np.log10(np.array(super_rho))
-            for i in logged_super_rho:
-                print i
 
             var = rw.make_IC_Phantom(str(output_filename),\
-                       mp, central_point_mass,\
-                       super_x, super_y, super_z,\
-                       logged_super_rho, super_P, super_E, lognorm=True)
-
+                    mp, central_point_mass,\
+                    super_x, super_y, super_z,\
+                    logged_super_rho, super_P, super_E, lognorm=True)
         else:
-             var = rw.make_IC_Phantom(str(output_filename),\
-                   mp, central_point_mass,\
-                   super_x, super_y, super_z,\
-                   super_rho, super_P, super_E, lognorm=False)
+            var = rw.make_IC_Phantom(str(output_filename),\
+                    mp, central_point_mass,\
+                    super_x, super_y, super_z,\
+                    super_rho, super_P, super_E, lognorm=False)
     
- 
-
         import subprocess                    
         subprocess.call("mv ../work/star_00000.tmp  " + str(var) +"_00000.tmp", shell=True)  
-
-
 
 
     elif filetype=='gadget_binary':
@@ -357,8 +291,6 @@ def get_IC(MESA_file, masscut, NR_file_name,output_filename,mp,which_dtype='f', 
         super_rho, super_P, super_E,
         which_dtype=which_dtype)  #central mass not handled (??? is this true)
 
-
-    
     else:
         var=rw.make_IC_text(str(output_filename)+ '.txt',\
         (super_x*0. + mp), central_point_mass,\
@@ -367,12 +299,16 @@ def get_IC(MESA_file, masscut, NR_file_name,output_filename,mp,which_dtype='f', 
         which_dtype=which_dtype)
 
 
-
     print var, type(var)
     return
 
 
 
+#############################################
+#
+# plotting routines--experimental
+#
+#############################################
 def reload_IC( IC_file, format_type, which_dtype='f'): #rmax #NR_file
     filetype=str(format_type)
 
@@ -405,6 +341,7 @@ def reload_IC( IC_file, format_type, which_dtype='f'): #rmax #NR_file
     return r_recovered, masses
 
 
+
 def binned_r_rho(r_array,mp,nbin):
     rmin=r_array.min()
     rmax=r_array.max()
@@ -420,7 +357,6 @@ def binned_r_rho(r_array,mp,nbin):
             break
         r_b.append(r2)
         rho_b.append( len(r_array[region])*mp/(cf.volume(r2)-cf.volume(r1))  )
-
     return cf.to_array(r_b), cf.to_array(rho_b)
 
 
@@ -444,4 +380,4 @@ def bins_from_NR(NR_file_name, r_array, mp):
         rho.append( len(r_array[region])*mp/(cf.volume(r2)-cf.volume(r1))  )
     return cf.to_array(r), cf.to_array(rho)
 
-
+## end module mainlib

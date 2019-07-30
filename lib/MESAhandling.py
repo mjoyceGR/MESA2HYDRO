@@ -12,10 +12,10 @@ import random as rand
 
 ################################################################
 #
-# the purpose of this module is MESA HANDLING
+# the purpose of this module is parsing 
+# and manipulating MESA-formatted profile data
 #
 ################################################################
-
 def plotter(xmaj,xmin,ymaj,ymin, xf, yf, *args, **kwargs):
     figsize=kwargs.get("figsize", (15,15))
     #h=10
@@ -30,7 +30,6 @@ def plotter(xmaj,xmin,ymaj,ymin, xf, yf, *args, **kwargs):
     majorLocator_y  = MultipleLocator(ymaj)     # now for the y axis...
     majorFormatter_y = FormatStrFormatter(yf)#('%1.1f')     # 
     minorLocator_y  = MultipleLocator(ymin)     #
-
 
 
     ax.xaxis.set_major_locator(majorLocator_x)
@@ -113,79 +112,87 @@ def grab_fields(MESA_inlist):
 #########################################################################
 def strip_MESA_header(in_filename, out_filename, *args, **kwargs):
 
-	n = int(kwargs.get('n', 5))
-	num_delete=int(n) #the number of line to be read and deleted
-	outfn=out_filename
+    n = int(kwargs.get('n', 5))
+    num_delete=int(n) #the number of line to be read and deleted
+    outfn=out_filename
 
-	with open(in_filename) as f:
-	    mylist = f.read().splitlines()
-	newlist = mylist[:]
+    with open(in_filename) as f:
+        mylist = f.read().splitlines()
+    newlist = mylist[:]
 
-	thefile = open(outfn, 'w')
-	del mylist[:num_delete]
-	for item in mylist:
-		thefile.write("%s\n" % item)
-	return  thefile, outfn
+    thefile = open(outfn, 'w')
+    del mylist[:num_delete]
+    for item in mylist:
+        thefile.write("%s\n" % item)
+    return  thefile, outfn
 
 
 
 def get_MESA_output_fields(filename):
     ### 7/29/19 this needs to be cleaned; works with profile but not history
-
-
+    
     inf=open(filename,'r')
+    
+    #if 'profile' in filename:
     line = inf.readlines()[5:6] ## was 5:6
+
+
     #print line
-    #print "line: ", line
-    p=line[0].split()
-    #print "p ", p
-    #for line in inf:
-        # if 'profile' in filename: #"zone" in line and "num_zones" not in line:
-        #     line = inf.readlines()[6]
-        #     p=line.split()
-        #     print "p", p
-        #     sys.exit()
-        # else:
-        #     if 'luminosity' in line:                    
-        #        p=line.split()
+    p=line[0].split()#.split('\n')[0]
+    #print "number of headers: ", len(p)
     phys_dict={}
     
-    try:		 	
-        for i,v in enumerate(p):
-            phys_dict[str(v)]=i# careful
-    except UnboundLocalError:
-        print "problem with "+str(filename)+" format"
-        sys.exit(0)  
+#    try:           
+    for i,v in enumerate(p):
+        #if r"\n" not in str(v):
+        phys_dict[str(v).strip()]=i# careful
+        #else:
+        #    print r" '\n' encountered"
+    # except UnboundLocalError:
+    #     print "problem with "+str(filename)+" format"
+    #     sys.exit(0)  
     return phys_dict
+
+
+
+def get_column(filename,keyname):
+    inf=open(filename,'r')
+    inf.seek(0)
+    phys_dict=get_MESA_output_fields(filename)
+    indx=phys_dict.get(str(keyname))
+   
+    column=[] 
+    data = inf.readlines()[6:]
+    #print "data", data
+    for line in data:
+        try:
+            p=line.split()
+            column.append(p[indx])
+        except IndexError:
+            #print "abnormal line in data file encountered:"
+            #print line
+            pass
+            #skip
+
+    inf.close()
+    return np.array(column), type(column)
+
 
 
 
 def get_columns(filename,keyname_list):
     phys_dict=get_MESA_output_fields(filename)
+
     column_dict={}
     for i in range(len(keyname_list)):
-        try:
-            keyname=str(keyname_list[i])
-            column_dict[ keyname ]=(get_key(filename, keyname)[0])
-        except:
-            print show_allowed_MESA_keywords(readfile)
+        keyname=str(keyname_list[i])
+        #print "keyname: ", keyname
+        column_dict[ keyname ]=(get_column(filename, keyname)[0])
+        #print "\n\ncolumn dict", column_dict
+    #print column_dict['star_age']
+    #sys.exit()
     return column_dict
 
-
-
-def get_key(filename,keyname):
-    inf=open(filename,'r')
-    phys_dict=get_MESA_output_fields(filename)
-    indx=phys_dict.get(str(keyname))
-    param=[]
-    for line in inf:
-      if line and 'zone' not in line:
-          try: 
-              p=line.split()
-              param.append(p[indx])
-          except:
-              pass
-    return param, type(param)
 
 
 
@@ -193,27 +200,22 @@ def get_quantity(readfile,keyname):
     keyname=str(keyname)
     keyname_list=get_MESA_output_fields(readfile).keys()
     column_dict=get_columns(readfile,keyname_list)
+    quantity=np.array(column_dict.get(keyname)) # # was [5:]
+    try:
+        if (quantity==None):
+            print "Error: MESA keyword '"+keyname+"' not found!"
+            sys.exit()
+    except ValueError:
+        pass 
 
-    if "profile" in readfile:
-        #print "column_dict.get(keyname): ", column_dict.get(keyname), "\n\n"
-        quantity=np.array(column_dict.get(keyname))[3:]# NO WRONG .astype(float)
+    only_numbers=[]
+    for q in quantity:
+        try:
+            only_numbers.append(float(q))
+        except ValueError:
+            pass
+    return np.array(only_numbers).astype(float)
 
-    elif "history" in readfile:
-        quantity=np.array(column_dict.get(keyname))[5:]
-    else:
-        print " 'profile' or 'history' not found in filename, or some other file corruption"
-        sys.exit()
-    return np.array(quantity).astype(float)
-
-
-# def get_quantity_history_file(readfile,keyname):
-#     #### DANGER!!! DO NOT USE IN PLACE OF "get_quantity" IN PROFILE OPERATIONS
-#     keyname=str(keyname)
-#     keyname_list=get_MESA_output_fields(readfile).keys()
-#     column_dict=get_columns(readfile,keyname_list)
-#     quantity=np.array(column_dict.get(keyname))[5:]
-#     #magic 3 to eliminate column numbers being interpreted as data in the profile file
-#     return np.array(quantity).astype(float)
 
 
 def show_allowed_MESA_keywords(readfile):
@@ -287,3 +289,5 @@ def generate_basic_inlist(mass, age, metallicity, m2g_path, mesa_dir, inlist_pat
     print >> outf, ""
     outf.close()
     return 
+
+# end module MESAhandling
