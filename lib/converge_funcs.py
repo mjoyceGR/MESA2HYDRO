@@ -3,36 +3,19 @@ import numpy as np
 import matplotlib.pyplot as plt
 from scipy.optimize import curve_fit
 import sys
-#import pygadgetreader as pgr # works- credit this person
 import MESAhandling as MJ
 import mainlib as mn
-
 import datetime as dt 
 import random as rand
 import healpy as hp
 
 
-
-M_to_solar=1.988e33 #*10.0**33.0 ## g/Msolar
-R_to_solar=6.957e10 #*10.0**10.0 ## cm/Rsolar
-
-def R_to_solar_f(r):
-	return r*R_to_solar
-
-def to_Rsun(R_in_cm):
-	try:
-		Rs=np.float(R_in_cm)/R_to_solar
-		return Rs
-	except:
-		Rs=[]
-		for  i in range(len(R_in_cm)):
-			Rs.append(float(R_in_cm[i])/R_to_solar)
-		Rs= np.array(Rs)
-		return Rs 
-
-def find_nearest(array,value):
-    idx = (np.abs(array-value)).argmin()
-    return array[idx],idx
+#############################l######################
+M_to_solar=1.988*10.0**33.0 ## g/Msolar
+R_to_solar=6.957*10.0**10.0 ## cm/Rsolar
+###################################################
+# M_to_solar=1.988e33 #*10.0**33.0 ## g/Msolar
+# R_to_solar=6.957e10 #*10.0**10.0 ## cm/Rsolar
 
 
 #######################################################################################
@@ -43,24 +26,16 @@ def find_nearest(array,value):
 def rho_r(r, MESA_file, masscut, *args, **kwargs):
 	############################################################
 	#
-	# WARNING! FIXING cgs units!!!
+	# Fixed in cgs units!!!
 	#
 	############################################################
-	
-
-	#### REEVALUATE MASSCUT BASED ON NEW R
-	# masscut = mn.masscut_from_r(r, MESA_file)
-
-
 	fit_region_R=mn.MESA_r(MESA_file,masscut)
 
-	# #print "inside rho_r: ", fit_region_R.max()
 
 	fit_region_rho=mn.MESA_rho(MESA_file,masscut)
 	r0,idx=find_nearest(fit_region_R,r)
 	# WARNING! THIS RELIES ON LOADED DATA BEING SORTED! DO NOT TAMPER!
 
-	#try:
 	if r0 <= r:
 		rho0=fit_region_rho[idx]
 		r1=fit_region_R[idx-1]
@@ -75,16 +50,10 @@ def rho_r(r, MESA_file, masscut, *args, **kwargs):
 	if (r0 <= r <= r1):
 		return float(rrho_r)
 	else:
-		print "WARNING! r not found between r0 and r1....end of MESA density values"
-		#print "WARNING! rrho forced to rho_1"
-		return  #float(rho1)
-	# except IndexError:
-	# 	rrho_r= fit_region_rho[idx]
-	# 	#print "WARNING! index error in try/catch block cf.rho_r()"
-	# 	return float(rrho_r)		
+		print "converge_funcs WARNING: r not found between r0 and r1....end of MESA density values\n"
+		return  
 
-		#pass
-		#return 
+
 		
 def m_r(r, MESA_file, *args, **kwargs):
 
@@ -110,7 +79,7 @@ def m_r(r, MESA_file, *args, **kwargs):
 	if (r0 <= r <= r1):
 		return float(rm_r)
 	else:
-		print "could not compute m(r) for point"
+		print "converge_funcs WARNING: could not compute m(r) for point"
 		return 
 
 
@@ -142,15 +111,16 @@ def Mshell_from_RK(rl, rmax, step, MESA_file,masscut, *args,**kwargs):
 	return Mshell
 
 
-from scipy import integrate
-from scipy.integrate import romberg, quad 
-def Mshell_from_Romberg(rl, rmax, MESA_file, masscut,  *args,**kwargs): #step, MESA_file,masscut,
+
+def Mshell_from_Romberg(rl, rmax, MESA_file, masscut,  *args,**kwargs): 
+	from scipy import integrate
+	from scipy.integrate import romberg, quad 
+	
 	steps=float(kwargs.get("steps", 1)) ## global parameter representing order?
 	def fn(r):
 		return density_integral_numeric(r, rho_r(r,MESA_file,masscut))
 	Mshell = integrate.romberg(fn, rl, rmax, show=False)
 	return  Mshell
-
 
 
 
@@ -160,13 +130,7 @@ def Mshell_from_quad(rl, rmax, MESA_file, masscut,  *args,**kwargs): #step, MESA
 		return density_integral_numeric(r, rho_r(r,MESA_file,masscut))
 
 	Mshell = integrate.quad(fn, rl, rmax)[0]
-	#print "Mshell from quad: ", Mshell
 	return  Mshell
-
-
-
-
-
 
 
 def Newton_Raphson():
@@ -261,7 +225,7 @@ def get_placement_radii(rmin, rmax, RKstep, TOL, force_N, mp, MESA_file, masscut
 			 	#	  ('%.3f'%(100.0*Mshell_integral/Mshell_target)), "    ", ru_mass_loop, "   ", RKstep
 			
 			except TypeError:
-				print "TypeError in cf.get_placement_radii()"
+				print "converge_funcs ERROR: TypeError in cf.get_placement_radii()"
 				break  	 		 
 
 			### adapative step size
@@ -311,33 +275,17 @@ def get_placement_radii(rmin, rmax, RKstep, TOL, force_N, mp, MESA_file, masscut
 
 
 
-###################################################################################
-def John_radii(rmin, rmax, RKstep, TOL, force_N, mp, MESA_file, masscut, outf, *args, **kwargs):
-	import John_radii as jr 
-	jr.John_radii(rmin, rmax, RKstep, TOL, force_N, mp, MESA_file, masscut, outf)
-	return 
-
-###################################################################################
-def jr_get_placement_radii_orig(rmin, rmax, RKstep, TOL, force_N, mp, MESA_file, masscut, outf, *args, **kwargs):
-	import John_radii as jr 
-	jr.get_placement_radii_orig(rmin, rmax, RKstep, TOL, force_N, mp, MESA_file, masscut, outf)
-	return 
-	
-
 
 ###########################################################################
 #
 # load MESA data in correct format
 #
 ###########################################################################
+def get_MESA_profile_edge(MESA_file,**kwargs):
 
-#############################l######################
-M_to_solar=1.988*10.0**33.0 ## g/Msolar
-R_to_solar=6.957*10.0**10.0 ## cm/Rsolar
-###################################################
+	## THIS MIGHT BE DEFINITELY WRONG! 7/30/19
 
 
-def get_MESA_profile_edge(MESA_file,**kwargs):#, strip):
 	#print MJ.show_allowed_MESA_keywords(MESA_file)
 	strip=bool(kwargs.get('strip',False))
 	keyword=str(kwargs.get('quantity','zone'))
@@ -356,9 +304,6 @@ def get_MESA_profile_edge(MESA_file,**kwargs):#, strip):
 	masses = MJ.get_quantity(MESA_file,'mass').astype(np.float)#*M_to_solar ## WARNING
 	Mtot=masses[0]
 
-	## this is OK-- non-solar units
-	#print "in get_MESA_profile_edge, Mtot=", Mtot
-
 	bound = masscut*Mtot
 	fit_region_indices=np.where( (masses>=bound) )[0]	
 	fit_region  = quantity[fit_region_indices]
@@ -366,14 +311,14 @@ def get_MESA_profile_edge(MESA_file,**kwargs):#, strip):
 	if keyword =='mass':
 		fit_region = outer_mass(Mtot, fit_region)#[Mtot-p for p in mf]
 
-	## this is OK-- non-solar units
-	#print "in get_MESA_profile_edge, fit_region=", fit_region
-
 	return np.array(fit_region).astype(float)
 
 
 
+
+
 def outer_mass(Mtot,fit_region):
+	## THIS MIGHT BE DEFINITELY WRONG! 7/30/19
 	mf=fit_region
 	fit_region = [Mtot-p for p in mf]
 	#print "fit_region in outer_mass: ", fit_region
@@ -388,7 +333,7 @@ def outer_mass(Mtot,fit_region):
 
 ###########################################################################
 #
-# healpix
+# HEALPix functions
 #
 ###########################################################################
 def healpixify(N):
@@ -466,9 +411,28 @@ def rotate_shell(x_array, y_array, z_array, theta, direction, **kwargs):
 
 ###########################################################################
 #
-# basic
+# basic math functions
 #
 ###########################################################################
+def R_to_solar_f(r):
+	return r*R_to_solar
+
+def to_Rsun(R_in_cm):
+	try:
+		Rs=np.float(R_in_cm)/R_to_solar
+		return Rs
+	except:
+		Rs=[]
+		for  i in range(len(R_in_cm)):
+			Rs.append(float(R_in_cm[i])/R_to_solar)
+		Rs= np.array(Rs)
+		return Rs 
+
+def find_nearest(array,value):
+    idx = (np.abs(array-value)).argmin()
+    return array[idx],idx
+
+
 def to_log(xq):
 	logged=[]
 	for i in range(len(xq)):
@@ -519,20 +483,15 @@ def volume(r):
 
 ###########################################################################
 #
-# Recovery
+# Recovery tools
 #
 ###########################################################################
-import scipy.optimize 
-
 def one_over_r(xdata,A,B,C,D):
 	#print "xdata: ", xdata
 	return A*( 1.0/( (D*xdata)-B) ) + C
 
-
-#------------------------------ analytic ----------------------------------------
-
 def get_curve(r_array,rho_array,guess_a,guess_b,guess_c,guess_d,functional_form):
-
+	import scipy.optimize 
 	p=[guess_a,guess_b,guess_c, guess_d]
 	params, cov = curve_fit(functional_form, r_array, rho_array, p0=p)
 	a, b, c,d = params
@@ -541,6 +500,7 @@ def get_curve(r_array,rho_array,guess_a,guess_b,guess_c,guess_d,functional_form)
 
 
 def poly_curve(xdata,ydata,degree):
+	import scipy.optimize 
 	p=np.polyfit(xdata,ydata,degree)
 	d=degree
 	if d==2:

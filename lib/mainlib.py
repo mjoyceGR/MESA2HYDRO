@@ -57,6 +57,10 @@ def MESA_rho(MESA_file,masscut):
 
 def MESA_m(MESA_file,masscut):
     ### returns mass in g
+
+    ## WARNING!!!!
+    ## THIS MIGHT BE DEFINITELY WRONG! 7/30/19
+
     fit_region_M=cf.get_MESA_profile_edge(MESA_file, quantity='mass', masscut=masscut,strip=False)*M_to_solar
     return fit_region_M
 
