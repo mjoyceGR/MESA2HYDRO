@@ -556,3 +556,5 @@ def poly_curve(xdata,ydata,degree):
 		print 'fits with degree > 5 not supported'
 		sys.exit()
 	return y
+
+# end module converge_funcs
