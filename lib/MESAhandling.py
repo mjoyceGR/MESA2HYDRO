@@ -1,5 +1,10 @@
 #!/usr/bin/env python
-#try:
+###########################################################
+#
+# License statement
+#
+###########################################################
+
 import numpy as np
 import codecs, re
 import subprocess, os, sys
@@ -7,7 +12,6 @@ import subprocess, os, sys
 #import pygadgetreader as pyg
 import matplotlib.pyplot as plt
 from matplotlib.ticker import MultipleLocator, FormatStrFormatter 
-#import healpy as hp
 import random as rand
 
 ################################################################

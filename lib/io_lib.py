@@ -1,4 +1,10 @@
 #!/usr/bin/env python
+###########################################################
+#
+# License statement
+#
+###########################################################
+
 import numpy as np
 import h5py as h5py
 import os.path

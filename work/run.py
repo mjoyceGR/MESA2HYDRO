@@ -1,4 +1,11 @@
 #!/usr/bin/env python
+
+###########################################################
+#
+# License statement
+#
+###########################################################
+
 import argparse
 import numpy as np
 import matplotlib.pyplot as plt
