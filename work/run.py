@@ -131,6 +131,7 @@ if r_depth != -1.0:
     fit_region_R = 10.0**(MJ.get_quantity(MESA_file, 'logR').astype(np.float)) #mn.MESA_r(MESA_file, 0) #whole star
     fit_region_M = MJ.get_quantity(MESA_file,'mass').astype(np.float)*M_to_solar  #mn.MESA_m(MESA_file, 0)
     
+    
     print "len(R), len(M): ", len(fit_region_R), len(fit_region_M)
 
 
