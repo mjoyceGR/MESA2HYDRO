@@ -1,10 +1,18 @@
 #!/usr/bin/env python
-###########################################################
-#
-# License statement
-#
-###########################################################
+#! ***********************************************************************
+#!
+#!   Copyright (C) 2019  M. Joyce, L. Lairmore, D. J. Price
+#!
+#!   See MESA2HYDRO/LICENSE
+#!
+#! ***********************************************************************
 
+########################################################
+#
+# Contains: input/output (read/write) routines converting 
+#           N,R arrays to SPH-compatible IC formats
+#
+#########################################################
 import numpy as np
 import h5py as h5py
 import os.path
@@ -13,11 +21,7 @@ import scipy.optimize as optimize
 import math
 import sys 
 import converge_funcs as cf
-
-######
 import hdf5lib as hdf5lib
-
-#from yanked import *
 
 ###############################################################
 #
@@ -106,7 +110,7 @@ def make_IC_hdf5(out_fname, mp, central_point_mass,\
 
 ###############################################################
 #
-# GADGET format binary writing routine
+# GADGET-2 binary format type 1 writing routine
 #
 ###############################################################
 def make_IC_binary(fname, mp, central_point_mass,\

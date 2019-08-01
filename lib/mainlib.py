@@ -1,17 +1,17 @@
 #!/usr/bin/env python
-###########################################################
-#
-# License statement
-#
-###########################################################
+#! ***********************************************************************
+#!
+#!   Copyright (C) 2019  M. Joyce, L. Lairmore, D. J. Price
+#!
+#!   See MESA2HYDRO/LICENSE
+#!
+#! ***********************************************************************
 
 ########################################################
 #
-# this module contains the main subroutines for run.py 
-# and subordinate minor subroutines
+# Contains: main subroutines for run.py 
 #
 #########################################################
-
 import numpy as np
 import h5py as h5py
 import os.path
@@ -19,22 +19,23 @@ import scipy.interpolate as interpolate
 import scipy.optimize as optimize
 import math
 import sys 
-import converge_funcs as cf
-import MESAhandling as MJ
-import io_lib as rw
 import hdf5lib as hdf5lib
 import time
 
-########### FOR DEBUGGING ONLY
+
+import converge_funcs as cf
+import MESAhandling as MJ
+import io_lib as rw
+import constants as const
+
+const.logo()
+
+M_to_solar=const.Msun 
+R_to_solar=const.Rsun 
+
+
+### FOR DEBUGGING ONLY
 use_normalized=False
-
-
-print "\n\nusing git version\n\n"
-
-###################################################
-M_to_solar=1.988e33 # *10.0**33.0 ## g/Msolar
-R_to_solar=6.957e10 #**10.0 ## cm/Rsolar
-###################################################
 
 
 def masscut_from_r(r, MESA_file):
@@ -84,8 +85,8 @@ def MESA_E(MESA_file, masscut):
 
 
 def central_mass(MESA_file, masscut):
-    ## mass to be cast as the sink particle/gravity well/stellar core
-    masses = MJ.get_quantity(MESA_file,'mass').astype(np.float)*M_to_solar ## WARNING
+    ## define the mass to be cast as the sink particle/gravity well/stellar core
+    masses = MJ.get_quantity(MESA_file,'mass').astype(np.float)*M_to_solar 
     radii = 10.0**(MJ.get_quantity(MESA_file, 'logR').astype(np.float))
     Mtot=masses.max()
     central_M = masscut*Mtot
@@ -226,7 +227,6 @@ def get_IC(MESA_file, masscut, NR_file_name,output_filename,mp,which_dtype='f', 
     super_y=np.concatenate((super_y,zero_space),axis=0)
     super_z=np.concatenate((super_z,zero_space),axis=0)
     
-    ## 5/28/19
     central_point_mass, Mstar=central_mass(MESA_file, masscut)
 
     super_x=cf.to_array(super_x)
@@ -315,14 +315,14 @@ def get_IC(MESA_file, masscut, NR_file_name,output_filename,mp,which_dtype='f', 
 
 #############################################
 #
-# plotting routines--experimental
+# plotting routines---experimental; not currently set in run.py
 #
 #############################################
-def reload_IC( IC_file, format_type, which_dtype='f'): #rmax #NR_file
+def reload_IC( IC_file, format_type, which_dtype='f'):
     filetype=str(format_type)
 
-    print "\n\n\n<----testing reload---->"
-    # N,r_set,m_cont=np.loadtxt(NR_file, usecols=(0,1,2), unpack=True)
+    print "\n\n\n<----testing mn.reload_IC()---->"
+
     if filetype=='hdf5':
         hdf5_file=IC_file+'.hdf5'
         PartType=0

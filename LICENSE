@@ -1,6 +1,6 @@
 !-----------------------------------------------------------------------------------!
-! The 1D-MESA2HYDRO-3D Program                            		                    !
-! Copyright (c) 2019 Meridith Joyce, Lianne Lairmore, Dan Price, and contributers   !
+! The 1D-MESA2HYDRO-3D Program                            		                      !
+! Copyright (c) 2019 Meridith Joyce, Lianne Lairmore, Daniel J Price                     !
 !-----------------------------------------------------------------------------------!
 !
 !  1D-MESA2HYDRO-3D is free software; you can redistribute it and/or modify
@@ -12,7 +12,7 @@
 !  1) The 1D-MESA2HYDRO-3D code paper should be cited in any scientific
 !     publications using the code ( CITATION HERE #notdone )
 !
-! 		#notdone
+! 		
 !  2) Any redistribution of substantial fractions of the code as a
 !     different project should preserve the word "1D-MESA2HYDRO-3D" in the name
 !     of the code (in addition to the GPLv3 condition that this copyright

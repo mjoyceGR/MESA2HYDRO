@@ -1,117 +1,30 @@
 #!/usr/bin/env python
-###########################################################
-#
-# License statement
-#
-###########################################################
+#! ***********************************************************************
+#!
+#!   Copyright (C) 2019  M. Joyce, L. Lairmore, D. J. Price
+#!
+#!   See MESA2HYDRO/LICENSE
+#!
+#! ***********************************************************************
 
+########################################################
+#
+# Contains: functions for manipulating and
+#           formatting MESA data
+#
+#########################################################
 import numpy as np
 import codecs, re
-import subprocess, os, sys
-#import h5py
-#import pygadgetreader as pyg
+import sys
 import matplotlib.pyplot as plt
 from matplotlib.ticker import MultipleLocator, FormatStrFormatter 
-import random as rand
-
-################################################################
-#
-# the purpose of this module is parsing 
-# and manipulating MESA-formatted profile data
-#
-################################################################
-def plotter(xmaj,xmin,ymaj,ymin, xf, yf, *args, **kwargs):
-    figsize=kwargs.get("figsize", (15,15))
-    #h=10
-
-    fig = plt.figure(figsize=figsize)#(2.5*h,h)) #plt.subplots()#(figsize=figsize)
-    ax = fig.add_subplot(1, 1, 1)
-
-    majorLocator_x  = MultipleLocator(xmaj)     # I want a major tick every "number"
-    majorFormatter_x = FormatStrFormatter(xf)#('%1.1f')     # label these (the major ones) with a 1.2f format string
-    minorLocator_x  = MultipleLocator(xmin)     # I want a minor tick every "number"
-
-    majorLocator_y  = MultipleLocator(ymaj)     # now for the y axis...
-    majorFormatter_y = FormatStrFormatter(yf)#('%1.1f')     # 
-    minorLocator_y  = MultipleLocator(ymin)     #
-
-
-    ax.xaxis.set_major_locator(majorLocator_x)
-    ax.xaxis.set_major_formatter(majorFormatter_x)
-    ax.xaxis.set_minor_locator(minorLocator_x)
-
-    ax.yaxis.set_major_locator(majorLocator_y)
-    ax.yaxis.set_major_formatter(majorFormatter_y)
-    ax.yaxis.set_minor_locator(minorLocator_y)
-
-    return fig, ax
-
-
-def multi_plotter(ax,xmaj, xmin, ymaj, ymin,**kwargs):
-    xf = kwargs.get('xf', '%1.1f')
-    yf = kwargs.get('yf', '%1.1f')
-
-    majorLocator_x  = MultipleLocator(xmaj)     # I want a major tick every "number"
-    majorFormatter_x = FormatStrFormatter(xf)#('%1.1f')     # label these (the major ones) with a 1.2f format string
-    minorLocator_x  = MultipleLocator(xmin)     # I want a minor tick every "number"
-
-    majorLocator_y  = MultipleLocator(ymaj)     # now for the y axis...
-    majorFormatter_y = FormatStrFormatter(yf)#('%1.1f')     # 
-    minorLocator_y  = MultipleLocator(ymin)     #
-
-    # fig, ax = plt.subplots()
-
-    ax.xaxis.set_major_locator(majorLocator_x)
-    ax.xaxis.set_major_formatter(majorFormatter_x)
-    ax.xaxis.set_minor_locator(minorLocator_x)
-
-    ax.yaxis.set_major_locator(majorLocator_y)
-    ax.yaxis.set_major_formatter(majorFormatter_y)
-    ax.yaxis.set_minor_locator(minorLocator_y)
-
-    return 
-
-
-
-
-def update_MESA_inlist_value(MESA_inlist, field, value):
-    inlist_dict=grab_fields(MESA_inlist)
-    old_value=inlist_dict.get(field)
-    new_value=str(value)
-    oldstr=r'{}\s*=\s*{}'.format(field, old_value)
-    newstr='{} = {}'.format(field, value)
-    #print("oldstr: {}\nnewstr: {}".format(oldstr, newstr))
-    f = codecs.open(MESA_inlist)
-    contents = f.read()
-    newcontents=re.sub(oldstr, newstr, contents) 
-    f.close()
-    outf=open(MESA_inlist,"w")
-    print >>outf, newcontents
-    outf.close()
-    return 
-
-def grab_fields(MESA_inlist):
-    inf=open(MESA_inlist,'r')
-    inlist_dict={}
-    for line in inf:
-        if line and "=" in line:
-            try:
-                p=line.split("=")
-                try: 
-                    p[1]=p[1].split('\n')[0]
-                except:
-                    pass
-                if "!" in p[0]:
-                    del p    
-                inlist_dict[str(p[0]).strip()]=str(p[1]).strip()
-            except:
-                pass 
-    return inlist_dict
-
 
 #########################################################################
 #
 # MESA output functions
+#
+# User warning: these functions expect MESA data in its unmodified format,
+# including a 6 line header
 #
 #########################################################################
 def strip_MESA_header(in_filename, out_filename, *args, **kwargs):
@@ -133,30 +46,13 @@ def strip_MESA_header(in_filename, out_filename, *args, **kwargs):
 
 
 def get_MESA_output_fields(filename):
-    ### 7/29/19 this needs to be cleaned; works with profile but not history
-    
     inf=open(filename,'r')
-    
-    #if 'profile' in filename:
-    line = inf.readlines()[5:6] ## was 5:6
-
-
-    #print line
-    p=line[0].split()#.split('\n')[0]
-    #print "number of headers: ", len(p)
-    phys_dict={}
-    
-#    try:           
+    line = inf.readlines()[5:6] 
+    p=line[0].split()
+    phys_dict={}            
     for i,v in enumerate(p):
-        #if r"\n" not in str(v):
-        phys_dict[str(v).strip()]=i# careful
-        #else:
-        #    print r" '\n' encountered"
-    # except UnboundLocalError:
-    #     print "problem with "+str(filename)+" format"
-    #     sys.exit(0)  
+        phys_dict[str(v).strip()]=i
     return phys_dict
-
 
 
 def get_column(filename,keyname):
@@ -164,39 +60,26 @@ def get_column(filename,keyname):
     inf.seek(0)
     phys_dict=get_MESA_output_fields(filename)
     indx=phys_dict.get(str(keyname))
-   
     column=[] 
     data = inf.readlines()[6:]
-    #print "data", data
     for line in data:
         try:
             p=line.split()
             column.append(p[indx])
         except IndexError:
-            #print "abnormal line in data file encountered:"
-            #print line
             pass
-            #skip
-
     inf.close()
     return np.array(column), type(column)
 
 
 
-
 def get_columns(filename,keyname_list):
     phys_dict=get_MESA_output_fields(filename)
-
     column_dict={}
     for i in range(len(keyname_list)):
         keyname=str(keyname_list[i])
-        #print "keyname: ", keyname
         column_dict[ keyname ]=(get_column(filename, keyname)[0])
-        #print "\n\ncolumn dict", column_dict
-    #print column_dict['star_age']
-    #sys.exit()
     return column_dict
-
 
 
 
@@ -204,7 +87,7 @@ def get_quantity(readfile,keyname):
     keyname=str(keyname)
     keyname_list=get_MESA_output_fields(readfile).keys()
     column_dict=get_columns(readfile,keyname_list)
-    quantity=np.array(column_dict.get(keyname)) # # was [5:]
+    quantity=np.array(column_dict.get(keyname)) 
     try:
         if (quantity==None):
             print "Error: MESA keyword '"+keyname+"' not found!"
@@ -227,32 +110,78 @@ def show_allowed_MESA_keywords(readfile):
     for i in get_MESA_output_fields(readfile).keys():
         fstr=fstr+str(i) +'\n'
     print fstr
-    return fstr#get_MESA_output_fields(readfile).keys()
+    return fstr
 
 
-def transfer_inlist(template_inlist, target_inlist,
-                    mesa_dir, m2g_path):
-    with open(template_inlist, 'r') as content_file:
-        contents = content_file.read()
+#######################################################
+#
+# Plot makers
+#
+########################################################
+def plotter(xmaj,xmin,ymaj,ymin, xf, yf, *args, **kwargs):
+    figsize=kwargs.get("figsize", (15,15))
+    #h=10
 
-    contents = re.sub("<MESA_DIR>", mesa_dir, contents)
-    contents = re.sub("<MESA2HYDRO_ROOT>", m2g_path, contents)
+    fig = plt.figure(figsize=figsize)#(2.5*h,h)) #plt.subplots()#(figsize=figsize)
+    ax = fig.add_subplot(1, 1, 1)
 
-    with open(target_inlist, "w") as outf:
-        outf.write(contents)
+    majorLocator_x  = MultipleLocator(xmaj)     # I want a major tick every "x"
+    majorFormatter_x = FormatStrFormatter(xf)   # label major ticks with a 1.2f format string
+    minorLocator_x  = MultipleLocator(xmin)     # I want a minor tick every "x"
 
-    return contents
+    majorLocator_y  = MultipleLocator(ymaj)     # y axis...
+    majorFormatter_y = FormatStrFormatter(yf)    
+    minorLocator_y  = MultipleLocator(ymin)     
 
 
-def generate_basic_inlist(mass, age, metallicity, m2g_path, mesa_dir, inlist_path,output_model_name):
-    ## I don't know how paths work
+    ax.xaxis.set_major_locator(majorLocator_x)
+    ax.xaxis.set_major_formatter(majorFormatter_x)
+    ax.xaxis.set_minor_locator(minorLocator_x)
+
+    ax.yaxis.set_major_locator(majorLocator_y)
+    ax.yaxis.set_major_formatter(majorFormatter_y)
+    ax.yaxis.set_minor_locator(minorLocator_y)
+
+    return fig, ax
+
+
+def multi_plotter(ax,xmaj, xmin, ymaj, ymin,**kwargs):
+    xf = kwargs.get('xf', '%1.1f')
+    yf = kwargs.get('yf', '%1.1f')
+
+    majorLocator_x  = MultipleLocator(xmaj)    
+    majorFormatter_x = FormatStrFormatter(xf)
+    minorLocator_x  = MultipleLocator(xmin)     
+
+    majorLocator_y  = MultipleLocator(ymaj)     
+    majorFormatter_y = FormatStrFormatter(yf)
+    minorLocator_y  = MultipleLocator(ymin)  
+
+
+    ax.xaxis.set_major_locator(majorLocator_x)
+    ax.xaxis.set_major_formatter(majorFormatter_x)
+    ax.xaxis.set_minor_locator(minorLocator_x)
+
+    ax.yaxis.set_major_locator(majorLocator_y)
+    ax.yaxis.set_major_formatter(majorFormatter_y)
+    ax.yaxis.set_minor_locator(minorLocator_y)
+
+    return 
+
+
+#######################################################
+#
+# Non-essential MESA inlist manipulators
+#
+########################################################
+def generate_basic_inlist(mass, age, metallicity, m2h_path, mesa_dir, inlist_path,output_model_name):
     outf=open(inlist_path, "w")
 
     print >> outf, "&star_job"
     print >> outf, ""
     print >> outf, "  mesa_dir = '"+ str(mesa_dir) +"'"
-    print >> outf, "  history_columns_file='"+m2g_path+"/data/history_columns_testsuite.list'"
-    print >> outf, "  profile_columns_file='"+m2g_path+"/data/profile_columns_testsuite.list'"
+    print >> outf, "  history_columns_file='"+m2h_path+"/data/history_columns_testsuite.list'"
+    print >> outf, "  profile_columns_file='"+m2h_path+"/data/profile_columns_testsuite.list'"
     print >> outf, ""
     print >> outf, "  load_saved_model = .false."
     print >> outf, "  !create_pre_main_sequence_model = .false. !!need this to be able to specify y?"
@@ -293,5 +222,41 @@ def generate_basic_inlist(mass, age, metallicity, m2g_path, mesa_dir, inlist_pat
     print >> outf, ""
     outf.close()
     return 
+
+
+def update_MESA_inlist_value(MESA_inlist, field, value):
+    inlist_dict=grab_fields(MESA_inlist)
+    old_value=inlist_dict.get(field)
+    new_value=str(value)
+    oldstr=r'{}\s*=\s*{}'.format(field, old_value)
+    newstr='{} = {}'.format(field, value)
+
+    f = codecs.open(MESA_inlist)
+    contents = f.read()
+    newcontents=re.sub(oldstr, newstr, contents) 
+    f.close()
+    outf=open(MESA_inlist,"w")
+    print >>outf, newcontents
+    outf.close()
+    return 
+
+def grab_fields(MESA_inlist):
+    inf=open(MESA_inlist,'r')
+    inlist_dict={}
+    for line in inf:
+        if line and "=" in line:
+            try:
+                p=line.split("=")
+                try: 
+                    p[1]=p[1].split('\n')[0]
+                except:
+                    pass
+                if "!" in p[0]:
+                    del p    
+                inlist_dict[str(p[0]).strip()]=str(p[1]).strip()
+            except:
+                pass 
+    return inlist_dict
+
 
 # end module MESAhandling

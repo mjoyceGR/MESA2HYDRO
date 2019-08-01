@@ -1,10 +1,18 @@
 #!/usr/bin/env python
-###########################################################
-#
-# License statement
-#
-###########################################################
+#! ***********************************************************************
+#!
+#!   Copyright (C) 2019  M. Joyce, L. Lairmore, D. J. Price
+#!
+#!   See MESA2HYDRO/LICENSE
+#!
+#! ***********************************************************************
 
+########################################################
+#
+# Contains: command line and config file argument parsers,
+#           path manipulation functions 
+#
+#########################################################
 import sys
 import os
 import re
@@ -12,9 +20,7 @@ import argparse
 import tempfile
 
 DEBUG = False
-
 MESA_PKG_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
-
 print("Package directory: {}".format(MESA_PKG_DIR))
 
 try:
@@ -51,10 +57,8 @@ if DEBUG:
 # module CONFIG PARSER
 #
 #####################################################
-
 class OptionTypeUnknown:
     pass
-
 
 class Types:
     STR = "str"

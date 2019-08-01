@@ -1,10 +1,17 @@
 #!/usr/bin/env python
-###########################################################
-#
-# License statement
-#
-###########################################################
+#! ***********************************************************************
+#!
+#!   Copyright (C) 2019  M. Joyce, L. Lairmore, D. J. Price
+#!
+#!   See MESA2HYDRO/LICENSE
+#!
+#! ***********************************************************************
 
+########################################################
+#
+# Contains: numerical methods
+#
+#########################################################
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy.optimize import curve_fit
@@ -14,14 +21,11 @@ import mainlib as mn
 import datetime as dt 
 import random as rand
 import healpy as hp
+import constants as const
 
 
-#############################l######################
-M_to_solar=1.988*10.0**33.0 ## g/Msolar
-R_to_solar=6.957*10.0**10.0 ## cm/Rsolar
-###################################################
-# M_to_solar=1.988e33 #*10.0**33.0 ## g/Msolar
-# R_to_solar=6.957e10 #*10.0**10.0 ## cm/Rsolar
+M_to_solar=const.Msun
+R_to_solar=const.Rsun
 
 
 #######################################################################################
@@ -291,7 +295,6 @@ def get_MESA_profile_edge(MESA_file,**kwargs):
 
 	## THIS MIGHT BE DEFINITELY WRONG! 7/30/19
 
-
 	#print MJ.show_allowed_MESA_keywords(MESA_file)
 	strip=bool(kwargs.get('strip',False))
 	keyword=str(kwargs.get('quantity','zone'))
@@ -307,7 +310,7 @@ def get_MESA_profile_edge(MESA_file,**kwargs):
 		print MJ.show_allowed_MESA_keywords(MESA_file)
 		sys.exit()
 
-	masses = MJ.get_quantity(MESA_file,'mass').astype(np.float)#*M_to_solar ## WARNING
+	masses = MJ.get_quantity(MESA_file,'mass').astype(np.float)
 	Mtot=masses[0]
 
 	bound = masscut*Mtot

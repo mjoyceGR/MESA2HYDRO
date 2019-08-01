@@ -56,7 +56,7 @@ SCRIPT_CONFIGS = {
     'TOL':0.01}
  
 # Auto generates command line arguments and configuration file reading from SCRIPT_CONFIG definition
-options = OptionInputs(SCRIPT_CONFIGS, description='Program for converting MESA output to Gadget simulation files')
+options = OptionInputs(SCRIPT_CONFIGS, description='Program for converting MESA output to SPH-compatible IC files')
 
 # Only arguments in SCRIPT_CONFIGS can be found in user_configs
 user_configs = options.get_configs()
@@ -64,28 +64,20 @@ user_configs = options.get_configs()
 check_MESA_profile = user_configs['check_MESA_profile']
 make_NR_file = user_configs['make_NR_file']
 make_IC_file = user_configs['make_IC_file']
-#try_reload = user_configs['try_reload']
 IC_format_type = user_configs['IC_format_type']
 MESA_file = relative_to_root(user_configs['MESA_file'])
 masscut = user_configs['masscut']
-
 r_depth = user_configs['r_depth']
 
 N = user_configs['N']
 mp = user_configs['mp']
 mp_cgs = user_configs['mp_cgs']
-# doesn't seem to be used anymore
-#startype = user_configs['startype']
 stepsize = user_configs['stepsize']
-#png_tag = user_configs['png_tag']
 new_NR_filename=user_configs['new_NR_filename']
 loaded_NR_filename = user_configs['loaded_NR_filename']
 new_IC_filename = user_configs['new_IC_filename']
 loaded_IC_filename = user_configs['loaded_IC_filename']
 
-## meridith additional parameters
-#reload_bin_number = user_configs['reload_bin_number']
-#use_bins_from_NR_file=user_configs['use_bins_from_NR_file']
 which_dtype=user_configs['which_dtype']
 TOL = user_configs['TOL']
 
@@ -115,17 +107,17 @@ R_to_solar=6.957*10.0**10.0 ## cm/Rsolar
 ###################################################
 
 
-#################################################
+
+##################################################################
 #
 # convert radial depth to masscut
 #
-## if a radial preference has been passed, override mass depth and
-## define mass proportion relative to r_depth
+# if a radial preference has been passed, override mass depth and
+# define mass proportion relative to r_depth
 #
 # set r_depth to -1.0 in config file to rely on mass depth
 #
-#################################################
-
+###################################################################
 if r_depth != -1.0:
     fit_region_R = 10.0**(MJ.get_quantity(MESA_file, 'logR').astype(np.float)) #mn.MESA_r(MESA_file, 0) #whole star
     fit_region_M = MJ.get_quantity(MESA_file,'mass').astype(np.float)*M_to_solar  #mn.MESA_m(MESA_file, 0)
