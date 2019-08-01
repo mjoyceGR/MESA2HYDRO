@@ -1,18 +1,20 @@
 #!/usr/bin/env python
-#! ***********************************************************************
-#!
-#!   Copyright (C) 2019  M. Joyce, L. Lairmore, D. J. Price
-#!
-#!   See MESA2HYDRO/LICENSE
-#!
-#! ***********************************************************************
 
-########################################################
+#************************************************************************
 #
-# Contains: input/output (read/write) routines converting 
-#           N,R arrays to SPH-compatible IC formats
+#   Copyright (C) 2019  M. Joyce, L. Lairmore, D. J. Price
 #
-#########################################################
+#   See MESA2HYDRO/LICENSE
+#
+#************************************************************************
+
+'''
+
+Contains: input/output (read/write) routines converting 
+           N,R arrays to SPH-compatible IC formats
+
+'''
+
 import numpy as np
 import h5py as h5py
 import os.path

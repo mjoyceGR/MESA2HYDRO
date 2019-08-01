@@ -1,18 +1,20 @@
 #!/usr/bin/env python
-#! ***********************************************************************
-#!
-#!   Copyright (C) 2019  M. Joyce, L. Lairmore, D. J. Price
-#!
-#!   See MESA2HYDRO/LICENSE
-#!
-#! ***********************************************************************
 
-########################################################
+#************************************************************************
 #
-# Contains: functions for manipulating and
-#           formatting MESA data
+#   Copyright (C) 2019  M. Joyce, L. Lairmore, D. J. Price
 #
-#########################################################
+#   See MESA2HYDRO/LICENSE
+#
+#************************************************************************
+
+'''
+
+Contains: functions for manipulating and
+           formatting MESA data
+           
+'''
+
 import numpy as np
 import codecs, re
 import sys

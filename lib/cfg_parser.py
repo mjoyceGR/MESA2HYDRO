@@ -1,18 +1,20 @@
 #!/usr/bin/env python
-#! ***********************************************************************
-#!
-#!   Copyright (C) 2019  M. Joyce, L. Lairmore, D. J. Price
-#!
-#!   See MESA2HYDRO/LICENSE
-#!
-#! ***********************************************************************
 
-########################################################
+#************************************************************************
 #
-# Contains: command line and config file argument parsers,
-#           path manipulation functions 
+#   Copyright (C) 2019  M. Joyce, L. Lairmore, D. J. Price
 #
-#########################################################
+#   See MESA2HYDRO/LICENSE
+#
+#************************************************************************
+
+'''
+
+Contains: command line and config file argument parsers,
+          path manipulation functions 
+
+'''
+
 import sys
 import os
 import re
@@ -41,7 +43,7 @@ else:
 
 
 def relative_to_root(path):
-    """If the file doesn't exists as is make the path relative to 
+    """If the file doesn't exists as is, make the path relative to 
        MESA2HYDRO_ROOT environment variable"""
     if not os.path.exists(path):
         path = os.path.join(m2g_save_path, path)

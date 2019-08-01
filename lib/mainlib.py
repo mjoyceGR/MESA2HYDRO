@@ -1,17 +1,19 @@
 #!/usr/bin/env python
-#! ***********************************************************************
-#!
-#!   Copyright (C) 2019  M. Joyce, L. Lairmore, D. J. Price
-#!
-#!   See MESA2HYDRO/LICENSE
-#!
-#! ***********************************************************************
 
-########################################################
+#************************************************************************
 #
-# Contains: main subroutines for run.py 
+#   Copyright (C) 2019  M. Joyce, L. Lairmore, D. J. Price
 #
-#########################################################
+#   See MESA2HYDRO/LICENSE
+#
+#************************************************************************
+
+'''
+
+Contains: main subroutines for run.py 
+
+'''
+
 import numpy as np
 import h5py as h5py
 import os.path
@@ -22,7 +24,6 @@ import sys
 import hdf5lib as hdf5lib
 import time
 
-
 import converge_funcs as cf
 import MESAhandling as MJ
 import io_lib as rw
@@ -32,7 +33,6 @@ const.logo()
 
 M_to_solar=const.Msun 
 R_to_solar=const.Rsun 
-
 
 ### FOR DEBUGGING ONLY
 use_normalized=False

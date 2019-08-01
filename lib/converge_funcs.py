@@ -1,17 +1,22 @@
 #!/usr/bin/env python
-#! ***********************************************************************
-#!
-#!   Copyright (C) 2019  M. Joyce, L. Lairmore, D. J. Price
-#!
-#!   See MESA2HYDRO/LICENSE
-#!
-#! ***********************************************************************
 
-########################################################
+#************************************************************************
 #
-# Contains: numerical methods
+#   Copyright (C) 2019  M. Joyce, L. Lairmore, D. J. Price
 #
-#########################################################
+#   See MESA2HYDRO/LICENSE
+#
+#************************************************************************
+
+
+'''
+
+Contains: numerical methods
+
+'''
+
+
+
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy.optimize import curve_fit
