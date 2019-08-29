@@ -50,11 +50,10 @@ SCRIPT_CONFIGS = {
     'make_IC_file': False,
     'loaded_IC_filename': 'ms_logE',
     'new_IC_filename': 'latest_IC',
-    'IC_format_type': 'binary',
+    'IC_format_type': 'phantom_binary',
 
     'masscut': 0.95,
-
-    'r_depth':-1.0,
+    'r_depth':0.5,
 
     'N': 8,
     'mp': 1e-7,
