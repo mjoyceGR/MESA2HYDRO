@@ -1,16 +1,23 @@
 # MESA2HYDRO
 
-## Introduction
-From discrete MESA stellar density profile data, this package creates an Initial Conditions (IC) file readable by smoothed-particle hydrodynamics (SPH) codes such as GADGET-2.  
-Generating MESA data requires basic operational understanding of MESA. Running GADGET-2, AREPO, or other SPH codes are the user's responsibility. 
+## Documentation
+Read the paper:
+Refereed: https://iopscience.iop.org/article/10.3847/1538-4357/ab3405/meta
+Free: https://arxiv.org/abs/1907.09062
 
-The primary purpose of this software is to generate "NR" files which characterize the mass distribution in the outer regions of an arbitrary model star.
+Read the User's Guide:
+
+
+## Introduction
+From discrete stellar structure data in the style of MESA (http://mesa.sourceforge.net/) density profiles, this package creates initial conditions (IC) files readable by smoothed-particle hydrodynamics (SPH) codes such as Phantom (https://phantomsph.bitbucket.io/).  
+
+The primary purpose of this software is to generate "NR" files that parameterize the mass distribution in an arbitrary model star.
 
 An NR file is a basic text file containing 4 columns of numerical data: 
 (1) integer N (dimensionless),
 (2) radii (cm),
 (3) masses M (grams), and
-(4) internal energy values as computed by MESA (cgs units).
+(4) internal energy (ergs).
 
 The first column contains the integer used by HEALPix to determine the number of particles (np) distributed over a spherical shell--see the HEALPix papers for more information. 
 
@@ -19,29 +26,22 @@ The length of the file corresponds to the number of shells needed to reconstruct
 
 
 ## Installation
-From the directory in which this is unpacked, run 
+Via pip:
 
-	`python2 setup.py install`
+	pip2 install MESA2HYDRO
 
-Further information on installation is described in the 1D-MESA2HYDRO-3D user's guide.
+Alternatively, clone the git repository, unpack, and run the following from the top level directory: 
+
+	python2 setup.py install
+
 
 ## Prerequisites
 This project was interfaced with mesa version 10398 with example inlists and input models (e.g. wd.mod) sourced from data provided within mesa-r10398. See 1D-MESA2HYDRO-3D user's guide.
 
 
-## System requirements:
-	mesa-r10398
-		-requires latest version of the mesasdk
-	HEALPix numerical libraries	
-	hdf5 libraries 
-
-
-	See 1D-MESA2HYDRO-3D user's guide for a list of Python dependencies
-
-
 ## Operation
 Basic operation proceeds from the "work" subdirectory via
 
-	./run test.cfg
+	python2 run.py <filename>.cfg
 
 See 1D-MESA2HYDRO-3D user's guide for more detailed information.
