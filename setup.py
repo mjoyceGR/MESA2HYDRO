@@ -67,12 +67,12 @@ setup(name='MESA2HYDRO',
       package_data={'': ['data/*/*', 'work/N_mp_combinations.dat', 'work/NR_files/*.dat',
                          'work/recovery_images/*.png', 'out/sample_MESA_output/*.data']},
       version='0.1.0',
-      description='TBD',
+      description='Convert 1D stellar structure models to 3D particle distributions using HEALPix spherical tessellation algorithm',
       author='Meridith Joyce',
-      author_email='TBD',
+      author_email='Meridith.Joyce@anu.edu.au',
       url='https://github.com/mjoyceGR/MESA2HYDRO',
       download_url='https://github.com/mjoyceGR/MESA2HYDRO/archive/0.1.0.tar.gz',
-      keywords=['mesa', 'hydro', 'astronomy'],
+      keywords=['MESA', 'hydrodynamics', 'stellar evolution','astronomy'],
       classifiers=[]
 )
 
