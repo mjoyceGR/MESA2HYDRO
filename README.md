@@ -7,7 +7,7 @@ Refereed: https://iopscience.iop.org/article/10.3847/1538-4357/ab3405/meta
 Free: https://arxiv.org/abs/1907.09062
 
 Read the User's Guide:
-
+see  MESA2HYDRO/DOCUMENTATION/MESA2HYRDO_users_guide.pdf
 
 ## Introduction
 From discrete stellar structure data in the style of MESA (http://mesa.sourceforge.net/) density profiles, this package creates initial conditions (IC) files readable by smoothed-particle hydrodynamics (SPH) codes such as Phantom (https://phantomsph.bitbucket.io/).  
