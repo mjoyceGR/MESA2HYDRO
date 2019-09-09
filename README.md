@@ -1,7 +1,8 @@
 # MESA2HYDRO
 
 ## Documentation
-Read the paper:
+Read the paper
+
 Refereed: https://iopscience.iop.org/article/10.3847/1538-4357/ab3405/meta
 Free: https://arxiv.org/abs/1907.09062
 
