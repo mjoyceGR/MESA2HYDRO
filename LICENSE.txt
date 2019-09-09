@@ -10,8 +10,8 @@
 !  (at your option) any later version, supplemented by the
 !  following two conditions under section 7c of GPLv3:
 !
-!  1) The 1D-MESA2HYDRO-3D code paper should be cited in any scientific
-!     publications using the code ( CITATION HERE #notdone )
+!  1) The 1D-MESA2HYDRO-3D instrument paper should be cited in any scientific
+!     publications using the code (Joyce et al. 2019, ApJ Vol. 882, No. 1)
 !
 ! 		
 !  2) Any redistribution of substantial fractions of the code as a
