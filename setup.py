@@ -40,6 +40,8 @@ if len(sys.argv) > 1 and sys.argv[1] == 'install':
     subprocess.call("cython -a {}/lib/pygfunc.pyx".format(PKG_DIR), shell=True)
     subprocess.call("python setup.py build_ext --inplace", shell=True)
 
+
+### only need the things that wrap with python here? AKA not write_data_phantom because it's not pyx
 ext_modules = [Extension(# module name:
                          'pygfunc',
 
@@ -79,7 +81,7 @@ setup(name='MESA2HYDRO',
                          'lib/pygyfunc.pyx',
                          'lib/pygyfunc.h',]},
 
-      version='0.1.213',
+      version='0.1.2131',
       description='Convert 1D stellar structure models to 3D particle distributions using the HEALPix spherical tessellation algorithm',
       long_description='Convert 1D stellar structure models to 3D particle distributions using the HEALPix spherical tessellation algorithm\
       \n\
