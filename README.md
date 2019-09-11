@@ -45,8 +45,44 @@ To upgrade, run
 
 where 0.1.24 is the lastest version number on https://pypi.org/manage/project/MESA2HYDRO/releases/
 
+
+## Running a test case
+To successfully run a basic MESA2HYDRO instance
+
+	./run.py mainsequence_test.cfg
+
+the user must have the following Python and external packages installed on their machine:
+
+ 	argparse
+	cython
+	healpy
+	matplotlib.pyplot
+	numpy
+  	python-tk
+	random
+  	scipy.interpolate
+	scipy.optimize
+	time
+
+These can be installed from the command line via, e.g., 
+
+	sudo apt-get install python-tk
+
+or similarly via, e.g., 
+
+	pip install numpy 
+
+The authors have had better results installing these additional libraries via command line rather than through pip. 
+
+In particular, one must have numerical and other libraries required by healpy/HEALPix (https://healpy.readthedocs.io/en/latest/) installed on their machine. The installation command for healpy is:
+
+	pip install healpy
+
+More information on dealing with healpy can be found at https://healpy.readthedocs.io/en/latest/install.html
+
+
 ## Prerequisites
-For a list of Python and external software dependencies, see that section of the user's guide.
+For a complete list of Python and external software dependencies, see the Prerequisites section of the user's guide.
 
 This project was designed to interface with MESA version 10398, using example inlists and input models (e.g. wd.mod) sourced from data provided within mesa-r10398. See 1D-MESA2HYDRO-3D user's guide.
 
