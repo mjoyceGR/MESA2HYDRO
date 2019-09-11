@@ -79,7 +79,7 @@ setup(name='MESA2HYDRO',
                          'lib/pygfunc.pyx',
                          'lib/pygfunc.h']},
 
-      version='0.1.2141',
+      version='0.1.2142',
       description='Convert 1D stellar structure models to 3D particle distributions using the HEALPix spherical tessellation algorithm',
       long_description='Convert 1D stellar structure models to 3D particle distributions using the HEALPix spherical tessellation algorithm\
       \n\
