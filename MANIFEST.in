@@ -1,3 +1,6 @@
 recursive-include data *
-recursive-include out/NR_files/ *.dat
+recursive-include out/NR_files/*.dat
+recursive-include lib/*.f90
+recursive-include lib/*.h
+recursive-include lib/*.pyx
 

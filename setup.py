@@ -42,31 +42,44 @@ if len(sys.argv) > 1 and sys.argv[1] == 'install':
 
 ext_modules = [Extension(# module name:
                          'pygfunc',
+
                          # source file:
                          ['lib/pygfunc.pyx'],
                          libraries=['gfortran'],
+
                          # other files to link to
                          extra_objects=['lib/write_data_phantom.o', 'lib/pygfunc.o'])]
 
+## must explicitly include all f90, h, and pyx files
 setup(name='MESA2HYDRO',
-      scripts=['work/confirm_density_profile.py',
+      scripts=['setup.py',
+               'work/confirm_density_profile.py',
                'work/confirm_mass_profile.py',
-               #'work/count.py',
-               #'work/make_IC.py',
-               #'work/make_test_ICs.py',
-               #'work/N_mp.py',
-               #'work/run_MESA.py',
                'work/run.py'],
       cmdclass={'build_ext': build_ext},
       include_dirs=[get_include()],
       ext_modules=cythonize(ext_modules),
       packages=['MESA2HYDRO', 'MESA2HYDRO.lib', 'MESA2HYDRO.work'],
-      package_dir={'MESA2HYDRO': '', 'MESA2HYDRO.work': 'work',
+
+      package_dir={'MESA2HYDRO': '',
+                   'MESA2HYDRO.work': 'work',
                    'MESA2HYDRO.lib': 'lib',
-                   'MESA2HYDRO.data': 'data', 'MESA2HYDRO.out': 'out'},
-      package_data={'': ['data/*/*', 'work/N_mp_combinations.dat', 'work/NR_files/*.dat',
-                         'work/recovery_images/*.png', 'out/sample_MESA_output/*.data']},
-      version='0.1.212',
+                   'MESA2HYDRO.data': 'data',
+                   'MESA2HYDRO.out': 'out',
+                   'MESA2HYDRO.DOCUMENTATION':'DOCUMENTATION'},
+
+      package_data={'': ['data/*/*',
+                         'work/*.cfg',
+                         'out/NR_files/*.dat',
+                         'out/sample_MESA_output/*.data',
+
+                         'lib/write_data_phantom.f90',
+                         'lib/pygyfunc.f90',
+                         'lib/pygyfunc.f90',
+                         'lib/pygyfunc.pyx',
+                         'lib/pygyfunc.h',]},
+
+      version='0.1.213',
       description='Convert 1D stellar structure models to 3D particle distributions using the HEALPix spherical tessellation algorithm',
       long_description='Convert 1D stellar structure models to 3D particle distributions using the HEALPix spherical tessellation algorithm\
       \n\
@@ -80,7 +93,7 @@ setup(name='MESA2HYDRO',
       author_email='Meridith.Joyce@anu.edu.au',
       url='https://github.com/mjoyceGR/MESA2HYDRO',
       download_url='https://github.com/mjoyceGR/MESA2HYDRO/archive/0.1.0.tar.gz',
-      keywords=['MESA', 'stellar evolution', 'stellar structure','astronomy', 'hydrodynamical ICs','HEALPix'],
+      keywords=['MESA', 'stellar evolution', 'stellar structure','astronomy', 'stellar modeling','hydrodynamical ICs','HEALPix'],
       classifiers=[]
 )
 
