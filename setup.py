@@ -35,7 +35,7 @@ print("Compile interface: " + shared_obj_comp)
 system(shared_obj_comp)
 
 if len(sys.argv) > 1 and sys.argv[1] == 'install':
-    main(['install', 'numpy', 'h5py', 'scipy', 'healpy', 'matplotlib'])
+    main(['install', 'numpy', 'h5py', 'scipy', 'healpy', 'matplotlib', 'matplotlib.pyplot', 'python-tk'])
     subprocess.call("rm {}/lib/*.mod {}/lib/*.o".format(PKG_DIR, PKG_DIR), shell=True)
     subprocess.call("cython -a {}/lib/pygfunc.pyx".format(PKG_DIR), shell=True)
     subprocess.call("python setup.py build_ext --inplace", shell=True)
