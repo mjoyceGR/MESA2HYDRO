@@ -31,15 +31,24 @@ The length of the file corresponds to the number of shells needed to reconstruct
 ## Installation
 Via pip:
 
-	pip2 install MESA2HYDRO
+	pip install MESA2HYDRO
 
 Alternatively, clone the git repository, unpack, and run the following from the top level directory: 
 
-	python2 setup.py install
+	python setup.py install
 
+In some cases, "pip2" and "python2" should replace "pip" and "python", respectively (i.e. if your default version is Python3--we will be releasing this package for Python3 shortly)
+
+To upgrade, run
+
+	pip install --upgrade MESA2HYDRO==0.1.24
+
+where 0.1.24 is the lastest version number on https://pypi.org/manage/project/MESA2HYDRO/releases/
 
 ## Prerequisites
-This project was interfaced with mesa version 10398 with example inlists and input models (e.g. wd.mod) sourced from data provided within mesa-r10398. See 1D-MESA2HYDRO-3D user's guide.
+For a list of Python and external software dependencies, see that section of the user's guide.
+
+This project was designed to interface with MESA version 10398, using example inlists and input models (e.g. wd.mod) sourced from data provided within mesa-r10398. See 1D-MESA2HYDRO-3D user's guide.
 
 
 ## Operation
@@ -48,3 +57,8 @@ Basic operation proceeds from the "work" subdirectory via
 	python2 run.py <filename>.cfg
 
 See 1D-MESA2HYDRO-3D user's guide for more detailed information.
+
+## Common Installation Issues
+Some failures to install can be rectified by installing python-dev via 
+	
+	sudo apt-get install python-dev
