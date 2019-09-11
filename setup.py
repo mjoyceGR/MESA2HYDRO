@@ -75,11 +75,11 @@ setup(name='MESA2HYDRO',
                          'out/NR_files/*.dat',
                          'out/sample_MESA_output/*.data',
                          'lib/write_data_phantom.f90',
-                         'lib/pygyfunc.f90',
-                         'lib/pygyfunc.pyx',
-                         'lib/pygyfunc.h']},
+                         'lib/pygfunc.f90',
+                         'lib/pygfunc.pyx',
+                         'lib/pygfunc.h']},
 
-      version='0.1.21311',
+      version='0.1.21312',
       description='Convert 1D stellar structure models to 3D particle distributions using the HEALPix spherical tessellation algorithm',
       long_description='Convert 1D stellar structure models to 3D particle distributions using the HEALPix spherical tessellation algorithm\
       \n\
