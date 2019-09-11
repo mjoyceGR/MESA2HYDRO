@@ -33,9 +33,6 @@ Via pip:
 
 	pip install MESA2HYDRO
 
-Alternatively, clone the git repository, unpack, and run the following from the top level directory: 
-
-	python setup.py install
 
 In some cases, "pip2" and "python2" should replace "pip" and "python", respectively (i.e. if your default version is Python3--we will be releasing this package for Python3 shortly)
 
@@ -59,6 +56,36 @@ or
 
 for the most recent version.
 <!-- Because this is a distutils-installed package, it cannot be fully uninstalled by pip. To upgrade via pip, remove the current version and run the -->
+
+
+Alternatively, clone the git repository, unpack it, and run the following from the top level directory: 
+
+	python2 setup.py install
+
+to set up all dependencies manually.
+
+## Setup
+If you have installed the package via pip, pip will place the MESA2HYDRO home directory with other Python packages, most likely somewhere like
+
+	/usr/share/bin/python2.7/
+
+If you've failed to specify pip2 and have later versions of Python installed, it may end up somewhere like
+
+	~/anaconda/lib/python3.5/site-packages/
+
+In any case, you may want to copy or move the entire MESA2HYDRO root directory somewhere more sensible, since you will need to work out of it directly: 
+
+	mv MESA2HYDRO/ /home/your_name/
+
+From there, you should set the $MESA2HYDRO_ROOT environment variable in your .bashrc to point to the root directory:
+
+	export MESA2HYDRO_ROOT=/home/your_name/MESA2HYDRO
+
+Then
+
+	cd MESA2HYDRO/
+
+
 
 
 ## Running a test case
