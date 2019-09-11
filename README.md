@@ -45,6 +45,21 @@ To upgrade, run
 
 where 0.1.24 is the lastest version number on https://pypi.org/manage/project/MESA2HYDRO/releases/
 
+Sometimes the error 
+
+	ERROR: Cannot uninstall 'MESA2HYDRO'. It is a distutils installed project and thus we cannot accurately determine which files belong to it which would lead to only a partial uninstall.
+
+is triggered by an attempt to use pip install --upgrade. As a workaround, remove any current installation of MESA2HYDRO, followed by 
+
+	pip install MESA2HYDRO==0.1.24
+
+or 
+
+	pip install MESA2HYDRO
+
+for the most recent version.
+<!-- Because this is a distutils-installed package, it cannot be fully uninstalled by pip. To upgrade via pip, remove the current version and run the -->
+
 
 ## Running a test case
 To successfully run a basic MESA2HYDRO instance
