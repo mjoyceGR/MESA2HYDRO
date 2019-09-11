@@ -89,11 +89,11 @@ Then
 
 
 ## Running a test case
-To successfully run a basic MESA2HYDRO instance
+To successfully run a basic MESA2HYDRO instance via
 
 	./run.py mainsequence_test.cfg
 
-the user must have the following Python and external packages installed on their machine:
+the user must have, at minimum, the following Python and external packages installed on their machine:
 
  	argparse
 	cython
@@ -106,7 +106,7 @@ the user must have the following Python and external packages installed on their
 	scipy.optimize
 	time
 
-These can be installed from the command line via, e.g., 
+If they were not automatically installed via pip or the setup procedure, these can be installed from the command line via, e.g., 
 
 	sudo apt-get install python-tk
 
