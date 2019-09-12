@@ -33,7 +33,11 @@ Cloning this git repository (or downloading the tarball) is the safest way to co
 
 	git clone https://github.com/mjoyceGR/MESA2HYDRO.git
 
-After cloning/unpacking, run the following from the top level directory: 
+After cloning/unpacking,
+
+	cd MESA2HYDRO/
+
+Run the following from the top level directory: 
 
 	sudo python2 setup.py install
 
@@ -52,9 +56,9 @@ In some cases, "pip2" and "python2" should replace "pip" and "python", respectiv
 
 To upgrade, run
 
-	pip install --upgrade MESA2HYDRO==0.1.24
+	pip install --upgrade MESA2HYDRO==0.1.XXXX
 
-where 0.1.24 is the lastest version number on https://pypi.org/manage/project/MESA2HYDRO/releases/
+where 0.1.XXXX is the lastest version number on https://pypi.org/manage/project/MESA2HYDRO/releases/
 
 Sometimes the error 
 
@@ -62,14 +66,14 @@ Sometimes the error
 
 is triggered by an attempt to use pip install --upgrade. As a workaround, remove any current installation of MESA2HYDRO, followed by 
 
-	pip install MESA2HYDRO==0.1.24
+	pip install MESA2HYDRO==0.1.XXXX
 
 or 
 
 	pip install MESA2HYDRO
 
 for the most recent version.
-<!-- Because this is a distutils-installed package, it cannot be fully uninstalled by pip. To upgrade via pip, remove the current version and run the -->
+
 
 Pip sometimes has issues with healpy and cython, both of which are required. You can install these separately via 
 
