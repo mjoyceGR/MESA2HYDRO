@@ -28,12 +28,20 @@ The radii represent midpoint values rmid = (ru + rl) / 2 , in physical units (cm
 The length of the file corresponds to the number of shells needed to reconstruct the sampled 1D density profile as a 3D particle distribution built of concentric shells. 
 
 
-## Installation
-Cloning this git repository or downloading the tar file is the safest way to get all dependencies. Clone it, unpack it, and run the following from the top level directory: 
+## Installation via Git/tarball--recommended
+Cloning this git repository (or downloading the tarball) is the safest way to collect all software and dependencies: 
 
-	python2 setup.py install
+	git clone https://github.com/mjoyceGR/MESA2HYDRO.git
 
-to set up all dependencies manually.
+After cloning/unpacking, run the following from the top level directory: 
+
+	sudo python2 setup.py install
+
+or equivalently
+
+	make install
+
+## Installation via Pip
 
 MESA2HYDRO is also theoretically available via pip:
 
@@ -63,15 +71,13 @@ or
 for the most recent version.
 <!-- Because this is a distutils-installed package, it cannot be fully uninstalled by pip. To upgrade via pip, remove the current version and run the -->
 
-## Pip Warning
 Pip sometimes has issues with healpy and cython, both of which are required. You can install these separately via 
 
 	sudo apt-get install cython
 
-or equivalent, BEFORE running pip install, or avoid this all together by downloading the package tarball and setting it up manually
+or equivalent, BEFORE running pip install, or avoid this all together by downloading the package tarball and setting it up manually.
 
 
-## Setup
 If you have installed the package via pip, pip will place the MESA2HYDRO home directory with other Python packages, most likely somewhere like
 
 	/usr/share/bin/python2.7/
@@ -95,7 +101,6 @@ From there, you should set the $MESA2HYDRO_ROOT environment variable in your .ba
 Then
 
 	cd MESA2HYDRO/
-
 
 
 
