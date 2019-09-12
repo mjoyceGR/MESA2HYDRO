@@ -14,9 +14,10 @@ try:
     from Cython.Distutils import build_ext
     from Cython.Build import cythonize
 except ImportError:
-    main(['install', 'cython'])
-    from Cython.Distutils import build_ext
-    from Cython.Build import cythonize
+    raise ImportError("This package needs cython to install correctly. Please install it through your system's package manager.")
+#    main(['install', 'cython'])
+#    from Cython.Distutils import build_ext
+#    from Cython.Build import cythonize
 from numpy import get_include
 from os import system
 
@@ -80,7 +81,7 @@ setup(name='MESA2HYDRO',
                          'lib/pygfunc.h',
                          'DOCUMENTATION/*']},
 
-      version='0.1.2145',
+      version='0.1.2146',
       description='Convert 1D stellar structure models to 3D particle distributions using the HEALPix spherical tessellation algorithm',
       long_description='Convert 1D stellar structure models to 3D particle distributions using the HEALPix spherical tessellation algorithm\
       \n\
