@@ -1,0 +1,7 @@
+## fname /home/mjoyce/MESA2HYDRO/data/sample_MESA_output/profile_mainsequence_logE.data  masscut 0.9998648562156569    N 8   mp (Ms) 1e-07   mp (g) 1.988e+26   stepsize 1.0000000e+08
+#N    (ru+rl)/2 (cm)    Mcontained in shell ru-rl     u(rmid)
+8 67983742138.6566 1.52531404009e+29 49131201585245.7
+8 69827492138.6566 0.0 16437554223046.113
+#
+#
+# runtime:  19.8155930042  seconds
