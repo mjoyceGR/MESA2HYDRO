@@ -29,7 +29,13 @@ The length of the file corresponds to the number of shells needed to reconstruct
 
 
 ## Installation
-Via pip:
+Cloning this git repository or downloading the tar file is the safest way to get all dependencies. Clone it, unpack it, and run the following from the top level directory: 
+
+	python2 setup.py install
+
+to set up all dependencies manually.
+
+MESA2HYDRO is also theoretically available via pip:
 
 	pip install MESA2HYDRO
 
@@ -57,12 +63,13 @@ or
 for the most recent version.
 <!-- Because this is a distutils-installed package, it cannot be fully uninstalled by pip. To upgrade via pip, remove the current version and run the -->
 
+## Pip Warning
+Pip sometimes has issues with healpy and cython, both of which are required. You can install these separately via 
 
-Alternatively, clone the git repository, unpack it, and run the following from the top level directory: 
+	sudo apt-get install cython
 
-	python2 setup.py install
+or equivalent, BEFORE running pip install, or avoid this all together by downloading the package tarball and setting it up manually
 
-to set up all dependencies manually.
 
 ## Setup
 If you have installed the package via pip, pip will place the MESA2HYDRO home directory with other Python packages, most likely somewhere like
@@ -73,7 +80,11 @@ If you've failed to specify pip2 and have later versions of Python installed, it
 
 	~/anaconda/lib/python3.5/site-packages/
 
-In any case, you may want to copy or move the entire MESA2HYDRO root directory somewhere more sensible, since you will need to work out of it directly: 
+You can locate the package by typing
+
+	pip show MESA2HYDRO
+
+You may want to copy or move the entire MESA2HYDRO root directory somewhere where it is easier to work out of it directly 
 
 	mv MESA2HYDRO/ /home/your_name/
 
