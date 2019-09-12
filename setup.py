@@ -56,7 +56,7 @@ ext_modules = [Extension(# module name:
 setup(name='MESA2HYDRO',
       scripts=['work/confirm_density_profile.py',
                'work/confirm_mass_profile.py',
-               'work/run.py'],
+               'work/run_conversion.py'],
       cmdclass={'build_ext': build_ext},
       include_dirs=[get_include()],
       ext_modules=cythonize(ext_modules),

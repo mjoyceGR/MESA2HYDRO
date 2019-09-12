@@ -91,7 +91,7 @@ Then
 ## Running a test case
 To successfully run a basic MESA2HYDRO instance via
 
-	./run.py mainsequence_test.cfg
+	./run_conversion.py mainsequence_test.cfg
 
 the user must have, at minimum, the following Python and external packages installed on their machine:
 
@@ -132,7 +132,7 @@ This project was designed to interface with MESA version 10398, using example in
 ## Operation
 Basic operation proceeds from the "work" subdirectory via
 
-	python2 run.py <filename>.cfg
+	python2 run_conversion.py <filename>.cfg
 
 See 1D-MESA2HYDRO-3D user's guide for more detailed information.
 

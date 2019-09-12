@@ -10,7 +10,7 @@
 
 '''
 
-Contains: main subroutines for run.py 
+Contains: main subroutines for run_conversion.py 
 
 '''
 
@@ -315,7 +315,7 @@ def get_IC(MESA_file, masscut, NR_file_name,output_filename,mp,which_dtype='f', 
 
 #############################################
 #
-# plotting routines---experimental; not currently set in run.py
+# plotting routines---experimental; not currently set in run_conversion.py
 #
 #############################################
 def reload_IC( IC_file, format_type, which_dtype='f'):
