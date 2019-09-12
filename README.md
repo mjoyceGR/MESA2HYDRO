@@ -109,11 +109,15 @@ Then
 
 
 ## Running a test case
-To successfully run a basic MESA2HYDRO instance via
+To run a basic MESA2HYDRO instance, move to the work directory via
+
+	cd MESA2HYDRO/work/
+
+and issue the command
 
 	./run_conversion.py mainsequence_test.cfg
 
-the user must have, at minimum, the following Python and external packages installed on their machine:
+Failure may be caused by missing packages. The user must have, at minimum, the following Python and external packages installed on their machine:
 
  	argparse
 	cython
@@ -152,7 +156,11 @@ This project was designed to interface with MESA version 10398, using example in
 ## Operation
 Basic operation proceeds from the "work" subdirectory via
 
-	python2 run_conversion.py <filename>.cfg
+	./run_conversion.py mainsequence_test.cfg
+
+or equivalently
+
+	python2 run_conversion.py mainsequence_test.cfg
 
 See 1D-MESA2HYDRO-3D user's guide for more detailed information.
 
