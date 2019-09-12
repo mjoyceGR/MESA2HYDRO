@@ -4,11 +4,15 @@ import matplotlib.pyplot as plt
 import subprocess
 import sys
 import os
-MESA_PKG_DIR = os.path.abspath(
-    os.path.join(os.path.abspath(os.path.dirname(__file__)), '..'))
-sys.path.insert(0, os.path.join(MESA_PKG_DIR, 'lib'))
-import MESAhandling as MJ
-import converge_funcs as cf
+try:
+    import MESA2HYDRO.lib.MESAhandling as MJ
+    import MESA2HYDRO.lib.converge_funcs as cf
+except ImportError:
+    MESA_PKG_DIR = os.path.abspath(
+        os.path.join(os.path.abspath(os.path.dirname(__file__)), '..'))
+    sys.path.insert(0, os.path.join(MESA_PKG_DIR, 'lib'))
+    import MESAhandling as MJ
+    import converge_funcs as cf
 ###################################################
 M_to_solar=1.988*10.0**33.0 ## g/Msolar
 R_to_solar=6.957*10.0**10.0 ## cm/Rsolar

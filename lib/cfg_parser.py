@@ -29,7 +29,7 @@ try:
     m2g_save_path=os.path.abspath(os.environ.get('MESA2HYDRO_ROOT'))
 except AttributeError:
     print "Error: Use absolute paths in .cfg file or set MESA2HYDRO_ROOT in .bashrc"
-    sys.exit(0)
+    sys.exit(1)
 
 if m2g_save_path is None:
     print("Environmental variable 'MESA2HYDRO_ROOT' isn't set")

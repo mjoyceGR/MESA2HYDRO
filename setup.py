@@ -38,7 +38,7 @@ if len(sys.argv) > 1 and sys.argv[1] == 'install':
     main(['install', 'numpy', 'h5py', 'scipy', 'healpy', 'matplotlib', 'matplotlib.pyplot'])
     subprocess.call("rm {}/lib/*.mod {}/lib/*.o".format(PKG_DIR, PKG_DIR), shell=True)
     subprocess.call("cython -a {}/lib/pygfunc.pyx".format(PKG_DIR), shell=True)
-    subprocess.call("python setup.py build_ext --inplace", shell=True)
+    subprocess.call("python2 setup.py build_ext --inplace", shell=True)
 
 
 ### only need the things that wrap with python here? AKA not write_data_phantom because it's not pyx
@@ -54,20 +54,15 @@ ext_modules = [Extension(# module name:
 
 ## must explicitly include all f90, h, and pyx files
 setup(name='MESA2HYDRO',
-      scripts=['setup.py',
-               'work/confirm_density_profile.py',
+      scripts=['work/confirm_density_profile.py',
                'work/confirm_mass_profile.py',
                'work/run.py'],
       cmdclass={'build_ext': build_ext},
       include_dirs=[get_include()],
       ext_modules=cythonize(ext_modules),
-      packages=['MESA2HYDRO', 
+      packages=['MESA2HYDRO',
                 'MESA2HYDRO.work',
-                'MESA2HYDRO.lib',
-                'MESA2HYDRO.data',
-                'MESA2HYDRO.out',
-                'MESA2HYDRO.DOCUMENTATION'],
-
+                'MESA2HYDRO.lib'],
       package_dir={'MESA2HYDRO': '',
                    'MESA2HYDRO.work': 'work',
                    'MESA2HYDRO.lib': 'lib',

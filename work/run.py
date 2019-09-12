@@ -21,14 +21,21 @@ import matplotlib.pyplot as plt
 import sys
 import os
 import re
-MESA_PKG_DIR = os.path.abspath(
-    os.path.join(os.path.abspath(os.path.dirname(__file__)), '..'))
-sys.path.insert(0, os.path.join(MESA_PKG_DIR, 'lib'))
-import MESAhandling as MJ
-import converge_funcs as cf
-import io_lib as rw
-import mainlib as mn
-from cfg_parser import *
+try:
+    import MESA2HYDRO.lib.MESAhandling as MJ
+    import MESA2HYDRO.lib.converge_funcs as cf
+    import MESA2HYDRO.lib.io_lib as rw
+    import MESA2HYDRO.lib.mainlib as mn
+    from MESA2HYDRO.lib.cfg_parser import *
+except ImportError:
+    MESA_PKG_DIR = os.path.abspath(
+        os.path.join(os.path.abspath(os.path.dirname(__file__)), '..'))
+    sys.path.insert(0, os.path.join(MESA_PKG_DIR, 'lib'))
+    import MESAhandling as MJ
+    import converge_funcs as cf
+    import io_lib as rw
+    import mainlib as mn
+    from cfg_parser import *
 
 import time
 start_time = time.time()
