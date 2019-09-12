@@ -47,7 +47,7 @@ or equivalently
 
 ## Installation via Pip
 
-MESA2HYDRO is also theoretically available via pip:
+MESA2HYDRO is also theoretically available via pip, but this will not be updated as frequently as the git repo:
 
 	pip install MESA2HYDRO
 
