@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 #************************************************************************
 #
@@ -138,29 +138,29 @@ if r_depth != -1.0:
     fit_region_M = MJ.get_quantity(MESA_file,'mass').astype(np.float)*M_to_solar  #mn.MESA_m(MESA_file, 0)
     
     
-    print "len(R), len(M): ", len(fit_region_R), len(fit_region_M)
+    print("len(R), len(M): ", len(fit_region_R), len(fit_region_M))
 
 
     r_bound = r_depth*fit_region_R.max()
 
     assoc_region=np.where( fit_region_R >= r_bound)[0]
-    print "len(assoc_region)", len(assoc_region)
+    print("len(assoc_region)", len(assoc_region))
     mass_assoc = fit_region_M[assoc_region]
 
     masscut = mass_assoc.min()/mass_assoc.max()
-    print "estimated masscut from radial input = ", masscut
+    print("estimated masscut from radial input = ", masscut)
 
 
 else:
     masscut = masscut
-print "masscut being used is: ", masscut
+print("masscut being used is: ", masscut)
 
 
 mp=mp*M_to_solar
 mp_cgs=mp_cgs    
 
 if mp != mp_cgs:
-    print '\nWARNING! Inconsistent values of mp and mp_cgs! Choosing mp'
+    print('\nWARNING! Inconsistent values of mp and mp_cgs! Choosing mp')
 
 
 ##############################################################
@@ -169,7 +169,7 @@ if mp != mp_cgs:
 #
 #############################################################
 if check_MESA_profile:
-    print 'Confirm sensible profile data...'
+    print('Confirm sensible profile data...')
     mn.check_MESA(MESA_file, masscut,uselog=True, save=True)
 
 
@@ -182,14 +182,14 @@ Romberg=False#True
 
 if make_NR_file:
     t1=time.time()
-    print '\n\nGenerating NR file...'
+    print('\n\nGenerating NR file...')
     if os.path.exists(nrfile):
         print("NR file already exists. Cannot overwrite {}.".format(nrfile))
         sys.exit(1)
     outf=open(nrfile,"w")
     mn.make_NR_file(MESA_file,masscut,N,mp, stepsize, TOL, outf, Romberg=Romberg)
     outf.close()
-    print 'NR file generation complete!'
+    print('NR file generation complete!')
     print("--- %s seconds ---" % (t1 - start_time))
 
 
@@ -201,11 +201,11 @@ if make_NR_file:
 #############################################################
 if make_IC_file:
     t2=time.time()
-    print '\n\nGenerating IC file...'
+    print('\n\nGenerating IC file...')
     in_file=nrfile
     out_file=icfile
     if IC_format_type=="phantom_binary":
-        print "setting lognorm..."
+        print("setting lognorm...")
         #sys.exit()
         lognorm= True ## make this a passable parameter
         mn.get_IC(MESA_file, masscut, in_file, out_file, mp,\
@@ -215,7 +215,7 @@ if make_IC_file:
     else:
         mn.get_IC(MESA_file, masscut, in_file, out_file, mp,\
                 format_type=IC_format_type,which_dtype=which_dtype)
-    print 'IC file generation complete!'
+    print('IC file generation complete!')
     print("--- %s seconds ---" % (time.time() - t2))
 
 
@@ -246,7 +246,7 @@ if make_IC_file:
 #     mn.quick_plot(MESA_file,masscut, r_reloaded,rho_reloaded,IC_format_type,png_tag=png_tag)   
 
 
-print "total execution length: "
+print("total execution length: ")
 print("--- %s seconds ---" % (time.time() - start_time))
 
 # end run script

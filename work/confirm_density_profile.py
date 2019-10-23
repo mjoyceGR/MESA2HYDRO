@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 import numpy as np
 import matplotlib.pyplot as plt
 import subprocess
@@ -35,7 +35,7 @@ if sf=='y':
 else:
 	savefig=False
 
-print "masscut: ", masscut
+print("masscut: ", masscut)
 
 if logdata=='y':
 	unlogg_data=False
@@ -67,6 +67,6 @@ try:
 	plt.show()
 	plt.close()
 except IOError:
-	print 'file ../out/sample_MESA_output/profile_'+ftag+'.data not found\n'
-	print 'available files: '
+	print('file ../out/sample_MESA_output/profile_'+ftag+'.data not found\n')
+	print('available files: ')
 	subprocess.call('ls ../out/sample_MESA_output/profile*', shell=True)
