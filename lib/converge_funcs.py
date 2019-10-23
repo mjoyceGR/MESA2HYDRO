@@ -65,7 +65,7 @@ def rho_r(r, MESA_file, masscut, *args, **kwargs):
 	if (r0 <= r <= r1):
 		return float(rrho_r)
 	else:
-		print "converge_funcs WARNING: r not found between r0 and r1....end of MESA density values\n"
+		print("converge_funcs WARNING: r not found between r0 and r1....end of MESA density values\n")
 		return  
 
 
@@ -94,7 +94,7 @@ def m_r(r, MESA_file, *args, **kwargs):
 	if (r0 <= r <= r1):
 		return float(rm_r)
 	else:
-		print "converge_funcs WARNING: could not compute m(r) for point"
+		print("converge_funcs WARNING: could not compute m(r) for point")
 		return 
 
 
@@ -121,7 +121,6 @@ def Mshell_from_RK(rl, rmax, step, MESA_file,masscut, *args,**kwargs):
 	m=0
 	while r<rmax:
 	    r, m= RK1(r,m, density_integral_numeric, step, MESA_file,masscut)#, load_unlogged=use_unlog)
-	    #print "r, m: ", r, m
 	Mshell=m
 	return Mshell
 
@@ -160,7 +159,7 @@ def Newton_Raphson():
 def RK1(r, m, fx, h, MESA_file,masscut, *args, **kwargs):
 	#need to pass the value of rho roughly at r but don't update it, just need it for calculation
 	#use_unlog=bool(kwargs.get('load_unlogged',False))
-	#print "in RK routine"
+	#print("in RK routine")
 
 	h=float(h)
 
@@ -183,7 +182,7 @@ def Romberg_integrate(r, m, fn,\
 	
 	### change these input parameters, should not be passing m or step size; use a, b to represent limits of integral
 	def local_rho(nn):
-			#print "local rho activated"
+			#print("local rho activated")
 		return rho_r(nn, MESA_file, masscut)
 
 	steps=int(steps)
@@ -240,7 +239,7 @@ def get_placement_radii(rmin, rmax, RKstep, TOL, force_N, mp, MESA_file, masscut
 			 	#	  ('%.3f'%(100.0*Mshell_integral/Mshell_target)), "    ", ru_mass_loop, "   ", RKstep
 			
 			except TypeError:
-				print "converge_funcs ERROR: TypeError in cf.get_placement_radii()"
+				print("converge_funcs ERROR: TypeError in cf.get_placement_radii()")
 				break  	 		 
 
 			### adapative step size
@@ -275,10 +274,16 @@ def get_placement_radii(rmin, rmax, RKstep, TOL, force_N, mp, MESA_file, masscut
 
 		RKtemp = RKstep	
 		Mshell_temp=Mshell_integral
-		print ('%.3f'%(100.0*Mshell_temp/Mshell_target)),"agreement  for Mshell =",Mshell_temp, \
+
+		m_percent = '%.3f'%(100.0*Mshell_temp/Mshell_target)
+
+		print( 	m_percent,\
+				"agreement  for Mshell =",Mshell_temp,\
 		       " at ", ru_mass_loop, "    ",\
-		        "%.5f"%(ru_mass_loop/rmax), r"%radius  ...current RKstep=","%1.5e"%RKtemp,\
-		        " from" , "%1.5e"%input_RKstep#, "  from ", "%1.5e"%RKtemp
+		        "%.5f"%(ru_mass_loop/rmax),\
+		        r"%radius  ...current RKstep=",\
+		        "%1.5e"%RKtemp,\
+		        " from" , "%1.5e"%input_RKstep)#, "  from ", "%1.5e"%RKtemp
 
 		## reset
 		RKstep=input_RKstep
@@ -300,7 +305,6 @@ def get_MESA_profile_edge(MESA_file,**kwargs):
 
 	## THIS MIGHT BE DEFINITELY WRONG! 7/30/19
 
-	#print MJ.show_allowed_MESA_keywords(MESA_file)
 	strip=bool(kwargs.get('strip',False))
 	keyword=str(kwargs.get('quantity','zone'))
 	masscut=float(kwargs.get('masscut',0.65))
@@ -311,8 +315,8 @@ def get_MESA_profile_edge(MESA_file,**kwargs):
 	try:
 		quantity=MJ.get_quantity(MESA_file,keyword)
 	except:
-		print "Quantity keyword not found. Allowed keywords are:"
-		print MJ.show_allowed_MESA_keywords(MESA_file)
+		print("Quantity keyword not found. Allowed keywords are:")
+		print(MJ.show_allowed_MESA_keywords(MESA_file))
 		sys.exit()
 
 	masses = MJ.get_quantity(MESA_file,'mass').astype(np.float)
@@ -335,7 +339,7 @@ def outer_mass(Mtot,fit_region):
 	## THIS MIGHT BE DEFINITELY WRONG! 7/30/19
 	mf=fit_region
 	fit_region = [Mtot-p for p in mf]
-	#print "fit_region in outer_mass: ", fit_region
+	#print("fit_region in outer_mass: ", fit_region)
 	fit_region=np.array(fit_region)
 
 	select=np.where( (fit_region>0.0) )[0]
@@ -460,7 +464,6 @@ def to_log(xq):
 
 
 def unlog(xq):
-	#print type(xq)
 	try:
 		unlogged=10.0**xq
 	except TypeError:

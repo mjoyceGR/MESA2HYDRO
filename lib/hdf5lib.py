@@ -101,7 +101,7 @@ def CreateArray(f, where, aname, aval):
 	if (use_tables):
 		f.createArray(where, aname, aval)
 	else:
-		print "NOT IMPLEMENTED!"
+		print("NOT IMPLEMENTED!")
 		sys.exit()
 
 
@@ -109,7 +109,7 @@ def CreateGroup(f, gname):
 	if (use_tables):
 		return f.createGroup(f.root, gname)
 	else:
-		print "NOT IMPLEMENTED!"
+		print("NOT IMPLEMENTED!")
 		sys.exit()
 
 
@@ -117,5 +117,5 @@ def SetAttr(where, aname, aval):
 	if (use_tables):
 		setattr(where._v_attrs, aname, aval)
 	else:
-		print "NOT IMPLEMENTED!"
+		print("NOT IMPLEMENTED!")
 		sys.exit()

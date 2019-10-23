@@ -17,14 +17,14 @@ Contains: unit and other definitions
 
 
 def logo():
-    print "_________________________________________________________________________"
-    print "|                                                                       |"
-    print "|                                                                       |" 
-    print "|                1D <-----> MESA2HYDRO <-----> 3D                       |" 
-    print "|                                                                       |"
-    print "|      Copyright (C) 2019  M. Joyce, L. Lairmore, D. J. Price           |" 
-    print "|                                                                       |"
-    print "|_______________________________________________________________________|"
+    print("_________________________________________________________________________")
+    print( "|                                                                       |")
+    print( "|                                                                       |") 
+    print( "|                1D <-----> MESA2HYDRO <-----> 3D                       |")
+    print( "|                                                                       |")
+    print( "|      Copyright (C) 2019  M. Joyce, L. Lairmore, D. J. Price           |")
+    print( "|                                                                       |")
+    print( "|_______________________________________________________________________|")
     return 
 
 Msun=1.988e33 	# g
