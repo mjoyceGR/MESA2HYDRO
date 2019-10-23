@@ -303,8 +303,6 @@ def get_placement_radii(rmin, rmax, RKstep, TOL, force_N, mp, MESA_file, masscut
 ###########################################################################
 def get_MESA_profile_edge(MESA_file,**kwargs):
 
-	## THIS MIGHT BE DEFINITELY WRONG! 7/30/19
-
 	strip=bool(kwargs.get('strip',False))
 	keyword=str(kwargs.get('quantity','zone'))
 	masscut=float(kwargs.get('masscut',0.65))
@@ -336,7 +334,6 @@ def get_MESA_profile_edge(MESA_file,**kwargs):
 
 
 def outer_mass(Mtot,fit_region):
-	## THIS MIGHT BE DEFINITELY WRONG! 7/30/19
 	mf=fit_region
 	fit_region = [Mtot-p for p in mf]
 	#print("fit_region in outer_mass: ", fit_region)
@@ -475,7 +472,8 @@ def unlog(xq):
 
 
 def random_theta():
-    theta=rand.random()*2.0*np.pi #.random gives random float between 0 and 1
+	#.random gives random float between 0 and 1
+    theta=rand.random()*2.0*np.pi 
     return theta
 
 
@@ -504,7 +502,6 @@ def volume(r):
 #
 ###########################################################################
 def one_over_r(xdata,A,B,C,D):
-	#print "xdata: ", xdata
 	return A*( 1.0/( (D*xdata)-B) ) + C
 
 def get_curve(r_array,rho_array,guess_a,guess_b,guess_c,guess_d,functional_form):
@@ -513,7 +510,7 @@ def get_curve(r_array,rho_array,guess_a,guess_b,guess_c,guess_d,functional_form)
 	params, cov = curve_fit(functional_form, r_array, rho_array, p0=p)
 	a, b, c,d = params
 
-	return a,b,c,d#,d#,y 
+	return a,b,c,d
 
 
 def poly_curve(xdata,ydata,degree):
