@@ -188,7 +188,7 @@ def get_IC(MESA_file, masscut, NR_file_name,output_filename,mp,which_dtype='f', 
 
         radius=float(rmid[i])
         if use_normalized:
-            print "WARNING! unit changed from [radius (cm)] to [radius/Rsolar (cm)]"
+            print("WARNING! unit changed from [radius (cm)] to [radius/Rsolar (cm)]")
             radius = radius/R_to_solar
         else:
             radius=radius
@@ -244,13 +244,13 @@ def get_IC(MESA_file, masscut, NR_file_name,output_filename,mp,which_dtype='f', 
     #
     ############################################################
     if phantom_rescale:
-        print "IC WARNING: Renormalization of [mp] to [(Mstar - Mcore)/Np]\n"
+        print("IC WARNING: Renormalization of [mp] to [(Mstar - Mcore)/Np]\n")
         mp = (Mstar-central_point_mass)/len(super_x) 
     else:
-        print "IC WARNING: Renormalization of mp is OFF\n"
+        print("IC WARNING: Renormalization of mp is OFF\n")
 
     if use_normalized:
-        print "IC WARNING: unit changed from [mass (g)] to [mass/Msolar (g)]\n"
+        print("IC WARNING: unit changed from [mass (g)] to [mass/Msolar (g)]\n")
         mp = mp/M_to_solar
         central_point_mass= central_point_mass/M_to_solar
     else:
@@ -276,7 +276,7 @@ def get_IC(MESA_file, masscut, NR_file_name,output_filename,mp,which_dtype='f', 
 
     elif filetype=='phantom_binary':
         if lognorm:
-            print "Phantom IC WARNING: log normalization rho --> log10(rho) for phantom_binary format IC is ON!\n"
+            print("Phantom IC WARNING: log normalization rho --> log10(rho) for phantom_binary format IC is ON!\n")
             logged_super_rho = np.log10(np.array(super_rho))
 
             var = rw.make_IC_Phantom(str(output_filename),\
@@ -308,7 +308,7 @@ def get_IC(MESA_file, masscut, NR_file_name,output_filename,mp,which_dtype='f', 
         which_dtype=which_dtype)
 
 
-    print var, type(var)
+    print(var, type(var))
     return
 
 
@@ -321,7 +321,7 @@ def get_IC(MESA_file, masscut, NR_file_name,output_filename,mp,which_dtype='f', 
 def reload_IC( IC_file, format_type, which_dtype='f'):
     filetype=str(format_type)
 
-    print "\n\n\n<----testing mn.reload_IC()---->"
+    print("\n\n\n<----testing mn.reload_IC()---->")
 
     if filetype=='hdf5':
         hdf5_file=IC_file+'.hdf5'
@@ -379,8 +379,8 @@ def bins_from_NR(NR_file_name, r_array, mp):
         try:
             region=np.where( (r1<=r_array) &(r2>r_array))  #size of this should be ~12N^2
         except RuntimeWarning:
-            print "Data types in generated vs recovered IC files do not match"
-            print "Update 'which_dtype' value in config file"
+            print("Data types in generated vs recovered IC files do not match")
+            print("Update 'which_dtype' value in config file")
             sys.exit()
 
         if len(r_array[region])==0:

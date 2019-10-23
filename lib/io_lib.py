@@ -34,7 +34,7 @@ import hdf5lib as hdf5lib
 def make_IC_hdf5(out_fname, mp, central_point_mass,\
          x, y, z,E, **kwargs):
 
-    print "\n\n\nusing modified hdf5 writer 5/3/18\n"
+    print("\n\n\nusing modified hdf5 writer 5/3/18\n")
 
     file = h5py.File(out_fname,'w') 
     Ngas = len(x)
@@ -75,8 +75,10 @@ def make_IC_hdf5(out_fname, mp, central_point_mass,\
 
 
     hsml=0.*x + (-1)
-    print "5/21/19"
-    print "hsml--smoothing length (loc 1): ", hsml
+
+    ## for debugging
+    #print("5/21/19")
+    #print("hsml--smoothing length (loc 1): ", hsml)
     ###########################################################################
 
 
@@ -95,8 +97,9 @@ def make_IC_hdf5(out_fname, mp, central_point_mass,\
     vel[:,1]=0.*x
     vel[:,2]=0.*x
 
-    print "masses being used in hdf5: ", masses
-    print 'positions being used in hdf5: ', pos
+    ## for debugging
+    #print("masses being used in hdf5: ", masses)
+    #print('positions being used in hdf5: ', pos)
 
 
     particles.create_dataset("ParticleIDs",data=IDs)
@@ -122,7 +125,10 @@ def make_IC_binary(fname, mp, central_point_mass,\
 
     compute_direct=kwargs.get("compute_direct", 0)
     #central_mass=float(kwargs.get('central_mass', 10e6)) #<-----WARNING!! not properly handled!!!
-    print "mp in make_IC_binary is", mp
+    
+    ## for debugging
+    print("DEBUGGING: mp in make_IC_binary is", mp)
+    
     import pyIC as pygadgetic
 
     gas_particles=len(x)-1#+1  ## mjoyce 11/2/2018  for central mass
@@ -153,7 +159,9 @@ def make_IC_binary(fname, mp, central_point_mass,\
     # GADGET "knows" that the last index'd particle is meant to be the Type 1 particle
     #
     ############################
-    print "value of central_point_mass: ", central_point_mass
+    
+    ## for debugging
+    print("DEBUGGING: value of central_point_mass: ", central_point_mass)
     my_body.mass[-1]=central_point_mass 
 
     h=1.2*(mp/local_MESA_rho)**(1.0/3.0) ## add a *2 to gadget write
@@ -169,7 +177,7 @@ def make_IC_binary(fname, mp, central_point_mass,\
     ## give hydro some energy per unit mass from 
     ## an ideal gas equation of state gamma=5/3 (and then hydro code has to use that EOS too)
     if compute_direct:
-        print "WARNING! computing u based on ideal gas EOS--NOT SUITABLE FOR e.g. WHITE DWARF"
+        print("WARNING! computing u based on ideal gas EOS--NOT SUITABLE FOR e.g. WHITE DWARF")
         gamma_eos    = 5.0/3.0     
         internal_E   = local_MESA_P/((gamma_eos-1.0)*local_MESA_rho)
         my_body.u[:] = internal_E[0:gas_particles]
@@ -196,13 +204,13 @@ def make_IC_Phantom(fname,\
 
     lognorm=kwargs.get("lognorm", True)
 
-    #print "WARNING! forcing bad HSML values for zero denstiy entries"
+    #print("WARNING! forcing bad HSML values for zero denstiy entries")
     ngas = len(x) -1
     mgas= np.zeros(ngas)+ np.float(mp)
 
     #ms_setup_00000.tmp    # print "loc 3, local_MESA_rho", local_MESA_rho
-    # print "loc 3, type(mgas) ", type(mgas)
-    # print "loc 3 mgas", mgas
+    # print("loc 3, type(mgas) ", type(mgas))
+    # print("loc 3 mgas", mgas)
     #sys.exit()
 
 #hsoft_sink = 0.5*np.sqrt(x.max()**2.0 + y.max()**2.0 + z.max()**2.0) ##<---- this also changed and might have helped?
@@ -219,7 +227,7 @@ def make_IC_Phantom(fname,\
 
     ## Macquarie:
     hsoft_sink = 0.5*np.sqrt(xh**2.0 + yh**2.0 + zh**2.0)
-    print "hsoft_sink = ", hsoft_sink/np.sqrt(x.max()**2.0 + y.max()**2.0 + z.max()**2.0)
+    print("DEBUGGING: hsoft_sink = ", hsoft_sink/np.sqrt(x.max()**2.0 + y.max()**2.0 + z.max()**2.0))
     #sys.exit()
 
 
@@ -236,16 +244,15 @@ def make_IC_Phantom(fname,\
     u = local_MESA_E
 
     central_point_mass=float(central_point_mass)#.astype(np.float64)
-    print "type(central_point_mass)", type(central_point_mass)
+    print("DEBUGGING: type(central_point_mass)", type(central_point_mass))
 
     from pygfunc import to_cdef        
     to_cdef(ngas, mgas, x, y, z, hsml, u, central_point_mass, hsoft_sink)    
     #to_cdef(ngas, central_point_mass)
 
-    ## pass fname somehow too?
 
-
-    print "loc 8, phantom file generated"
+    ## for Debugging
+    #print("loc 8, phantom file generated")
     return fname
 
 
@@ -262,7 +269,7 @@ def make_IC_text(fname,\
                 which_dtype='f',**kwargs):
     
     E = local_MESA_E
-    #print "central mass: ", central_point_mass, "  mp: ", mp
+    print("DEBUGGING: central mass: ", central_point_mass, "  mp: ", mp)
 
     format_str="%.12f"
     outf=open(fname, "w")

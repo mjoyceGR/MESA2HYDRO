@@ -6,7 +6,7 @@ import struct
 # from modules.write import write_header, write_body
 
 
-print "\n\nWARNING: using pyIC for binary readwrite\n\n"
+print("\n\nWARNING: using pyIC for binary readwrite\n\n")
 
 format_number=1 ##want 2, designed for 1
 
@@ -94,7 +94,7 @@ def dump_ic(header, body, destination_file="ic.dat", format_output=format_number
     ic_file=open(destination_file,'w')
     write_header(header,ic_file,format_output)
     write_body(body,ic_file,format_output, which_dtype=which_dtype)
-    print "=== SUMMARY ==="
+    print("=== SUMMARY ===")
     print_summary(header,body)
     ic_file.close()        
     return None
@@ -161,8 +161,7 @@ def write_header(header, ic_file, format_output=format_number): ## 1
 
 
 def write_body(body, ic_file, format_output, which_dtype='f'):
-    print "Writing body (little endian)"
-    #print 'which_dtype default is f, but I tried to pass d: ', which_dtype, '\n\n'
+    print("Writing body (little endian)")
 
     def write_block(block, nbytes, ic_file):
         ic_file.write(struct.pack('<I',nbytes)) #dimensions*number of particles
@@ -178,13 +177,16 @@ def write_body(body, ic_file, format_output, which_dtype='f'):
     else:
         ndim=8
 
-    print "\nndim = ", ndim, "\n"
+    ## for debugging
+    #print("\nndim = ", ndim, "\n")
 
     write_block(body.pos.astype(which_dtype), 3*ndim*total_number_of_particles, ic_file)
     write_block(body.vel.astype(which_dtype), 3*ndim*total_number_of_particles, ic_file)
 
     write_block(body.id.astype('I'), ndim*total_number_of_particles, ic_file)
-    print "\n\nvalues in body.mass: ", body.mass.astype(which_dtype)
+    
+    ## for debugging
+    #print("\n\nvalues in body.mass: ", body.mass.astype(which_dtype))
 
     write_block(body.mass.astype(which_dtype), ndim*total_number_of_particles, ic_file)
     write_block(body.u.astype(which_dtype), ndim*gas_particles, ic_file)
@@ -196,14 +198,11 @@ def write_body(body, ic_file, format_output, which_dtype='f'):
     write_block(body.rho.astype(which_dtype), ndim*gas_particles, ic_file )
     write_block(body.hsml.astype(which_dtype),ndim*gas_particles, ic_file)
  
-    print "(loc 9)", "sanity check"
-
-    #print "\n\nvalues in body.hsml: ", body.hsml.astype(which_dtype)    
+    ## for debugging
+    #print("\n\nvalues in body.hsml: ", body.hsml.astype(which_dtype))    
     #write_block(body.u.astype(which_dtype),ndim*total_number_of_particles, ic_file )
     
     return None
-
-
 
 
 
@@ -223,7 +222,7 @@ def check_header(header):
     """Run a series of tests to check the header
 
     """
-    print "Checking header..."
+    print("Checking header...")
 
     ##check if there are some particles
     if (np.sum(header.NumPart_ThisFile) == 0) or (np.sum(header.NumPart_Total) == 0):
