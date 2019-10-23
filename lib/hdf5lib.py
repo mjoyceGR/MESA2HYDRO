@@ -38,20 +38,20 @@ import hdf5lib_param
 import h5py
 
 try:
-	hdf5libname = hdf5lib_param.libname
-        if (hdf5libname=="tables"):
-                import tables
-                use_tables=True
-        if (hdf5libname=="h5py"):
-                import h5py
-                use_tables=False
+    hdf5libname = hdf5lib_param.libname
+    if (hdf5libname=="tables"):
+            import tables
+            use_tables=True
+    if (hdf5libname=="h5py"):
+            import h5py
+            use_tables=False
 except:
-        try:
-                import tables
-                use_tables=True
-        except ImportError:
-                import h5py
-                use_tables=False
+    try:
+            import tables
+            use_tables=True
+    except ImportError:
+            import h5py
+            use_tables=False
 #me
 use_tables=False
 
