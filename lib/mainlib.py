@@ -113,7 +113,6 @@ def check_MESA(MESA_file, masscut,uselog=True,save=True):
         plt.savefig('latest_loaded_MESA_profile.png')
     plt.show()
     plt.close()
-    return 
 
 def get_sink_mass(MESA_file, masscut):
     sink_mass=central_mass(MESA_file, masscut)[0]
@@ -135,21 +134,20 @@ def make_NR_file(MESA_file,masscut,N,mp, RKstep, TOL, NR_file, *args, **kwargs):
     rmax=fit_region_R.max()
 
     outf=NR_file
-    print >> outf, '## fname',  MESA_file ,\
-                   ' masscut',  masscut,\
-                   '   N',      N,\
-                   '  mp (Ms)', mp/M_to_solar,\
-                   '  mp (g)',  mp,\
-                   '  stepsize',  ('%1.7e'% RKstep)
+    outf.write('## fname',  MESA_file ,\
+               ' masscut',  masscut,\
+               '   N',      N,\
+               '  mp (Ms)', mp/M_to_solar,\
+               '  mp (g)',  mp,\
+               '  stepsize',  ('%1.7e'% RKstep), "\n")
     
-    print >> outf, '#N    (ru+rl)/2 (cm)    Mcontained in shell ru-rl     u(rmid)'
+    outf.write('#N    (ru+rl)/2 (cm)    Mcontained in shell ru-rl     u(rmid)\n')
 
 
     cf.get_placement_radii(rmin, rmax, RKstep, TOL,  N, mp, MESA_file,masscut, outf)
 
-    print 'runtime: ', "%.1f"%(time.time()-start_time), "seconds"
-    print >> outf, '#\n#\n# runtime: ', time.time()-start_time, " seconds"
-    return
+    print('runtime: ', "%.1f"%(time.time()-start_time), "seconds")
+    outf.write('#\n#\n# runtime: ', time.time()-start_time, " seconds\n")
 
 
 ##########################################################
