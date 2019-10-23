@@ -29,7 +29,7 @@ try:
     m2g_save_path=os.path.abspath(os.environ.get('MESA2HYDRO_ROOT'))
 except AttributeError:
     print("Example .cfg files can be found at {}/data/config_file_examples".format(MESA_PKG_DIR))
-    print "Error: Use absolute paths in .cfg file or set MESA2HYDRO_ROOT in .bashrc"
+    print("Error: Use absolute paths in .cfg file or set MESA2HYDRO_ROOT in .bashrc")
     sys.exit(1)
 
 if m2g_save_path is None:
