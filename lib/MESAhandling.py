@@ -92,7 +92,7 @@ def get_quantity(readfile,keyname):
     quantity=np.array(column_dict.get(keyname)) 
     try:
         if (quantity==None):
-            print "Error: MESA keyword '"+keyname+"' not found!"
+            print("Error: MESA keyword '"+keyname+"' not found!")
             sys.exit()
     except ValueError:
         pass 
@@ -111,7 +111,7 @@ def show_allowed_MESA_keywords(readfile):
     fstr=""
     for i in get_MESA_output_fields(readfile).keys():
         fstr=fstr+str(i) +'\n'
-    print fstr
+    print(fstr)
     return fstr
 
 
@@ -177,53 +177,54 @@ def multi_plotter(ax,xmaj, xmin, ymaj, ymin,**kwargs):
 #
 ########################################################
 def generate_basic_inlist(mass, age, metallicity, m2h_path, mesa_dir, inlist_path,output_model_name):
-    outf=open(inlist_path, "w")
+    lines = []
 
-    print >> outf, "&star_job"
-    print >> outf, ""
-    print >> outf, "  mesa_dir = '"+ str(mesa_dir) +"'"
-    print >> outf, "  history_columns_file='"+m2h_path+"/data/history_columns_testsuite.list'"
-    print >> outf, "  profile_columns_file='"+m2h_path+"/data/profile_columns_testsuite.list'"
-    print >> outf, ""
-    print >> outf, "  load_saved_model = .false."
-    print >> outf, "  !create_pre_main_sequence_model = .false. !!need this to be able to specify y?"
-    print >> outf, ""
-    print >> outf, "  save_model_when_terminate = .false."
-    print >> outf, ""
-    print >> outf, "  write_profile_when_terminate = .true."
-    print >> outf, "  filename_for_profile_when_terminate = 'profile_"+str(output_model_name)+".data'"
-    print >> outf, ""
-    print >> outf, "  pgstar_flag = .false."
-    print >> outf, "  save_pgstar_files_when_terminate = .false."
-    print >> outf, ""
-    print >> outf, " / !end of star_job namelist"
-    print >> outf, ""
-    print >> outf, "&controls"
-    print >> outf, ""
-    print >> outf, "  star_history_name = 'history_"+str(output_model_name)+".data'"
-    print >> outf, "" 
-    print >> outf, "  !max_number_backups = 0"
-    print >> outf, "  max_number_retries = 5"
-    print >> outf, "  !max_model_number = 500"
-    print >> outf, ""
-    print >> outf, "  initial_mass ="+str(mass)+"d0"
-    print >> outf, "  !initial_y = 0.27d0 !solar"
-    print >> outf, "  initial_z = "+str(metallicity)+"d0 !solar"
-    print >> outf, ""
-    print >> outf, "  terminal_show_age_in_years = .true."
-    print >> outf, "  max_age = "+str(age)+"d9 ! age of Sun in Gyr"
-    print >> outf, ""
-    print >> outf, ""
-    print >> outf, "  !photo_interval = 50"
-    print >> outf, "  !profile_interval = 50"
-    print >> outf, "  history_interval = 1"
-    print >> outf, "  !terminal_interval = 100"
-    print >> outf, "  !write_header_frequency = 100"
-    print >> outf, ""
-    print >> outf, "/ ! end of controls namelist"
-    print >> outf, ""
-    outf.close()
-    return 
+    lines.append("&star_job")
+    lines.append("")
+    lines.append("  mesa_dir = '"+ str(mesa_dir) +"'")
+    lines.append("  history_columns_file='"+m2h_path+"/data/history_columns_testsuite.list'")
+    lines.append("  profile_columns_file='"+m2h_path+"/data/profile_columns_testsuite.list'")
+    lines.append("")
+    lines.append("  load_saved_model = .false.")
+    lines.append("  !create_pre_main_sequence_model = .false. !!need this to be able to specify y?")
+    lines.append("")
+    lines.append("  save_model_when_terminate = .false.")
+    lines.append("")
+    lines.append("  write_profile_when_terminate = .true.")
+    lines.append("  filename_for_profile_when_terminate = 'profile_"+str(output_model_name)+".data'")
+    lines.append("")
+    lines.append("  pgstar_flag = .false.")
+    lines.append("  save_pgstar_files_when_terminate = .false.")
+    lines.append("")
+    lines.append(" / !end of star_job namelist")
+    lines.append("")
+    lines.append("&controls")
+    lines.append("")
+    lines.append("  star_history_name = 'history_"+str(output_model_name)+".data'")
+    lines.append("" )
+    lines.append("  !max_number_backups = 0")
+    lines.append("  max_number_retries = 5")
+    lines.append("  !max_model_number = 500")
+    lines.append("")
+    lines.append("  initial_mass ="+str(mass)+"d0")
+    lines.append("  !initial_y = 0.27d0 !solar")
+    lines.append("  initial_z = "+str(metallicity)+"d0 !solar")
+    lines.append("")
+    lines.append("  terminal_show_age_in_years = .true.")
+    lines.append("  max_age = "+str(age)+"d9 ! age of Sun in Gyr")
+    lines.append("")
+    lines.append("")
+    lines.append("  !photo_interval = 50")
+    lines.append("  !profile_interval = 50")
+    lines.append("  history_interval = 1")
+    lines.append("  !terminal_interval = 100")
+    lines.append("  !write_header_frequency = 100")
+    lines.append("")
+    lines.append("/ ! end of controls namelist")
+    lines.append("")
+
+    with open(inlinst_path, "w") as outf:
+        outf.write("\n".join(lines))
 
 
 def update_MESA_inlist_value(MESA_inlist, field, value):
@@ -237,10 +238,8 @@ def update_MESA_inlist_value(MESA_inlist, field, value):
     contents = f.read()
     newcontents=re.sub(oldstr, newstr, contents) 
     f.close()
-    outf=open(MESA_inlist,"w")
-    print >>outf, newcontents
-    outf.close()
-    return 
+    with open(MESA_inlist,"w") as outf:
+        outf.write(newcontents)
 
 def grab_fields(MESA_inlist):
     inf=open(MESA_inlist,'r')
