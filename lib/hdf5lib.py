@@ -34,7 +34,6 @@
 # Mark Vogelsberger (mvogelsb@cfa.harvard.edu)
 import sys
 import hdf5lib_param
-# me
 import h5py
 
 try:

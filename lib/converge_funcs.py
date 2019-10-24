@@ -252,7 +252,7 @@ def get_placement_radii(rmin, rmax, RKstep, TOL, force_N, mp, MESA_file, masscut
 
 			elif (Mshell_integral/Mshell_target) <= lower_convergence_limit:
 				# experimental
-				#print "WARNING! no RK doubling"
+				#print("WARNING! no RK doubling")
 				RKstep = RKstep + RKstep   #my version 
 				
 				ru_mass_loop = ru_mass_loop + RKstep
