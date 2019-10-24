@@ -73,7 +73,7 @@ class Body:
         self.rho = np.zeros(total_number_of_particles-1)
         self.hsml =(np.zeros(total_number_of_particles-1)).astype(int)
         #else:
-        #    raise ValueError, "There are no particles !"
+        #    raise ValueError("There are no particles !")
 
         # ##initialize only if enable in makefile to save memory. Maybe there is a smarter way to do that.
         # But the idea is that if you need for example acce, you need all the blocks before. Need to be implemented
@@ -107,7 +107,7 @@ def write_header(header, ic_file, format_output=format_number): ## 1
     Please note that NumPart_Total_HW, nor Flag_Entropy_ICs will be written to the header. Need to be implemented
     """
 
-    print "Writing header (little endian)"
+    print("Writing header (little endian)")
     #* Note that we use struct.pack to form a block, whereas we have to use tostring() on a non-block *#
     #write header into file
     ic_file.write(struct.pack('<I',256))                             #dummy
@@ -153,7 +153,7 @@ def write_header(header, ic_file, format_output=format_number): ## 1
         ic_file.write(struct.pack('<x'))
     ic_file.write(struct.pack('<I',256))
     if ic_file.tell()-8 != 256:
-        raise IOError, "header has wrong format"
+        raise IOError("header has wrong format")
     return None
 
 
@@ -213,7 +213,7 @@ def write_body(body, ic_file, format_output, which_dtype='f'):
 ##############################################
 def check_dimension(x,dim):
     if np.shape(x) != dim:
-        raise Exception, "Unexpected dimensions"
+        raise Exception("Unexpected dimensions")
     return None
 
 
@@ -226,15 +226,15 @@ def check_header(header):
 
     ##check if there are some particles
     if (np.sum(header.NumPart_ThisFile) == 0) or (np.sum(header.NumPart_Total) == 0):
-        raise ValueError,"No particles in header !"
+        raise ValueError("No particles in header !")
 
     ##check if mass are positive
     if np.any(header.MassTable < 0):
-        raise ValueError, "MassTable contains negative values"
+        raise ValueError("MassTable contains negative values")
 
     ##check if NumFilesPerSnapshot is positive
     if header.NumFilesPerSnapshot <= 0:
-        raise ValueError, "NumFilesPerSnapshot is less or equal 0"
+        raise ValueError("NumFilesPerSnapshot is less or equal 0")
 
     ##check if number of particles have good dimensions
     check_dimension(header.NumPart_ThisFile, (6,))
@@ -254,5 +254,4 @@ def print_summary(header,body):
     #pprint (vars(header))
 
     ##print body summary
-    pprint (vars(body))
-    return None
+    pprint(vars(body))

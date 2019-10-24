@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 import os
 try:
     from pip._internal import main
@@ -15,9 +15,6 @@ try:
     from Cython.Build import cythonize
 except ImportError:
     raise ImportError("This package needs cython to install correctly. Please install it through your system's package manager.")
-#    main(['install', 'cython'])
-#    from Cython.Distutils import build_ext
-#    from Cython.Build import cythonize
 from numpy import get_include
 from os import system
 
@@ -36,7 +33,7 @@ print("Compile interface: " + shared_obj_comp)
 system(shared_obj_comp)
 
 if len(sys.argv) > 1 and sys.argv[1] == 'install':
-    main(['install', 'numpy', 'h5py', 'scipy', 'healpy', 'matplotlib', 'matplotlib.pyplot'])
+    main(['install', 'numpy', 'h5py', 'scipy', 'healpy', 'matplotlib'])
     subprocess.call("rm {}/lib/*.mod {}/lib/*.o".format(PKG_DIR, PKG_DIR), shell=True)
     subprocess.call("cython -a {}/lib/pygfunc.pyx".format(PKG_DIR), shell=True)
     subprocess.call("python2 setup.py build_ext --inplace", shell=True)
@@ -61,7 +58,7 @@ setup(name='MESA2HYDRO',
                'uninstall_MESA2HYDRO.py'],
       cmdclass={'build_ext': build_ext},
       include_dirs=[get_include()],
-      ext_modules=cythonize(ext_modules),
+      ext_modules=cythonize(ext_modules, compiler_directives={'language_level': "3"}),
       packages=['MESA2HYDRO',
                 'MESA2HYDRO.work',
                 'MESA2HYDRO.lib'],
