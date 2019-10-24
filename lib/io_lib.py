@@ -280,12 +280,12 @@ def make_IC_text(fname,\
           +' '+(format_str%E[i]))\
           for i in range(len(x)-1)]
 
-    print >> outf, "\n".join(lines)
-    print >> outf, (format_str%central_point_mass)\
+    outf.write("\n".join(lines))
+    outf.write((format_str%central_point_mass)\
           +' '+(format_str%0)\
           +' '+(format_str%0)\
           +' '+(format_str%0)\
-          +' '+(format_str%0)
+          +' '+(format_str%0))
 
     outf.close()
     return fname

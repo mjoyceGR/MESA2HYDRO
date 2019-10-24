@@ -235,8 +235,8 @@ def get_placement_radii(rmin, rmax, RKstep, TOL, force_N, mp, MESA_file, masscut
 			try:		
 				Mshell_integral = Mshell_from_RK(rl, ru_mass_loop, RKstep, MESA_file, masscut)
 					#Mshell_integral= Mshell_from_quad(rl, ru_mass_loop, MESA_file, masscut)
-				#print "Mshell_integral, ru_mass_loop, stepsize:             ",\
-			 	#	  ('%.3f'%(100.0*Mshell_integral/Mshell_target)), "    ", ru_mass_loop, "   ", RKstep
+				#print("Mshell_integral, ru_mass_loop, stepsize:             ",\
+			 	#	  ('%.3f'%(100.0*Mshell_integral/Mshell_target)), "    ", ru_mass_loop, "   ", RKstep)
 			
 			except TypeError:
 				print("converge_funcs ERROR: TypeError in cf.get_placement_radii()")
@@ -245,14 +245,14 @@ def get_placement_radii(rmin, rmax, RKstep, TOL, force_N, mp, MESA_file, masscut
 			### adapative step size
 			if (Mshell_integral/Mshell_target) >= upper_convergence_limit:
 				RKstep=RKstep-0.5*RKstep
-				#print "too high, new step=", RKstep
+				#print("too high, new step=", RKstep)
 				ru_mass_loop = ru_mass_loop - RKstep
 				Mshell_integral =0.0
 			
 
 			elif (Mshell_integral/Mshell_target) <= lower_convergence_limit:
 				# experimental
-				#print "WARNING! no RK doubling"
+				#print("WARNING! no RK doubling")
 				RKstep = RKstep + RKstep   #my version 
 				
 				ru_mass_loop = ru_mass_loop + RKstep
@@ -270,7 +270,7 @@ def get_placement_radii(rmin, rmax, RKstep, TOL, force_N, mp, MESA_file, masscut
 		r_print=(ru_mass_loop + rl)/2.0
 		r_nearest,rdex=find_nearest(fit_region_R,r_print)
 		u_local=fit_region_E[rdex]
-		print >> outf, force_N, r_print, Mshell_integral, u_local
+		outf.write("{} {} {} {}".format(force_N, r_print, Mshell_integral, u_local))
 
 		RKtemp = RKstep	
 		Mshell_temp=Mshell_integral
@@ -469,7 +469,7 @@ def unlog(xq):
 	except TypeError:
 		unlogged=10.0**float(xq)
 	except:
-		print "error in unlog (MESA2HYDRO/lib/converge_funcs.py"
+		print("error in unlog (MESA2HYDRO/lib/converge_funcs.py")
 		sys.exit()
 	return unlogged 
 
@@ -530,7 +530,7 @@ def poly_curve(xdata,ydata,degree):
 		y=p[0]*(xdata**d) + p[1]*(xdata**(d-1))+ p[2]*(xdata**(d-2))\
 		+ p[3]*(xdata**(d-3))+ p[4]*(xdata**(d-4)) +  p[d]
 	else:
-		print 'fits with degree > 5 not supported'
+		print('fits with degree > 5 not supported')
 		sys.exit()
 	return y
 
