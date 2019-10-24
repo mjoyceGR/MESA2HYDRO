@@ -79,7 +79,7 @@ def get_columns(filename,keyname_list):
     phys_dict=get_MESA_output_fields(filename)
     column_dict={}
     for i in range(len(keyname_list)):
-        keyname=str(keyname_list[i])
+        keyname=str(list(keyname_list)[i])
         column_dict[ keyname ]=(get_column(filename, keyname)[0])
     return column_dict
 
