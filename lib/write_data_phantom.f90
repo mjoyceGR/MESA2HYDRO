@@ -25,14 +25,24 @@
 ! a binary dump file suitable for input to the PHANTOM code
 !-----------------------------------------------------------------
 module write_data_phantom
+
+ ! use iso_c_binding, only:c_float,c_double
+ ! implicit none
+ ! integer, parameter :: int8 = selected_int_kind(10)
+ ! integer, parameter :: sing_prec = c_float
+ ! integer, parameter :: doub_prec = c_double
+ ! character(len=10), parameter, public :: formatname='phantom'
+ ! integer, parameter :: lentag = 16
+
+
  implicit none
- integer, parameter :: int8 = selected_int_kind(10)
- integer, parameter :: sing_prec = 32
- integer, parameter :: doub_prec = 64
+ !integer, parameter :: int8 = selected_int_kind(10)
+ !integer, parameter :: sing_prec = selected_real_kind(4) !c_float
+ !integer, parameter :: doub_prec = selected_real_kind(8) !c_double
  character(len=10), parameter, public :: formatname='phantom'
  integer, parameter :: lentag = 16
 
- public :: write_sphdata_phantom, tag, int8, sing_prec, doub_prec
+ public :: write_sphdata_phantom, tag !, int8, sing_prec, doub_prec
  private
 
 contains
@@ -66,7 +76,7 @@ subroutine write_sphdata_phantom(time,gamma,dat,ndim,ntotal,ntypes,npartoftype, 
  real, intent(in)             :: gamma
  real, intent(in)             :: dat(ntotal,ncolumns)
  real, intent(in)             :: masstype(:)
- real(doub_prec), intent(in)  :: udist,umass,utime,umagfd
+ real(doub_prec), intent(in)  :: udist,umass,utime,umagfd !! doub_prec --> 8
  character(len=*), intent(in) :: labeltype(ntypes),label_dat(ncolumns)
  integer,          intent(in) :: ix(3),ivx,ih,iBfirst,ipmass,iutherm
  character(len=*), intent(in) :: filename
@@ -295,7 +305,7 @@ subroutine write_sphdata_phantom(time,gamma,dat,ndim,ntotal,ntypes,npartoftype, 
 !--real*4
 !   dump smoothing length as a real*4 to save space
  write (idump, err=100) tag(label_dat(ih))
- write (idump, err=100) (real(dat(i,ih),kind=sing_prec), i=1, np)
+ write (idump, err=100) (real(dat(i,ih),kind=4), i=1, np) !!sing_prec --> 4
 !
 !--sink particle arrays
 !
@@ -334,7 +344,7 @@ subroutine write_sphdata_phantom(time,gamma,dat,ndim,ntotal,ntypes,npartoftype, 
 
  if (mhd) then
     do j=1,3
-       write(idump,err=100) (real(dat(i,iBfirst+j-1),kind=sing_prec),i=1, np)
+       write(idump,err=100) (real(dat(i,iBfirst+j-1),kind=4),i=1, np) !! sing_prec --> 4
     enddo
  endif
 
