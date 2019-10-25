@@ -12,17 +12,17 @@ subroutine c_gfunc(ngas,mgas,x,y,z,h,u,msink,hsink_soft) bind(c)
  !! ACCEPTS THINGS FROM PYTHON
  integer(c_int), intent(in) :: ngas
  real(c_double), intent(in) :: mgas(ngas), x(ngas), y(ngas), z(ngas), h(ngas), u(ngas)
- real(c_double), intent(in) :: msink, hsink_soft
+ real(c_float), intent(in) :: msink, hsink_soft
 
  integer, parameter :: ncolumns = 9 ! number of quantities to write
 
  integer :: i,ndim,ntotal,ntypes,nsink
  integer :: npartoftype(5),npart
- real(c_double) :: time
- real(c_double) :: gamma
+ real(c_float) :: time
+ real(c_float) :: gamma
 
- real(c_double), allocatable  :: dat(:,:)
- real(c_double) :: masstype(5)
+ real(c_float), allocatable  :: dat(:,:)
+ real(c_float) :: masstype(5)
  character(len=16) :: label(ncolumns)
 
  real(c_double) :: udist,umass,utime,umagfd
