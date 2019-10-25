@@ -25,15 +25,14 @@
 ! a binary dump file suitable for input to the PHANTOM code
 !-----------------------------------------------------------------
 module write_data_phantom
- use iso_c_binding, only:c_float,c_double
  implicit none
  integer, parameter :: int8 = selected_int_kind(10)
- integer, parameter :: sing_prec = c_float
- integer, parameter :: doub_prec = c_double
+ integer, parameter :: sing_prec = 32
+ integer, parameter :: doub_prec = 64
  character(len=10), parameter, public :: formatname='phantom'
  integer, parameter :: lentag = 16
 
- public :: write_sphdata_phantom
+ public :: write_sphdata_phantom, tag, int8, sing_prec, doub_prec
  private
 
 contains
@@ -43,7 +42,7 @@ contains
 !+
 !--------------------------------------------------------------------
 function tag(string)
- character(len=lentag) :: tag
+ character(len=16) :: tag
  character(len=*), intent(in) :: string
 
  tag = adjustl(string)
@@ -92,7 +91,7 @@ subroutine write_sphdata_phantom(time,gamma,dat,ndim,ntotal,ntypes,npartoftype, 
  integer            :: narraylengths,nblocks,nblockarrays,ntypesi
  integer            :: i,j,ierr,i1,index1,number,nptmass,iversion,np,maxrhead
  real               :: rheader(idimhead)
- character(len=lentag) :: rheader_tags(idimhead)
+ character(len=16) :: rheader_tags(idimhead)
  real               :: r1,hfact,macc,spinx,spiny,spinz
  logical            :: mhd
 !
