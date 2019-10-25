@@ -248,6 +248,29 @@ def make_IC_Phantom(fname,\
 
     #from pygfunc import to_cdef        
     import pygfunc
+    print("import successful")
+
+    def size_type(obj):
+        #if len(obj)> 1:
+        try:
+            printstr = ""
+            for i in obj:
+                printstr =  "size: " +str(len(obj)) + "   and type:" + str(type(obj))
+        except TypeError:
+            try:
+                printstr = "size: " +str(len(obj)) + "   and type:" + str(type(obj))
+            except TypeError:
+                printstr =  " type:" + str(type(obj)) 
+
+        return printstr
+
+    data_things = [ngas, mgas, x, y, z, hsml, u, central_point_mass, hsoft_sink]
+    
+    for thing in data_things:
+        print(thing, size_type(thing))
+        print("")
+
+
     pygfunc.write_data_phantom_interface.c_gfunc(ngas=ngas,
                                                  mgas=mgas,
                                                  x=x,
