@@ -27,12 +27,12 @@
 module write_data_phantom
  implicit none
  integer, parameter :: int8 = selected_int_kind(10)
- integer, parameter :: sing_prec = 32
- integer, parameter :: doub_prec = 64
+ integer, parameter :: sing_prec = selected_real_kind(4)
+ integer, parameter :: doub_prec = selected_real_kind(8)
  character(len=10), parameter, public :: formatname='phantom'
  integer, parameter :: lentag = 16
 
- public :: write_sphdata_phantom, tag, int8, sing_prec, doub_prec
+ public :: write_sphdata_phantom, tag, int8, sing_prec, doub_prec, fileident
  private
 
 contains
