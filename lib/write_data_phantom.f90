@@ -76,7 +76,7 @@ subroutine write_sphdata_phantom(time,gamma,dat,ndim,ntotal,ntypes,npartoftype, 
  real, intent(in)             :: gamma
  real, intent(in)             :: dat(ntotal,ncolumns)
  real, intent(in)             :: masstype(:)
- real(doub_prec), intent(in)  :: udist,umass,utime,umagfd !! doub_prec --> 8
+ real(8), intent(in)  :: udist,umass,utime,umagfd !! doub_prec --> 8
  character(len=*), intent(in) :: labeltype(ntypes),label_dat(ncolumns)
  integer,          intent(in) :: ix(3),ivx,ih,iBfirst,ipmass,iutherm
  character(len=*), intent(in) :: filename
