@@ -42,7 +42,7 @@ module write_data_phantom
  character(len=10), parameter, public :: formatname='phantom'
  integer, parameter :: lentag = 16
 
- public :: write_sphdata_phantom, tag !, int8, sing_prec, doub_prec
+ public :: write_sphdata_phantom, tag, fileident, extract_sink_particles_from_data  !, int8, sing_prec, doub_prec
 
  private
 
@@ -72,16 +72,16 @@ subroutine write_sphdata_phantom(time,gamma,dat,ndim,ntotal,ntypes,npartoftype, 
  integer, intent(in)          :: ndim,ntotal,ntypes,ncolumns
  integer, intent(in)          :: npartoftype(:)
 
- real, intent(in)             :: time !! real8 vs real4 error
+ real(8), intent(in)             :: time !! real8 vs real4 error
 
- real, intent(in)             :: gamma
- real, intent(in)             :: dat(ntotal,ncolumns)
- real, intent(in)             :: masstype(:)
+ real(8), intent(in)             :: gamma
+ real(8), intent(in)             :: dat(ntotal,ncolumns)
+ real(8), intent(in)             :: masstype(:)
  real(8), intent(in)  :: udist,umass,utime,umagfd !! doub_prec --> 8
  character(len=*), intent(in) :: labeltype(ntypes),label_dat(ncolumns)
  integer,          intent(in) :: ix(3),ivx,ih,iBfirst,ipmass,iutherm
  character(len=*), intent(in) :: filename
- real,             intent(in) :: hsoft_sink
+ real(8),             intent(in) :: hsoft_sink
 
  integer, parameter    :: i_int   = 1, &
                           i_int1  = 2, &
@@ -96,8 +96,8 @@ subroutine write_sphdata_phantom(time,gamma,dat,ndim,ntotal,ntypes,npartoftype, 
 
  integer, parameter :: intval1=690706,intval2=780806
  integer, parameter :: int1o=690706 !,int2o=780806
- integer, parameter :: idimhead = 22
- integer(kind=int8) :: nparttot,npartoftypetot(ntypes),number8
+ integer, parameter :: idimhead = 22 
+ integer            :: nparttot,npartoftypetot(ntypes),number8 !rm kind=int8
  integer            :: nums(8)
  integer            :: narraylengths,nblocks,nblockarrays,ntypesi
  integer            :: i,j,ierr,i1,index1,number,nptmass,iversion,np,maxrhead
@@ -112,6 +112,10 @@ subroutine write_sphdata_phantom(time,gamma,dat,ndim,ntotal,ntypes,npartoftype, 
 !
 !--define output file name
 !
+
+print "(/,a)",'hello from write_data_phantom fortran TEST'
+
+
  outfile=trim(filename)//'.tmp'
  narraylengths = 2
  nblocks = 1          ! not parallel dump
@@ -145,7 +149,7 @@ subroutine write_sphdata_phantom(time,gamma,dat,ndim,ntotal,ntypes,npartoftype, 
 !--figure out whether we have sink particles
 !
  call extract_sink_particles_from_data(ntypes,npartoftype,labeltype,np,&
-      npartoftypetot,nptmass,ntypesi,ilocsink)
+      npartoftypetot,nptmass,ntypesi,ilocsink) !ilocsink output here
 
  nparttot = np
 
@@ -213,7 +217,7 @@ subroutine write_sphdata_phantom(time,gamma,dat,ndim,ntotal,ntypes,npartoftype, 
  number = 2 + ntypesi
  write (idump, err=100) number
  write (idump, err=100) tag('nparttot'),tag('ntypes'),(tag('npartoftype'),i=1,ntypesi)
- write (idump, err=100) nparttot,int(ntypesi,kind=int8),npartoftypetot(1:ntypesi)
+ write (idump, err=100) nparttot,int(ntypesi),npartoftypetot(1:ntypesi) !!int(ntypesi,kind=int8)
 
 !--default real
  write (idump, err=100) maxrhead
@@ -306,7 +310,8 @@ subroutine write_sphdata_phantom(time,gamma,dat,ndim,ntotal,ntypes,npartoftype, 
 !--real*4
 !   dump smoothing length as a real*4 to save space
  write (idump, err=100) tag(label_dat(ih))
- write (idump, err=100) (real(dat(i,ih),kind=4), i=1, np) !!sing_prec --> 4
+ !write (idump, err=100) (real(dat(i,ih),kind=4), i=1, np) !!sing_prec --> 4
+ write (idump, err=100) (real(dat(i,ih)), i=1, np) !!sing_prec --> 4
 !
 !--sink particle arrays
 !
@@ -345,7 +350,8 @@ subroutine write_sphdata_phantom(time,gamma,dat,ndim,ntotal,ntypes,npartoftype, 
 
  if (mhd) then
     do j=1,3
-       write(idump,err=100) (real(dat(i,iBfirst+j-1),kind=4),i=1, np) !! sing_prec --> 4
+       !write(idump,err=100) (real(dat(i,iBfirst+j-1),kind=4),i=1, np) !! sing_prec --> 4
+       write(idump,err=100) (real(dat(i,iBfirst+j-1)),i=1, np) !! sing_prec --> 4
     enddo
  endif
 
@@ -396,6 +402,8 @@ character(len=100) function fileident(firstchar,codestring,mhd)
 
 end function fileident
 
+
+
 !--------------------------------------------------------------------
 !+
 !  extract sink particle information from dat array, as these arrays
@@ -406,18 +414,30 @@ subroutine extract_sink_particles_from_data(ntypes,npartoftype,labeltype,np,noft
  integer,              intent(in)  :: ntypes,npartoftype(ntypes)
  character(len=*),     intent(in)  :: labeltype(ntypes)
  integer,              intent(out) :: np,nptmass,ntypesi
- integer(kind=int8),   intent(out) :: noftype(ntypes)
- integer, allocatable, intent(out) :: ilocsink(:)
+ integer,              intent(out) :: noftype(ntypes) !!kind=int8
+ 
+ !integer, allocatable, intent(out) :: ilocsink(:) !ilocsink(nptmass) 
+ integer, intent(out) :: ilocsink(100000) !! warning!! forced dimension!!!
+
  integer :: i,j
+
+print "(/,a)",' SINK PARTICLE NONSENSE ROUTINE ENTERED'
 
  np = 0
  ntypesi = ntypes
- noftype(:) = int(npartoftype(:),kind=8)
+ !noftype(:) = int(npartoftype(:),kind=8)
+ noftype(:) = int(npartoftype(:))
  over_types: do i=1,ntypes
     if (trim(labeltype(i))=='sink' .or. (trim(labeltype(i))=='dark matter' .and. npartoftype(i) <= 1000)) then
+    
+       print "(/,a)",' SINK PARTICLE NONSENSE ROUTINE if statement ENTERED'
+
        nptmass = npartoftype(i)
        noftype(i) = 0
-       allocate(ilocsink(nptmass))
+      
+       !allocate(ilocsink(nptmass))
+      
+
        do j=1,nptmass
           ilocsink(j) = np+j
        enddo
@@ -430,5 +450,9 @@ subroutine extract_sink_particles_from_data(ntypes,npartoftype,labeltype,np,noft
  if (nptmass > 0) print "(/,a,i2,a)",' WRITING ',nptmass,' SINK PARTICLES'
 
 end subroutine extract_sink_particles_from_data
+
+
+
+
 
 end module write_data_phantom

@@ -7,22 +7,43 @@ contains
 
 !! pass MY python things here, through this, and build daniel's things out of them
 
-subroutine c_gfunc(ngas,mgas,x,y,z,h,u,msink,hsink_soft) bind(c)
+subroutine c_gfunc(ngas,mgas,x,y,z,h,u,msink,hsink_soft) !bind(c)
 
  !! ACCEPTS THINGS FROM PYTHON
- integer(c_int), intent(in) :: ngas
- real(c_double), intent(in) :: mgas(ngas), x(ngas), y(ngas), z(ngas), h(ngas), u(ngas)
- real(c_double), intent(in) :: msink, hsink_soft
+ ! integer(c_int), intent(in) :: ngas
+ ! real(c_double), intent(in) :: mgas(ngas), x(ngas), y(ngas), z(ngas), h(ngas), u(ngas)
+ ! real(c_double), intent(in) :: msink, hsink_soft
+ ! integer, parameter :: ncolumns = 9 ! number of quantities to write
+
+ ! integer :: i,ndim,ntotal,ntypes,nsink
+ ! integer :: npartoftype(5),npart
+ ! real(c_double) :: time
+ ! real(c_double) :: gamma
+
+ ! real(c_double), allocatable  :: dat(:,:)
+ ! real(c_double) :: masstype(5)
+ ! character(len=16) :: label(ncolumns)
+
+ ! real(c_double) :: udist,umass,utime,umagfd
+ ! character(len=*), parameter :: labeltype(5) = (/'gas ','sink','    ','    ','    '/)
+
+ ! integer :: ix(3),ivx,ih,iBfirst,ipmass,iutherm
+ ! character(len=120) :: filename
+
+
+ integer, intent(in) :: ngas
+ real(8), intent(in) :: mgas(ngas), x(ngas), y(ngas), z(ngas), h(ngas), u(ngas)
+ real(8), intent(in) :: msink, hsink_soft
 
  integer, parameter :: ncolumns = 9 ! number of quantities to write
 
  integer :: i,ndim,ntotal,ntypes,nsink
  integer :: npartoftype(5),npart
- real(c_double) :: time
- real(c_double) :: gamma
+ real(8) :: time
+ real(8) :: gamma
 
- real(c_double), allocatable  :: dat(:,:)
- real(c_double) :: masstype(5)
+ real(8), allocatable  :: dat(:,:)
+ real(8) :: masstype(5)
  character(len=16) :: label(ncolumns)
 
  real(c_double) :: udist,umass,utime,umagfd
@@ -33,6 +54,8 @@ subroutine c_gfunc(ngas,mgas,x,y,z,h,u,msink,hsink_soft) bind(c)
 
  time = 0.0
  gamma = 5.0/3.0
+
+ print "(/,a)",'hello from fortran pygfunc TEST'
 
  print *, "Starting (loc 5)"
  print *, "ngas:", ngas
