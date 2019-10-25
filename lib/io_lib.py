@@ -246,7 +246,6 @@ def make_IC_Phantom(fname,\
     central_point_mass=float(central_point_mass)#.astype(np.float64)
     print("DEBUGGING: type(central_point_mass)", type(central_point_mass))
 
-    #from pygfunc import to_cdef        
     import pygfunc
     pygfunc.write_data_phantom_interface.c_gfunc(ngas=ngas,
                                                  mgas=mgas,

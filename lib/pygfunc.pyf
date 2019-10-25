@@ -7,11 +7,11 @@ python module pygfunc ! in
             use iso_c_binding, only: c_double,c_float,c_int,c_char
             use write_data_phantom, only: write_sphdata_phantom
             subroutine c_gfunc(ngas,mgas,x,y,z,h,u,msink,hsink_soft) ! in :pygfunc:pygfunc.f90:write_data_phantom_interface
-                integer(kind=c_int), optional,intent(in),check(len(mgas)>=ngas),depend(mgas) :: ngas=len(mgas)
+                integer(kind=c_int), optional,intent(in),depend(mgas) :: ngas
                 real(kind=c_double) dimension(ngas),intent(in) :: mgas
-                real(kind=c_double) dimension(ngas),intent(in),depend(ngas) :: x
-                real(kind=c_double) dimension(ngas),intent(in),depend(ngas) :: y
-                real(kind=c_double) dimension(ngas),intent(in),depend(ngas) :: z
+                real(kind=c_double) dimension(ngas+1),intent(in),depend(ngas) :: x
+                real(kind=c_double) dimension(ngas+1),intent(in),depend(ngas) :: y
+                real(kind=c_double) dimension(ngas+1),intent(in),depend(ngas) :: z
                 real(kind=c_double) dimension(ngas),intent(in),depend(ngas) :: h
                 real(kind=c_double) dimension(ngas),intent(in),depend(ngas) :: u
                 real(kind=c_float) intent(in) :: msink
