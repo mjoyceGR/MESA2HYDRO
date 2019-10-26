@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 #************************************************************************
 #
@@ -21,12 +21,12 @@ import numpy as np
 import matplotlib.pyplot as plt
 from scipy.optimize import curve_fit
 import sys
-import MESAhandling as MJ
-import mainlib as mn
+from MESA2HYDRO.lib import MESAhandling as MJ
+from MESA2HYDRO.lib import mainlib as mn
 import datetime as dt 
 import random as rand
 import healpy as hp
-import constants as const
+from MESA2HYDRO.lib import constants as const
 
 
 M_to_solar=const.Msun
@@ -312,10 +312,10 @@ def get_MESA_profile_edge(MESA_file,**kwargs):
 	
 	try:
 		quantity=MJ.get_quantity(MESA_file,keyword)
-	except:
+	except KeyError:
 		print("Quantity keyword not found. Allowed keywords are:")
 		print(MJ.show_allowed_MESA_keywords(MESA_file))
-		sys.exit()
+		sys.exit(1)
 
 	masses = MJ.get_quantity(MESA_file,'mass').astype(np.float)
 	Mtot=masses[0]

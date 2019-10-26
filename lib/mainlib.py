@@ -21,13 +21,13 @@ import scipy.interpolate as interpolate
 import scipy.optimize as optimize
 import math
 import sys 
-import hdf5lib as hdf5lib
 import time
 
-import converge_funcs as cf
-import MESAhandling as MJ
-import io_lib as rw
-import constants as const
+from MESA2HYDRO.lib import converge_funcs as cf
+from MESA2HYDRO.lib import MESAhandling as MJ
+from MESA2HYDRO.lib import hdf5lib
+from MESA2HYDRO.lib import io_lib as rw
+from MESA2HYDRO.lib import constants as const
 
 const.logo()
 

@@ -2,7 +2,5 @@ recursive-include data *
 recursive-include out/NR_files/ *.dat
 recursive-include lib/ pygfunc.f90
 recursive-include lib/ *.f90
-recursive-include lib/ *.h
-recursive-include lib/ *.pyx
 recursive-include work/ *
 recursive-include DOCUMENTATION/ *

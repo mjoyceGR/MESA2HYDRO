@@ -33,7 +33,7 @@
 #
 # Mark Vogelsberger (mvogelsb@cfa.harvard.edu)
 import sys
-import hdf5lib_param
+from MESA2HYDRO.lib import hdf5lib_param
 import h5py
 
 try:

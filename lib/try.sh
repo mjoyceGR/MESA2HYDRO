@@ -1,5 +1,5 @@
 
-gfortran -c write_data_phantom.f90 -std=f2003
+#gfortran -c write_data_phantom.f90 -std=f2003
 
 
 ## -m is name the module pygfunc

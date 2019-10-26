@@ -5,8 +5,8 @@ import subprocess
 import sys
 import os
 try:
-    import MESA2HYDRO.lib.MESAhandling as MJ
-    import MESA2HYDRO.lib.converge_funcs as cf
+    from MESA2HYDRO.lib import MESAhandling as MJ
+    from MESA2HYDRO.lib import converge_funcs as cf
 except ImportError:
     MESA_PKG_DIR = os.path.abspath(
         os.path.join(os.path.abspath(os.path.dirname(__file__)), '..'))
