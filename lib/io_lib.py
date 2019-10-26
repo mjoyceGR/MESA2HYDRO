@@ -24,7 +24,7 @@ import math
 import sys 
 from MESA2HYDRO.lib import converge_funcs as cf
 from MESA2HYDRO.lib import hdf5lib
-from MESA2HYDRO.lib import pygfunc
+import pygfunc
 
 ###############################################################
 #
