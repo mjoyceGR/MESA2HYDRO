@@ -1,4 +1,4 @@
-#!/usr/bin/python2
+#!/usr/bin/python3
 
 import os
 import sys
@@ -25,7 +25,7 @@ for location in script_locations:
     location = location[:-1]
     if not os.path.isfile(location):
         continue
-    result = raw_input("Remove {}(y/N)?".format(location))
+    result = input("Remove {}(y/N)?".format(location))
     if result.upper().startswith("Y"):
         try:
             os.remove(location)
@@ -56,7 +56,7 @@ for location in related_files:
         print("Skipping {} because doesn't exist".format(location))
         continue
 
-    result = raw_input("Remove {}?(y/N)".format(location))
+    result = input("Remove {}?(y/N)".format(location))
     if result.upper().startswith("Y"):
         try:
             if os.path.isdir(location):
@@ -70,7 +70,7 @@ for location in related_files:
 
 file_path = os.path.abspath(__file__)
 
-result = raw_input("Remove this file ({})?(y/N)".format(file_path))
+result = input("Remove this file ({})?(y/N)".format(file_path))
 print(result)
 if result.upper().startswith("Y"):
     try:

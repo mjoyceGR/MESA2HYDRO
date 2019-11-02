@@ -22,8 +22,9 @@ import scipy.interpolate as interpolate
 import scipy.optimize as optimize
 import math
 import sys 
-import converge_funcs as cf
-import hdf5lib as hdf5lib
+from MESA2HYDRO.lib import converge_funcs as cf
+from MESA2HYDRO.lib import hdf5lib
+import pygfunc
 
 ###############################################################
 #
@@ -245,6 +246,7 @@ def make_IC_Phantom(fname,\
 
     central_point_mass=float(central_point_mass)#.astype(np.float64)
     print("DEBUGGING: type(central_point_mass)", type(central_point_mass))
+
 
     import pygfunc
     print("import successful")

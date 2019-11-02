@@ -22,10 +22,10 @@ import sys
 import os
 import re
 try:
-    import MESA2HYDRO.lib.MESAhandling as MJ
-    import MESA2HYDRO.lib.converge_funcs as cf
-    import MESA2HYDRO.lib.io_lib as rw
-    import MESA2HYDRO.lib.mainlib as mn
+    from MESA2HYDRO.lib import converge_funcs as cf
+    from MESA2HYDRO.lib import MESAhandling as MJ
+    from MESA2HYDRO.lib import io_lib as rw
+    from MESA2HYDRO.lib import mainlib as mn
     from MESA2HYDRO.lib.cfg_parser import *
 except ImportError:
     MESA_PKG_DIR = os.path.abspath(
