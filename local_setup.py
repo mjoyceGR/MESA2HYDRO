@@ -1,10 +1,17 @@
 #!/usr/bin/env python3
 
 import os
+import shutil
 import sys
 import subprocess
 
 ################################
+
+LOCAL_BASH = '~/.bashrc'
+BACKUP_BASH = '~/.bashrc.bak'
+
+FULL_PATH_BASH = os.path.expanduser(LOCAL_BASH)
+FULL_PATH_BASH_BAK = os.path.expanduser(BACKUP_BASH)
 
 PKG_DIR = os.path.abspath(os.path.dirname(__file__))
 PYPATH_DIR = os.path.dirname(PKG_DIR)
@@ -21,9 +28,10 @@ python_paths = [os.path.abspath(path) for path in python_path.split(':')]
 if PYPATH_DIR not in python_paths:
     print("{} not in PYTHONPATH, needed for local development of MESA2HYDRO"
           .format(PYPATH_DIR))
-    print("Appending {} to PYTHONPATH in ~/.bashrc".format(PYPATH_DIR))
-    with open(os.path.expanduser('~/.bashrc'), 'w+') as f:
-        f.write('# ADDED BY MESA2HYDRO FOR LOCAL DEVELOPMENT')
+    print("Appending {} to PYTHONPATH in {}".format(PYPATH_DIR, FULL_PATH_BASH))
+    shutil.copyfile(FULL_PATH_BASH, FULL_PATH_BASH_BAK)
+    with open(FULL_PATH_BASH, 'a') as f:
+        f.write('# ADDED BY MESA2HYDRO FOR LOCAL DEVELOPMENT\n')
         f.write('export PYTHONPATH=$PYTHONPATH:~/')
     
 subprocess.run("pip install -r requirements.txt", shell=True)
