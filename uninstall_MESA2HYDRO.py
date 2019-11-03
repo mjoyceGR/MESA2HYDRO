@@ -34,39 +34,50 @@ for location in script_locations:
             print("Try running again with sudo")
             sys.exit(1)
 
+
+def remove_package_files(package, package_path):
+    package_dir = os.path.dirname(package_path)
+    all_packages = os.listdir(package_dir)
+
+    related_files = []
+    for package_file in all_packages:
+        if package in package_file:
+            related_files.append(os.path.join(package_dir, package_file))
+
+    for location in related_files:
+        if not os.path.exists(location):
+            print("Skipping {} because doesn't exist".format(location))
+            continue
+
+        result = input("Remove {}?(y/N)".format(location))
+        if result.upper().startswith("Y"):
+            try:
+                if os.path.isdir(location):
+                    shutil.rmtree(location)
+                else:
+                    os.remove(location)
+            except OSError as err:
+                print(err)
+                print("Try running again with sudo")
+                sys.exit(1)
+
 try:
     import MESA2HYDRO
+    package_path = MESA2HYDRO.__path__[0]
+    print("MESA2HYDRO is installed at {}".format(package_path))
 except:
     print("MESA2HYDRO isn't installed, not removing it")
-    sys.exit(0)
 
-package_path = MESA2HYDRO.__path__[0]
-print("MESA2HYDRO is installed at {}".format(package_path))
+remove_package_files("MESA2HYDRO", package_path)
 
-package_dir = os.path.dirname(package_path)
-all_packages = os.listdir(package_dir)
-
-related_files = []
-for package_file in all_packages:
-    if "MESA2HYDRO" in package_file:
-        related_files.append(os.path.join(package_dir, package_file))
-
-for location in related_files:
-    if not os.path.exists(location):
-        print("Skipping {} because doesn't exist".format(location))
-        continue
-
-    result = input("Remove {}?(y/N)".format(location))
-    if result.upper().startswith("Y"):
-        try:
-            if os.path.isdir(location):
-                shutil.rmtree(location)
-            else:
-                os.remove(location)
-        except OSError as err:
-            print(err)
-            print("Try running again with sudo")
-            sys.exit(1)
+try:
+    import pygfunc
+    package_path = pygfunc.__file__
+    print("pygfunc is installed at {}".format(package_path))
+except:
+    print("pygfunc isn't installed, not removing it")
+    
+remove_package_files("pygfunc", package_path)
 
 file_path = os.path.abspath(__file__)
 

@@ -32,7 +32,8 @@ if PYPATH_DIR not in python_paths:
     shutil.copyfile(FULL_PATH_BASH, FULL_PATH_BASH_BAK)
     with open(FULL_PATH_BASH, 'a') as f:
         f.write('# ADDED BY MESA2HYDRO FOR LOCAL DEVELOPMENT\n')
-        f.write('export PYTHONPATH=$PYTHONPATH:~/')
+        f.write('export PYTHONPATH=$PYTHONPATH:{}'.format(PYPATH_DIR))
+    print("Restart your terminal to complete local installation")
     
 subprocess.run("pip install -r requirements.txt", shell=True)
 

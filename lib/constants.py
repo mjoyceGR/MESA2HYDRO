@@ -15,7 +15,6 @@ Contains: unit and other definitions
            
 '''
 
-
 def logo():
     print("_________________________________________________________________________")
     print( "|                                                                       |")
