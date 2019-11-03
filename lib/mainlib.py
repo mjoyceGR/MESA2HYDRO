@@ -29,7 +29,10 @@ from MESA2HYDRO.lib import hdf5lib
 from MESA2HYDRO.lib import io_lib as rw
 from MESA2HYDRO.lib import constants as const
 
-const.logo()
+if not sys.modules['MESA2HYDRO.lib.mainlib'].__dict__.get('__RAN_LOGO__'):
+    const.logo()
+
+__RAN_LOGO__ = True
 
 M_to_solar=const.Msun 
 R_to_solar=const.Rsun 
