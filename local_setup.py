@@ -35,7 +35,7 @@ if PYPATH_DIR not in python_paths:
         f.write('export PYTHONPATH=$PYTHONPATH:{}'.format(PYPATH_DIR))
     print("Restart your terminal to complete local installation")
     
-subprocess.run("pip install -r requirements.txt", shell=True)
+subprocess.run("pip3 install -r requirements.txt", shell=True)
 
 # install fortran locally
 subprocess.run('./install_phantom.sh', shell=True)
