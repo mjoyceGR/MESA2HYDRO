@@ -61,23 +61,29 @@ def remove_package_files(package, package_path):
                 print("Try running again with sudo")
                 sys.exit(1)
 
-try:
-    import MESA2HYDRO
-    package_path = MESA2HYDRO.__path__[0]
-    print("MESA2HYDRO is installed at {}".format(package_path))
-except:
-    print("MESA2HYDRO isn't installed, not removing it")
+def remove_mesa2hydro():
+    try:
+        import MESA2HYDRO
+        package_path = MESA2HYDRO.__path__[0]
+        print("MESA2HYDRO is installed at {}".format(package_path))
+    except:
+        print("MESA2HYDRO isn't installed, not removing it")
+        return
 
-remove_package_files("MESA2HYDRO", package_path)
+    remove_package_files("MESA2HYDRO", package_path)
 
-try:
-    import pygfunc
-    package_path = pygfunc.__file__
-    print("pygfunc is installed at {}".format(package_path))
-except:
-    print("pygfunc isn't installed, not removing it")
-    
-remove_package_files("pygfunc", package_path)
+def remove_pygfunc():
+    try:
+        import pygfunc
+        package_path = pygfunc.__file__
+        print("pygfunc is installed at {}".format(package_path))
+    except:
+        print("pygfunc isn't installed, not removing it")
+        return
+    remove_package_files("pygfunc", package_path)
+
+remove_mesa2hydro()
+remove_pygfunc()
 
 file_path = os.path.abspath(__file__)
 
