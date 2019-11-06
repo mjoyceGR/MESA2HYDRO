@@ -23,7 +23,7 @@ PYGFUNC_PYF_FILE = "lib/pygfunc.pyf"
 WRITE_DATA_PHANTOM_F90_FILE = "lib/write_data_phantom.f90"
 
 
-subprocess.run("pip3 install -r requirements.txt", shell=True)
+subprocess.run("pip3 install -r requirements.txt --user", shell=True)
 
 # install fortran locally
 subprocess.run('./install_phantom.sh', shell=True)
