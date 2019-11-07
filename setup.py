@@ -8,7 +8,7 @@ from numpy import f2py
 
 ################################
 
-VERSION = '0.1.2146'
+VERSION = '1.1.1'
 PYGFUNC_F90_FILE = "lib/pygfunc.f90"
 PYGFUNC_PYF_FILE = "lib/pygfunc.pyf"
 WRITE_DATA_PHANTOM_F90_FILE = "lib/write_data_phantom.f90"
