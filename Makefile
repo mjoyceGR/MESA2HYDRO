@@ -5,7 +5,7 @@ all: phantom
 
 .PHONY: install
 install:
-	sudo python2 setup.py install
+	sudo python3 setup.py install
 
 .PHONY: phantom
 phantom: lib/pygfunc.pyf
