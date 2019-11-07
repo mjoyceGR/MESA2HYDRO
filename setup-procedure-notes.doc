@@ -1,0 +1,57 @@
+python3 setup.py build_ext
+
+running build_ext
+running build_src
+build_src
+building extension "pygfunc" sources
+f2py options: []
+  adding 'build/src.linux-x86_64-3.6/build/src.linux-x86_64-3.6/lib/fortranobject.c' to sources.
+  adding 'build/src.linux-x86_64-3.6/build/src.linux-x86_64-3.6/lib' to include_dirs.
+  adding 'build/src.linux-x86_64-3.6/lib/pygfunc-f2pywrappers2.f90' to sources.
+build_src: building npy-pkg config files
+customize UnixCCompiler
+customize UnixCCompiler using build_ext
+get_default_fcompiler: matching types: '['gnu95', 'intel', 'lahey', 'pg', 'absoft', 'nag', 'vast', 'compaq', 'intele', 'intelem', 'gnu', 'g95', 'pathf95', 'nagfor']'
+customize Gnu95FCompiler
+Found executable /home/mjoyce/mesasdk/bin/gfortran
+customize Gnu95FCompiler
+customize Gnu95FCompiler using build_ext
+
+
+---------------------------------------------------------
+during execution:
+  File "./run_conversion.py", line 19, in <module>
+    import numpy as np
+ModuleNotFoundError: No module named 'numpy'
+Error in sys.excepthook:
+Traceback (most recent call last):
+  File "/usr/lib/python3/dist-packages/apport_python_hook.py", line 63, in apport_excepthook
+    from apport.fileutils import likely_packaged, get_recent_crashes
+  File "/usr/lib/python3/dist-packages/apport/__init__.py", line 5, in <module>
+    from apport.report import Report
+  File "/usr/lib/python3/dist-packages/apport/report.py", line 30, in <module>
+    import apport.fileutils
+  File "/usr/lib/python3/dist-packages/apport/fileutils.py", line 23, in <module>
+    from apport.packaging_impl import impl as packaging
+  File "/usr/lib/python3/dist-packages/apport/packaging_impl.py", line 24, in <module>
+    import apt
+  File "/usr/lib/python3/dist-packages/apt/__init__.py", line 23, in <module>
+    import apt_pkg
+ModuleNotFoundError: No module named 'apt_pkg'
+
+Original exception was:
+Traceback (most recent call last):
+  File "./run_conversion.py", line 19, in <module>
+    import numpy as np
+ModuleNotFoundError: No module named 'numpy'
+
+
+
+sudo apt-get install --reinstall python3-apt
+
+
+sudo apt update
+sudo apt upgrade
+sudo apt install python3.7 python3.7-dev python3.7-venv
+
+sudo apt-get install python3-numpy
