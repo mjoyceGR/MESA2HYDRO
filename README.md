@@ -168,7 +168,15 @@ Some failures to install can be rectified by installing python3-dev via
 	
 	sudo apt-get install python3-dev
 
-In your Python 3 environment is out of date, one can install the required dependencies via 
+In your Python3 environment is out of date, the following set of commands may solve this:
+
+	sudo apt update
+	sudo apt upgrade
+	sudo apt-get install --reinstall python3-apt
+	sudo apt install python3.7 python3.7-dev python3.7-venv
+
+
+You can then install the required dependencies via 
 
 	sudo apt-get install python3-matplotlib
 	sudo apt-get install python3-scipy
