@@ -20,7 +20,7 @@ Read the User's Guide (WARNING: updated less frequently):
 ## Introduction
 From discrete stellar structure data in the style of MESA (http://mesa.sourceforge.net/) density profiles, this package creates initial conditions (IC) files readable by smoothed-particle hydrodynamics (SPH) codes such as Phantom (https://phantomsph.bitbucket.io/).  
 
-The primary purpose of this software is to generate "NR" files that parameterize the mass distribution in an arbitrary model star.
+The primary purpose of this software is to generate "NR" files, which contain coordinates parameterizing the mass distribution of an arbitrary model star to arbitrary depth.
 
 An NR file is a basic text file containing 4 columns of numerical data: 
 (1) integer N (dimensionless),
