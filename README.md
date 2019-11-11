@@ -1,5 +1,11 @@
 # MESA2HYDRO
 
+
+## UPDATE
+MESA2HYDRO is now written in Python3. The most up-to-date documentation is here on GitHub.
+
+The cython package is no longer a dependency!  
+
 ## Documentation
 Read the paper
 
@@ -7,7 +13,7 @@ Read the paper
 
 	Free: https://arxiv.org/abs/1907.09062
 
-Read the User's Guide:
+Read the User's Guide (WARNING: updated less frequently):
 
 	https://github.com/mjoyceGR/MESA2HYDRO/blob/master/DOCUMENTATION/MESA2HYDRO_users_guide.pdf
 
@@ -28,35 +34,56 @@ The radii represent midpoint values rmid = (ru + rl) / 2 , in physical units (cm
 The length of the file corresponds to the number of shells needed to reconstruct the sampled 1D density profile as a 3D particle distribution built of concentric shells. 
 
 
-## Installation via Git/tarball--recommended
+## Recommended Installation: Git/tarball
 Cloning this git repository (or downloading the tarball) is the safest way to collect all software and dependencies: 
 
 	git clone https://github.com/mjoyceGR/MESA2HYDRO.git
 
-After cloning/unpacking,
+Download and upack the .zip file via
+
+	unzip MESA2HYDRO-master.zip
+
+Download and upack a .tar file via
+
+	tar -xvf MESA2HYDRO-master.tar
+
+After cloning or unpacking, move to the head directory via
 
 	cd MESA2HYDRO/
 
-Run the following from the top level directory: 
+Issue the following command in the top level directory
 
-	sudo python2 setup.py install
+	python3 local_setup.py
 
-or equivalently
-
-	make install
-
-## Installation via Pip
-
-MESA2HYDRO is also theoretically available via pip, but this will not be updated as frequently as the git repo:
-
-	pip install MESA2HYDRO
+to install the package locally.
 
 
-In some cases, "pip2" and "python2" should replace "pip" and "python", respectively (i.e. if your default version is Python3--we will be releasing this package for Python3 shortly)
+To compile the Fortran components separately before installation, run
+
+
+	./setup.py build_ext
+
+followed by
+
+	./setup.py install --user
+
+
+
+## Installation via pip
+
+MESA2HYDRO is also theoretically available via pip, but this will not be updated as frequently as the git repo. 
+WARNING: some issues may occur if you have multiple versions of pip installed.
+
+Using pip3, run
+
+	pip3 install MESA2HYDRO
+
+
+In some cases, "pip" and "python" can/should replace "pip3" and "python3", respectively (i.e. if your default version is Python3)
 
 To upgrade, run
 
-	pip install --upgrade MESA2HYDRO==0.1.XXXX
+	pip install --upgrade MESA2HYDRO==1.1.XXXX
 
 where 0.1.XXXX is the lastest version number on https://pypi.org/manage/project/MESA2HYDRO/releases/
 
@@ -75,26 +102,12 @@ or
 for the most recent version.
 
 
-Pip sometimes has issues with healpy and cython, both of which are required. You can install these separately via 
-
-	sudo apt-get install cython
-
-or equivalent, BEFORE running pip install, or avoid this all together by downloading the package tarball and setting it up manually.
-
-
-If you have installed the package via pip, pip will place the MESA2HYDRO home directory with other Python packages, most likely somewhere like
-
-	/usr/share/bin/python2.7/
-
-If you've failed to specify pip2 and have later versions of Python installed, it may end up somewhere like
-
-	~/anaconda/lib/python3.5/site-packages/
-
+If you've failed to specify pip3 and have other versions of Python installed, the package may end up somewhere unexpected.
 You can locate the package by typing
 
 	pip show MESA2HYDRO
 
-You may want to copy or move the entire MESA2HYDRO root directory somewhere where it is easier to work out of it directly 
+You may want to copy or move the entire MESA2HYDRO root directory somewhere where it is easier to work out of directly 
 
 	mv MESA2HYDRO/ /home/your_name/
 
@@ -104,67 +117,62 @@ From there, you should set the $MESA2HYDRO_ROOT environment variable in your .ba
 
 Then
 
-	cd MESA2HYDRO/
-
-
-
-## Running a test case
-To run a basic MESA2HYDRO instance, move to the work directory via
-
 	cd MESA2HYDRO/work/
 
-and issue the command
-
-	./run_conversion.py mainsequence_test.cfg
-
-Failure may be caused by missing packages. The user must have, at minimum, the following Python and external packages installed on their machine:
-
- 	argparse
-	cython
-	healpy
-	matplotlib.pyplot
-	numpy
-  	python-tk
-	random
-  	scipy.interpolate
-	scipy.optimize
-	time
-
-If they were not automatically installed via pip or the setup procedure, these can be installed from the command line via, e.g., 
-
-	sudo apt-get install python-tk
-
-or similarly via, e.g., 
-
-	pip install numpy 
-
-The authors have had better results installing these additional libraries via command line rather than through pip. 
-
-In particular, one must have numerical and other libraries required by healpy/HEALPix (https://healpy.readthedocs.io/en/latest/) installed on their machine. The installation command for healpy is:
-
-	pip install healpy
-
-More information on dealing with healpy can be found at https://healpy.readthedocs.io/en/latest/install.html
-
+and follow the instructions for Running a Test Case. No additional setup or compilation should be required if installed via pip. 
 
 ## Prerequisites
 For a complete list of Python and external software dependencies, see the Prerequisites section of the user's guide.
+This project was developed with MESA version 10398 and uses example inlists and input models (e.g. wd.mod) included in mesa-r10398. Neither Phantom nor MESA is required for operation, but we recommend these two packages. 
 
-This project was designed to interface with MESA version 10398, using example inlists and input models (e.g. wd.mod) sourced from data provided within mesa-r10398. See 1D-MESA2HYDRO-3D user's guide.
+
+## Running a Test Case
+To run a basic MESA2HYDRO calculation, move to the work directory via
+
+	cd MESA2HYDRO/work/
+
+Basic operation proceeds via
+
+	python3 run_conversion.py mainsequence.cfg
+
+where mainsequence.cfg is a configuration file. These are the files that the user should modify to suit their problem. 
 
 
-## Operation
-Basic operation proceeds from the "work" subdirectory via
 
-	./run_conversion.py mainsequence_test.cfg
+## Troubleshooting
+Failure may be caused by missing packages. The user must have, at minimum, the following Python3 and external packages installed on their machine:
 
-or equivalently
+	healpy
+	matplotlib
+	numpy
+  	python-tk
+  	scipy.interpolate
+	scipy.optimize
 
-	python2 run_conversion.py mainsequence_test.cfg
 
-See 1D-MESA2HYDRO-3D user's guide for more detailed information.
+If they were not automatically installed via pip or the setup procedure, these can be installed from the command line via, e.g., 
 
-## Common Installation Issues
-Some failures to install can be rectified by installing python-dev via 
+	sudo apt-get install python3-numpy
+
+or similarly via, e.g., 
+
+	pip3 install numpy 
+
+The authors have had better results installing these additional libraries via command line rather than through pip. 
+
+In particular, one must have numerical and other libraries required by healpy/HEALPix (https://healpy.readthedocs.io/en/latest/) installed on their machine. 
+More information on dealing with healpy can be found at https://healpy.readthedocs.io/en/latest/install.html
+
+
+Some failures to install can be rectified by installing python3-dev via 
 	
-	sudo apt-get install python-dev
+	sudo apt-get install python3-dev
+
+In your Python 3 environment is out of date, one can install the required dependencies via 
+
+	sudo apt-get install python3-matplotlib
+	sudo apt-get install python3-scipy
+	sudo apt-get install python3-h5py
+	sudo apt-get install python3-healpy
+
+or equivalent. See "requirements.txt" in the top MESA2HYDRO directory for all dependencies
