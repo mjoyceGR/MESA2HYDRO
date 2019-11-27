@@ -8,7 +8,7 @@ import setuptools
 ################################
 
 
-VERSION = '1.1.2'
+VERSION = '1.1.3'
 PYGFUNC_F90_FILE = "lib/pygfunc.f90"
 PYGFUNC_PYF_FILE = "lib/pygfunc.pyf"
 WRITE_DATA_PHANTOM_F90_FILE = "lib/write_data_phantom.f90"
