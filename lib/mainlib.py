@@ -137,12 +137,12 @@ def make_NR_file(MESA_file,masscut,N,mp, RKstep, TOL, NR_file, *args, **kwargs):
     rmax=fit_region_R.max()
 
     outf=NR_file
-    outf.write('## fname',  MESA_file ,\
-               ' masscut',  masscut,\
-               '   N',      N,\
-               '  mp (Ms)', mp/M_to_solar,\
-               '  mp (g)',  mp,\
-               '  stepsize',  ('%1.7e'% RKstep), "\n")
+    outf.write('## fname ' +  MESA_file +
+               '  masscut ' + masscut +
+               '    N ' +      N +
+               '   mp (Ms) ' + (mp/M_to_solar) +
+               '   mp (g) ' +  mp +
+               '   stepsize ' +  ('%1.7e'% RKstep) + "\n")
     
     outf.write('#N    (ru+rl)/2 (cm)    Mcontained in shell ru-rl     u(rmid)\n')
 
