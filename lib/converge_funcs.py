@@ -270,7 +270,7 @@ def get_placement_radii(rmin, rmax, RKstep, TOL, force_N, mp, MESA_file, masscut
 		r_print=(ru_mass_loop + rl)/2.0
 		r_nearest,rdex=find_nearest(fit_region_R,r_print)
 		u_local=fit_region_E[rdex]
-		outf.write("{} {} {} {}".format(force_N, r_print, Mshell_integral, u_local))
+		outf.write("{} {} {} {}\n".format(force_N, r_print, Mshell_integral, u_local))
 
 		RKtemp = RKstep	
 		Mshell_temp=Mshell_integral
