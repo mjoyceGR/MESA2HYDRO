@@ -1,5 +1,5 @@
 # MESA2HYDRO
-
+Cite: [![DOI](https://zenodo.org/badge/108014560.svg)](https://zenodo.org/badge/latestdoi/108014560)
 
 ## UPDATE
 MESA2HYDRO is now written in Python3. The most up-to-date documentation is here on GitHub.
